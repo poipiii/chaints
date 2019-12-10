@@ -1,5 +1,6 @@
 print('hello world')
 print("Yeet")
+print("I tired")
 from flask import Flask
 app = Flask(__name__)
 
