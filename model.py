@@ -1,5 +1,5 @@
 import uuid #used for product id in product_model
-
+import shelve
 #user account details
 #user model - email,username,password,orders,payment,address
 #orders - item,price,quantity, order id
@@ -61,7 +61,7 @@ class Product_Model:
         self.__product_desc = product_desc
         self.__product_price = product_price
         self.__product_discount = product_discount
-        self.__product_images = {}
+        self.__product_images = []
         self.__product_catergory = [] 
         
     #Product_Model Mutator 
@@ -118,3 +118,63 @@ class Product_Model:
 
     def get_product_catergory(self):
         return self.__product_catergory
+    def __str__(self):
+        return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
+        ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
+
+def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+    try:
+        db = shelve.open('database/product_database/product.db','c')
+        New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+        if New_Product.get_product_id() in db.keys():
+            New_Product.set_product_id()
+            New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+            New_Product.set_product_catergory(product_catergory)
+            New_Product.set_product_images(product_images)
+            db[New_Product.get_product_id()] = New_Product
+
+        else:
+            New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+            New_Product.set_product_catergory(product_catergory)
+            New_Product.set_product_images(product_images)
+            db[New_Product.get_product_id()] = New_Product
+    
+    except KeyError:
+        raise ' key error in shelve'
+    
+    db.close()
+
+# def fetch_products():
+#     try:
+#         product_list = []
+#         db = shelve.open('database/product_database/product.db','c')
+#         for i in db.values():
+#             product_list.append(i)
+#     except IOError:
+#         raise 'db file not found'
+#     except KeyError:
+#         raise ' key error in shelve'
+#     except:
+#         raise 'unknown error'
+#     db.close()
+
+def test_print():
+    try:
+        product_list = []
+        db = shelve.open('database/product_database/product.db','c')
+        for i in db.values():
+            product_list.append(i)
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close() 
+    display_products(product_list)
+
+def display_products(product_list):
+    for i in product_list:
+        print(i)       
+
+test_print()

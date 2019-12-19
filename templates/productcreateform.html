@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1 class="display-4">Create product</h1>
-<form method="POST" action="">
+<form method="POST" action="" enctype="multipart/form-data">
 <div class="form-group">
     {{ form.product_name(class="form-control")}}
 </div>
@@ -23,7 +23,10 @@
    <div class="form-group">
         {{ form.product_catergory(class="selectpicker")}}
     </div>
-   
+
+    <div class="form-group">
+            {{ form.product_images(class="form-control-file")}}
+    </div>
   
   
  <input type="submit" value="Submit" class="btn btn-primary"/>
