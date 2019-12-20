@@ -52,7 +52,7 @@ class User_Model:
 
 
 class Product_Model:
-    def __init__(self,product_name,product_current_qty,product_desc,product_price,product_discount):
+    def __init__(self,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
         #initaliser of Product_Model
         self.__product_id = uuid.uuid4().hex #genterates a 32 bit random hexadecimal string that will be the product id
         self.__product_name =product_name
@@ -61,8 +61,8 @@ class Product_Model:
         self.__product_desc = product_desc
         self.__product_price = product_price
         self.__product_discount = product_discount
-        self.__product_images = []
-        self.__product_catergory = [] 
+        self.__product_images = product_images
+        self.__product_catergory = product_catergory
         
     #Product_Model Mutator 
     def set_product_id(self):
@@ -122,28 +122,37 @@ class Product_Model:
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
 
+# def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+#     try:
+#         db = shelve.open('database/product_database/product.db','c')
+#         New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+#         if New_Product.get_product_id() in db.keys():
+#             New_Product.set_product_id()
+#             New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+#             New_Product.set_product_catergory(product_catergory)
+#             New_Product.set_product_images(product_images)
+#             db[New_Product.get_product_id()] = New_Product
+
+#         else:
+#             New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+#             New_Product.set_product_catergory(product_catergory)
+#             New_Product.set_product_images(product_images)
+#             db[New_Product.get_product_id()] = New_Product
+    
+#     except KeyError:
+#         raise ' key error in shelve'
+    
+#     db.close()
+
 def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
         db = shelve.open('database/product_database/product.db','c')
-        New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
-        if New_Product.get_product_id() in db.keys():
-            New_Product.set_product_id()
-            New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
-            New_Product.set_product_catergory(product_catergory)
-            New_Product.set_product_images(product_images)
-            db[New_Product.get_product_id()] = New_Product
+        New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images)       
+        db[New_Product.get_product_id()] = New_Product
 
-        else:
-            New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
-            New_Product.set_product_catergory(product_catergory)
-            New_Product.set_product_images(product_images)
-            db[New_Product.get_product_id()] = New_Product
-    
     except KeyError:
         raise ' key error in shelve'
-    
     db.close()
-
 # def fetch_products():
 #     try:
 #         product_list = []
@@ -159,22 +168,21 @@ def Add_New_Products(product_name,product_current_qty,product_desc,product_price
 #     db.close()
 
 def test_print():
-    try:
-        product_list = []
-        db = shelve.open('database/product_database/product.db','c')
-        for i in db.values():
-            product_list.append(i)
-    except IOError:
-        raise 'db file not found'
-    except KeyError:
-        raise ' key error in shelve'
-    except:
-        raise 'unknown error'
+    db = shelve.open('database/product_database/product.db','c')  
+    x = 0
+    for i in db.values():
+        print(i)
+        x+=1        
+    print(len(db))
+    print(x)
     db.close() 
-    display_products(product_list)
-
-def display_products(product_list):
-    for i in product_list:
-        print(i)       
-
 test_print()
+
+def delete_db():
+    db = shelve.open('database/product_database/product.db','c') 
+    db.clear() 
+    db.close() 
+
+#delete_db()
+
+#Add_New_Products('shirt',100,'grey shirt',12,2,['child','woman'],['Annotation_2019-07-31_130925.png'])

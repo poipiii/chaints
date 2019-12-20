@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Staff Order Page</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+<style>
+.btn {
+  color: #FBFBFC;
+}
+li{
+color:black;
+font-family: Segoe UI;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+line-height: 24px;
+}
+.navbar-nav > li{
+  padding-left:10px;
+  padding-right:10px;
+}
+.sidenav {
+  height: 100%;
+  width: 89px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  padding-top: 1px;
+}
+.sidenav a {
+  padding: 1px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  font-family: Segoe UI;
+  font-style: normal;
+  line-height: 20px;
+  width: 20px;
+  top: 500px;
+  color:black;
+}
+</style>
+</head>
+<body style="background:#E5E5E5">
+  <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #F59F69;position: absolute;width: 1193px;height: 79px;left: 89px;top: 0px;">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto ml-sm-5">
+        <li class="nav-item">
+          <a class="nav-link" href="#" style="color:#272628;">HOME</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a  style="color:#272628;" class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            CATEGORIES
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">Men</a>
+            <a class="dropdown-item" href="#">Women</a>
+            <a class="dropdown-item" href="#">Kids</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" style="color:#272628;">FAQ</a>
+        </li>
+      </ul>
+<!--      <button class ="btn"><i class="material-icons" style="color:black;font-size:36px;">account_circle</i></button>--> Icon for the Profile Pic
+      <form class="form-inline">
+        <input class="form-control mr-sm-2" type="search" placeholder="search something..." aria-label="Search">
+        <button class="btn" type="submit"><i class="material-icons">search</i></button>
+        <button class="btn"><i class="material-icons">shopping_cart</i></button>
+      </form>
+    </div>
+    <div class="sidenav" style=" background: #C4C4C4;">
+<!--   <button class ="btn"><i class="material-icons" style="color:black; font-size:24px; Padding-top: 70px; position: relative;-->
+<!--  margin-left:20px;">dashboard</i></button>--> dashboard icon and specify the css for the icon and the text
+  <a href="#" style="font-size:12px;margin-right:2px; top: 1px;">Dashboard</a>
+   <button class ="btn"><i class="material-icons" style="color:black; font-size:24x; Padding-top:5px; position: relative;
+  margin-left:20px;">assignment</i></button>
+  <a href="#" style="font-size:12px;margin-left:8px;" >Orders</a>
+   <button class ="btn"><i class="material-icons" style="color:black; font-size:24x; Padding-top:5px; position: relative;
+  margin-left:20px;">local_shipping</i></button>
+  <a href="#" style="font-size:12px;margin-left:8px;">Delivery</a>
+   <button class ="btn"><i class="material-icons" style="color:black; font-size:24x; Padding-top:5px; position: relative;
+  margin-left:20px;">store</i></button>
+  <a href="#" style="font-size:12px;margin-left:8px;">Product</a>
+   <button class ="btn"><i class="material-icons" style="color:black; font-size:24x; Padding-top:5px; position: relative;
+  margin-left:20px;">settings_applications</i></button>
+  <a href="#" style="font-size:12px;margin-left:8px;">Settings</a>
+  <button class ="btn"><i class="material-icons" style="color:black; font-size:24x; Padding-top:5px; position: relative;
+  margin-left:20px;">help</i></button>
+  <a href="#" style="font-size:12px; margin-left:15px; ">Help</a>
+  </div>
+     </nav>
+  <h1>Orders</h1>
+</body>
+</html>
+
+
+
+

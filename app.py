@@ -17,14 +17,13 @@ def product_create():
     Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
     if request.method == 'POST'  :
-         #product_pics = request.files.getlist(Product_Form.product_images)
-         product_pics = Product_Form.product_images.data
-         for i in product_pics:
+        #product_pics = request.files.getlist(Product_Form.product_images)
+        product_pics = Product_Form.product_images.data
+        for i in product_pics:
              filename = secure_filename(i.filename)
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
-         Add_New_Products(Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,
-          Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+        Add_New_Products(Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
          
         
     return render_template('productcreateform.html',form =Product_Form )
