@@ -6,28 +6,75 @@ from werkzeug import secure_filename
 from model import *
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
-app.config["PRODUCT_IMAGE_UPLOAD"] = "database/product_database/product_images"
+app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
 
 @app.route("/")
 def landing_page():
-    return render_template('home_page.html')
-@app.route("/createp",methods=['POST', 'GET'])
-           
+    Products = fetch_products()
+    return render_template('home_page.html' ,product_list = Products )
+
+
+@app.route("/product/<productid>")
+def product_page(productid):
+    get_product = get_product_by_id(productid)
+    return render_template('product_view.html',product = get_product)
+
+
+
+@app.route("/dashboard")
+def dashboard_home():
+    return render_template('staff_dashboard.html')
+
+@app.route("/manage_products",methods=['POST', 'GET'])
+def dashboard_products():
+    Products = fetch_products()
+    return render_template('staff_product_page.html',product_list = Products)
+
+
+@app.route("/create_products",methods=['POST', 'GET'])
 def product_create():
     Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
-    if request.method == 'POST'  :
+    if request.method == 'POST' and Product_Form.validate() :
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
         for i in product_pics:
              filename = secure_filename(i.filename)
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
-        Add_New_Products(Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
-         
-        
+        Add_New_Products(Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
+        return redirect(url_for('dashboard_products'))      
     return render_template('productcreateform.html',form =Product_Form )
+    
+@app.route("/update_products/<productid>",methods=['POST', 'GET'])
+def dashboard_edit_products(productid):
+    Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
+    filenames = []
+    if request.method == 'POST'  and Product_Form.validate_on_submit():
+        #product_pics = request.files.getlist(Product_Form.product_images)
+        product_pics = Product_Form.product_images.data
+        for i in product_pics:
+             filename = secure_filename(i.filename)
+             i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+             filenames.append(filename)
+        
+        Edit_Products(productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+
+    return render_template('productcreateform.html',form =Product_Form)
+
+
+@app.route("/delete_products/<productid>",methods=['POST'])
+def delete_products(productid):
+    get_product = get_product_by_id(productid)
+    delete_product_by_id(get_product.get_product_id())
+    return redirect(url_for('dashboard_products'))
+
+
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 

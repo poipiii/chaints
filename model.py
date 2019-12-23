@@ -153,19 +153,47 @@ def Add_New_Products(product_name,product_current_qty,product_desc,product_price
     except KeyError:
         raise ' key error in shelve'
     db.close()
-# def fetch_products():
-#     try:
-#         product_list = []
-#         db = shelve.open('database/product_database/product.db','c')
-#         for i in db.values():
-#             product_list.append(i)
-#     except IOError:
-#         raise 'db file not found'
-#     except KeyError:
-#         raise ' key error in shelve'
-#     except:
-#         raise 'unknown error'
-#     db.close()
+def fetch_products():
+    try:
+        product_list = []
+        db = shelve.open('database/product_database/product.db','r')
+        for i in db.values():
+            product_list.append(i)
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
+    return product_list
+
+def get_product_by_id(product_id):
+    try:
+       
+        db = shelve.open('database/product_database/product.db','r')      
+        product = db.get(product_id)
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
+    return product
+
+def delete_product_by_id(product_id):
+    try:
+       
+        db = shelve.open('database/product_database/product.db','r')    
+        del(db[product_id])  
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
 
 def test_print():
     db = shelve.open('database/product_database/product.db','c')  
@@ -176,7 +204,8 @@ def test_print():
     print(len(db))
     print(x)
     db.close() 
-test_print()
+
+
 
 def delete_db():
     db = shelve.open('database/product_database/product.db','c') 
@@ -185,4 +214,30 @@ def delete_db():
 
 #delete_db()
 
-#Add_New_Products('shirt',100,'grey shirt',12,2,['child','woman'],['Annotation_2019-07-31_130925.png'])
+
+
+def Edit_Products(product_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+    try:
+        db = shelve.open('database/product_database/product.db','w')
+        if product_id in db.keys():
+            edit_product = db.get(product_id)
+            edit_product.set_product_name(product_name)
+            edit_product.set_product_current_qty(product_current_qty)
+            edit_product.set_product_desc(product_desc)
+            edit_product.set_product_price(product_price)
+            edit_product.set_product_discount(product_discount)
+            edit_product.set_product_catergory(product_catergory)
+            edit_product.set_product_images(product_images)
+            db[edit_product.get_product_id()] = edit_product
+        else:
+            print('error product not found ')
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
+
+for i in range(29):
+    Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])

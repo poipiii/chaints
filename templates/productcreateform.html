@@ -1,34 +1,40 @@
-
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 {% block content %}
-
-<h1 class="display-4">Create product</h1>
-<form method="POST" action="" enctype="multipart/form-data">
-<div class="form-group">
-    {{ form.product_name(class="form-control")}}
+<div class="container">
+    <h1 class="display-4">Product</h1>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.product_name.label(class="form-control-label")}}
+        {{ form.product_name(class="form-control",type="text")}}
+    </div>
+     <div class="form-group">
+        {{ form.product_Description.label(class="form-control-label")}}
+        {{ form.product_Description(class="form-control",type="text")}}
+        </div>
+        <div class="form-group">
+        {{ form.product_Quantity.label(class="form-control-label")}}
+        {{ form.product_Quantity(class="form-control",type="number") }}
+        </div>
+       <div class="form-group">
+       {{ form.product_Selling_Price.label(class="form-control-label")}}
+       {{ form.product_Selling_Price(class="form-control",type="number") }}
+       </div>
+       <div class="form-group">
+       {{ form.product_Discount.label(class="form-control-label")}}
+       {{ form.product_Discount(class="form-control",type="number")}}
+       </div>
+    
+       <div class="form-group">
+            {{ form.product_catergory.label(class="form-control-label")}}
+            {{ form.product_catergory(class="selectpicker")}}
+        </div>
+    
+        <div class="form-group">
+                {{ form.product_images.label(class="form-control-label")}}
+                {{ form.product_images(class="form-control-file")}}
+        </div>
+     <input type="submit" value="Submit" class="btn btn-primary"/>
+    </form>
 </div>
- <div class="form-group">
-    {{ form.product_Description(class="form-control")}}
-    </div>
-    <div class="form-group">
-    {{ form.product_Quantity(class="form-control") }}
-    </div>
-   <div class="form-group">
-   {{ form.product_Selling_Price(class="form-control") }}
-   </div>
-   <div class="form-group">
-   {{ form.product_Discount(class="form-control")}}
-   </div>
-
-   <div class="form-group">
-        {{ form.product_catergory(class="selectpicker")}}
-    </div>
-
-    <div class="form-group">
-            {{ form.product_images(class="form-control-file")}}
-    </div>
-  
-  
- <input type="submit" value="Submit" class="btn btn-primary"/>
-</form>
 {% endblock  %}
