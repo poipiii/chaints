@@ -10,17 +10,19 @@ app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
 
+
+#product display currently not working ui not done yet can do other stuff still will not affect
 @app.route("/")
 def landing_page():
-    Products = fetch_products()
-    return render_template('home_page.html' ,product_list = Products )
+    #Products = fetch_products()
+    #return render_template('home_page.html' ,product_list = Products )
+    return render_template('home_page.html')
 
-
-@app.route("/product/<productid>")
-def product_page(productid):
-    get_product = get_product_by_id(productid)
-    return render_template('product_view.html',product = get_product)
-
+#currently not working ui not done yet whatsapp me before touching this  
+# @app.route("/product/<productid>")
+# def product_page(productid):
+#     get_product = get_product_by_id(productid)
+#     return render_template('product_view.html',product = get_product)
 
 
 @app.route("/dashboard")
@@ -32,9 +34,10 @@ def dashboard_products():
     Products = fetch_products()
     return render_template('staff_product_page.html',product_list = Products)
 
-
+#route to create new product form
 @app.route("/create_products",methods=['POST', 'GET'])
 def product_create():
+    #take in more than 1 images from form, rename images and upload to static/product_images
     Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
     if request.method == 'POST' and Product_Form.validate() :
@@ -48,10 +51,12 @@ def product_create():
         return redirect(url_for('dashboard_products'))      
     return render_template('productcreateform.html',form =Product_Form )
     
+#route to update product form
 @app.route("/update_products/<productid>",methods=['POST', 'GET'])
 def dashboard_edit_products(productid):
     Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
+    #take in more than 1 images from form, rename images and upload to static/product_images
     if request.method == 'POST'  and Product_Form.validate_on_submit():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
@@ -59,7 +64,7 @@ def dashboard_edit_products(productid):
              filename = secure_filename(i.filename)
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
-        
+        #pass form data to Edit_Products function in model.py
         Edit_Products(productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
 
     return render_template('productcreateform.html',form =Product_Form)
