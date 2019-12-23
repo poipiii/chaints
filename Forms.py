@@ -12,3 +12,21 @@ class Create_Product_Form(FlaskForm):
     product_Discount = IntegerField('Product Discount',validators=[validators.InputRequired()]) 
     product_catergory = SelectMultipleField('Catergory', validators=[validators.InputRequired()],choices=[('child', 'childern clothing'), ('female', 'Female clothing'), ('male', 'Male Clothing')],default='',render_kw = {'multiple':'multiple','data-live-search':"true"})
     product_images =MultipleFileField('File(s) Upload', validators=[validators.InputRequired()])
+
+class CreateUserForm(Form):
+ email = StringField('Email', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ username = StringField('Username', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ password = StringField('Password', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ firstname = StringField('First name', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ lastname = StringField('Last name', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+
+class CreateLoginForm(Form):
+ username = StringField('Username', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ password = StringField('Password', [validators.Length(min=1,
+max=150), validators.DataRequired()])

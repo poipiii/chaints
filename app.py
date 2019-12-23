@@ -1,9 +1,11 @@
 from flask import *
 import os
-from Forms import Create_Product_Form
+from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
+import UserModel
+
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
@@ -71,6 +73,61 @@ def delete_products(productid):
 
 
 
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+
+def signupUser():
+    createUserForm = CreateUserForm(request.form)
+    if request.method == 'POST' and createUserForm.validate():
+        usersDict = {}
+        db = shelve.open('storage.db', 'c')
+        try:
+            usersDict = db['Users']
+        except:
+            print("Error in retrieving Users from storage.db.")
+        user = UserModel.User(createUserForm.email.data,
+createUserForm.username.data, createUserForm.password.data,
+createUserForm.firstname.data, createUserForm.lastname.data)
+        usersDict[user.get_email()] = user
+        db['Users'] = usersDict
+
+        db.close()
+        return redirect(url_for("home"))
+    return render_template('Signup.html', form=createUserForm)
+
+@app.route('/retrieveUsers')
+def retrieveUsers():
+    usersDict = {}
+    db = shelve.open('storage.db', 'r')
+    usersDict = db['Users']
+    db.close()
+    usersList = []
+    for key in usersDict:
+        user = usersDict.get(key)
+        usersList.append(user)
+
+    return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
+
+@app.route('/login', methods=('GET', 'POST'))
+def loginUser():
+    createLoginForm = CreateLoginForm(request.form)
+    if request.method == 'POST' and createLoginForm.validate():
+        usersDict = {}
+        db = shelve.open('storage.db', 'r')
+        usersDict = db['Users']
+        db.close()
+        username = request.form['username']
+        password = request.form['password']
+        for key in usersDict:
+            user = usersDict.get(key)
+            if user.get_username()==username and user.get_password()==password:
+                session['email'] = user.get_email()
+                session['user_name'] = user.get_username()
+                session['logged_in'] = True
+                return redirect(url_for('home'))
+
+    return render_template('login.html', form=createLoginForm)
 
 
 if __name__ == "__main__":
