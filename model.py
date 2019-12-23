@@ -122,37 +122,26 @@ class Product_Model:
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
 
-# def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
-#     try:
-#         db = shelve.open('database/product_database/product.db','c')
-#         New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
-#         if New_Product.get_product_id() in db.keys():
-#             New_Product.set_product_id()
-#             New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
-#             New_Product.set_product_catergory(product_catergory)
-#             New_Product.set_product_images(product_images)
-#             db[New_Product.get_product_id()] = New_Product
 
-#         else:
-#             New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
-#             New_Product.set_product_catergory(product_catergory)
-#             New_Product.set_product_images(product_images)
-#             db[New_Product.get_product_id()] = New_Product
-    
-#     except KeyError:
-#         raise ' key error in shelve'
-    
-#     db.close()
 
+
+#take in product form fields and creaste new product and put into db
 def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
         db = shelve.open('database/product_database/product.db','c')
         New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images)       
         db[New_Product.get_product_id()] = New_Product
 
+    except IOError:
+        raise 'db file not found'
     except KeyError:
         raise ' key error in shelve'
+    except:
+        raise 'unknown error'
     db.close()
+
+
+#grab all products in product db and return it
 def fetch_products():
     try:
         product_list = []
@@ -168,6 +157,7 @@ def fetch_products():
     db.close()
     return product_list
 
+#take in product id and return the specific product details 
 def get_product_by_id(product_id):
     try:
        
@@ -182,40 +172,8 @@ def get_product_by_id(product_id):
     db.close()
     return product
 
-def delete_product_by_id(product_id):
-    try:
-       
-        db = shelve.open('database/product_database/product.db','r')    
-        del(db[product_id])  
-    except IOError:
-        raise 'db file not found'
-    except KeyError:
-        raise ' key error in shelve'
-    except:
-        raise 'unknown error'
-    db.close()
 
-def test_print():
-    db = shelve.open('database/product_database/product.db','c')  
-    x = 0
-    for i in db.values():
-        print(i)
-        x+=1        
-    print(len(db))
-    print(x)
-    db.close() 
-
-
-
-def delete_db():
-    db = shelve.open('database/product_database/product.db','c') 
-    db.clear() 
-    db.close() 
-
-#delete_db()
-
-
-
+#edit take in product id and all product fields and overwrite sand update product in db 
 def Edit_Products(product_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
         db = shelve.open('database/product_database/product.db','w')
@@ -239,5 +197,66 @@ def Edit_Products(product_id,product_name,product_current_qty,product_desc,produ
         raise 'unknown error'
     db.close()
 
-for i in range(29):
-    Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
+
+#take in product id and delete product in db
+def delete_product_by_id(product_id):
+    try:
+       
+        db = shelve.open('database/product_database/product.db','r')    
+        del(db[product_id])  
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
+
+
+
+#product db test codes 
+#print all products in product db in command line
+# def test_print():
+#     db = shelve.open('database/product_database/product.db','c')  
+#     x = 0
+#     for i in db.values():
+#         print(i)
+#         x+=1        
+#     print(len(db))
+#     print(x)
+#     db.close() 
+
+
+#USE WITH CAUTION DELETE THE WHOLE PRODUCT DB
+# def delete_db():
+#     db = shelve.open('database/product_database/product.db','c') 
+#     db.clear() 
+#     db.close() 
+
+#USE WITH CAUTION CREATE 30 GREY SHIRT PRODUCT IN PRODUCT DB
+
+
+# for i in range(29):
+#do not touch 
+# def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+#     try:
+#         db = shelve.open('database/product_database/product.db','c')
+#         New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+#         if New_Product.get_product_id() in db.keys():
+#             New_Product.set_product_id()
+#             New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+#             New_Product.set_product_catergory(product_catergory)
+#             New_Product.set_product_images(product_images)
+#             db[New_Product.get_product_id()] = New_Product
+
+#         else:
+#             New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount)
+#             New_Product.set_product_catergory(product_catergory)
+#             New_Product.set_product_images(product_images)
+#             db[New_Product.get_product_id()] = New_Product
+    
+#     except KeyError:
+#         raise ' key error in shelve'
+    
+#     db.close()
+#     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
