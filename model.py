@@ -5,7 +5,8 @@ import shelve
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model 
-    def __init__(self,user_email,username,user_password,user_firstname,user_lastname):
+    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role):
+        self.__user_role=user_role
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
@@ -14,6 +15,9 @@ class User_Model:
         self.__user_lastname=user_lastname
 
     #User_Model Mutator
+    def set_user_role(self,user_role):
+        self.__user_role=user_role
+
     def set_user_id(self):
         self.__user_id=uuid.uuid4().hex
 
@@ -53,6 +57,9 @@ class User_Model:
 
     def get_user_id(self):
         return self.__user_id
+
+    def get_user_role(self):
+        return self.__user_role
 
 
 

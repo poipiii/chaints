@@ -90,7 +90,7 @@ def signupUser():
             db = shelve.open('database/user_database/user.db', 'c')
             user = User_Model(createUserForm.email.data,
 createUserForm.username.data, createUserForm.password.data,
-createUserForm.firstname.data, createUserForm.lastname.data)
+createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.data)
             db[user.get_user_id()]=user
         except:
             print("Error in retrieving Users from database.")

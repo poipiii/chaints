@@ -21,6 +21,8 @@ max=150), validators.DataRequired()])
 max=150), validators.DataRequired()])
  lastname = StringField('Last name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
+ role = RadioField('Role', choices=[('B', 'Buyer'),
+('A','Admin')], default='B')
 
 class CreateLoginForm(Form):
  username = StringField('Username', [validators.Length(min=1,
