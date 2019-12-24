@@ -1,10 +1,7 @@
-from wtforms import Form, StringField, RadioField, SelectField,TextAreaField,IntegerField, validators,SelectMultipleField,MultipleFileField
-from flask_uploads import *
-from flask_wtf import FlaskForm ,file
-from flask_wtf.file import *
-import model
+from wtforms import Form, StringField, RadioField, SelectField,TextAreaField,IntegerField, validators,SelectMultipleField,MultipleFileField,validators
 
-class Create_Product_Form(FlaskForm):
+
+class Create_Product_Form(Form):
     product_name = StringField('Product Name',validators=[validators.InputRequired()]) 
     product_Description = TextAreaField('Product Description',validators=[validators.InputRequired()]) 
     product_Quantity = IntegerField('Product Quantity',validators=[validators.InputRequired()])

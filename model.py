@@ -6,13 +6,17 @@ import shelve
 class User_Model:
     #initaliser of User_Model 
     def __init__(self,user_email,username,user_password,user_firstname,user_lastname):
+        self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
-        self.__user_password=hash(user_password)
+        self.__user_password=user_password
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
 
     #User_Model Mutator
+    def set_user_id(self):
+        self.__user_id=uuid.uuid4().hex
+
     def set_user_email(self,user_email):
         self.__user_email=user_email
 
@@ -20,7 +24,7 @@ class User_Model:
         self.__username=username
 
     def set_user_password(self,user_password):
-        self.__user_password=hash(user_password)
+        self.__user_password=user_password
 
     def set_user_firstname(self,user_firstname):
         self.__user_firstname=user_firstname
@@ -46,6 +50,9 @@ class User_Model:
 
     def get_user_fullname(self):
         return self.__user_firstname+" "+self.__user_lastname
+
+    def get_user_id(self):
+        return self.__user_id
 
 
 

@@ -1,10 +1,11 @@
+import shelve
 from flask import *
 import os
 from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
-import UserModel
+
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -85,32 +86,27 @@ def delete_products(productid):
 def signupUser():
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
-        usersDict = {}
-        db = shelve.open('storage.db', 'c')
         try:
-            usersDict = db['Users']
-        except:
-            print("Error in retrieving Users from storage.db.")
-        user = UserModel.User(createUserForm.email.data,
+            db = shelve.open('database/user_database/user.db', 'c')
+            user = User_Model(createUserForm.email.data,
 createUserForm.username.data, createUserForm.password.data,
 createUserForm.firstname.data, createUserForm.lastname.data)
-        usersDict[user.get_email()] = user
-        db['Users'] = usersDict
-
+            db[user.get_user_id()]=user
+        except:
+            print("Error in retrieving Users from database.")
         db.close()
-        return redirect(url_for("home"))
+        return redirect(url_for("landing_page"))
     return render_template('Signup.html', form=createUserForm)
 
 @app.route('/retrieveUsers')
 def retrieveUsers():
     usersDict = {}
-    db = shelve.open('storage.db', 'r')
-    usersDict = db['Users']
-    db.close()
+    db = shelve.open('database/user_database/user.db', 'r')
     usersList = []
-    for key in usersDict:
-        user = usersDict.get(key)
+    for user in db:
+        user=db[user]
         usersList.append(user)
+    db.close()
 
     return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
 
@@ -118,19 +114,20 @@ def retrieveUsers():
 def loginUser():
     createLoginForm = CreateLoginForm(request.form)
     if request.method == 'POST' and createLoginForm.validate():
-        usersDict = {}
-        db = shelve.open('storage.db', 'r')
-        usersDict = db['Users']
-        db.close()
-        username = request.form['username']
-        password = request.form['password']
-        for key in usersDict:
-            user = usersDict.get(key)
-            if user.get_username()==username and user.get_password()==password:
-                session['email'] = user.get_email()
-                session['user_name'] = user.get_username()
-                session['logged_in'] = True
-                return redirect(url_for('home'))
+        try:
+            db = shelve.open('database/user_database/user.db', 'r')
+            username = request.form['username']
+            password = request.form['password']
+            for user in db:
+                user=db[user]
+                if user.get_username()==username and user.get_user_password()==password:
+                    session['id'] = user.get_user_id()
+                    session['user_name'] = user.get_username()
+                    session['logged_in'] = True
+            db.close()
+        except:
+            print("Error")
+        return redirect(url_for('landing_page'))
 
     return render_template('login.html', form=createLoginForm)
 
