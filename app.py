@@ -15,9 +15,9 @@ app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
 #product display currently not working ui not done yet can do other stuff still will not affect
 @app.route("/")
 def landing_page():
-    #Products = fetch_products()
-    #return render_template('home_page.html' ,product_list = Products )
-    return render_template('home_page.html')
+    Products = fetch_products()
+    return render_template('home_page.html' ,product_list = Products )
+    #return render_template('home_page.html')
 
 #currently not working ui not done yet whatsapp me before touching this  
 # @app.route("/product/<productid>")
@@ -70,7 +70,7 @@ def dashboard_edit_products(productid):
 
     return render_template('productcreateform.html',form =Product_Form)
 
-
+#take in product id and delete product from shelve  
 @app.route("/delete_products/<productid>",methods=['POST'])
 def delete_products(productid):
     get_product = get_product_by_id(productid)
@@ -114,6 +114,7 @@ def retrieveUsers():
 def loginUser():
     createLoginForm = CreateLoginForm(request.form)
     if request.method == 'POST' and createLoginForm.validate():
+        
         try:
             db = shelve.open('database/user_database/user.db', 'r')
             username = request.form['username']
@@ -128,6 +129,19 @@ def loginUser():
         except:
             print("Error")
         return redirect(url_for('landing_page'))
+        usersDict = {}
+        db = shelve.open('database/user_database/user.db', 'r')
+        usersDict = db['Users']
+        db.close()
+        username = request.form['username']
+        password = request.form['password']
+        for key in usersDict:
+            user = usersDict.get(key)
+            if user.get_username()==username and user.get_password()==password:
+                session['email'] = user.get_email()
+                session['user_name'] = user.get_username()
+                session['logged_in'] = True
+                return redirect(url_for('home'))
 
     return render_template('login.html', form=createLoginForm)
 

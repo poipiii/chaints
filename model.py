@@ -1,5 +1,6 @@
 import uuid #used for product id in product_model
 import shelve
+from datetime import datetime
 #user account details
 #user model - email,username,password,orders,payment,address
 #orders - item,price,quantity, order id
@@ -125,6 +126,9 @@ class Product_Model:
 
     def get_product_catergory(self):
         return self.__product_catergory
+    def get_discounted_price(self):
+        discounted_price = self.get_product_price() - self.get_product_discount()
+        return discounted_price
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
@@ -267,3 +271,43 @@ def delete_product_by_id(product_id):
     
 #     db.close()
 #     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
+
+
+#model for activity logging
+class Logger:
+    def __init__(self,log_user_id):
+        self.__log_user_id = log_user_id
+        self.__timestamp = datetime.timestamp(datetime.now())
+    def get_log_user_id(self):
+        return self.__log_user_id
+    def get_timestamp(self):
+        return self.__timestamp
+    def get_timestamp_as_datetime(self):
+        return datetime.fromtimestamp(self.__timestamp)
+
+class product_logger(Logger):
+    def __init__(self,log_user_id,p_activity,product_id,product_obj):
+        super().__init__(log_user_id)
+        self.set_p_activty(p_activity)
+        self.__product_id = product_id
+        self.__product_obj = product_obj
+    def set_p_activty(self,p_activity):
+        if p_activity == 'CREATE':
+            self.__p_activity = 'Created a product'
+        elif p_activity == 'DELETE':
+            self.__p_activity = 'Deleted a product'
+        elif p_activity == 'EDIT':
+            self.__p_activity = 'Editied a product'
+    def get_p_activity(self):
+        return self.__p_activity
+    def get_product_id(self):
+        return self.__product_id
+    def get_object(self):
+        return self.__product_obj
+    def __str__(self):
+        return 'userid: {},activity: {},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_log_user_id(),self.get_p_activity(),self.get_product_id(),self.get_object()
+        ,self.get_timestamp(),self.get_timestamp_as_datetime())
+test = product_logger('TEST','CREATE','123456789','TEST2')
+print(test)
+
+

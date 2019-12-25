@@ -1,6 +1,5 @@
 from wtforms import Form, StringField, RadioField, SelectField,TextAreaField,IntegerField, validators,SelectMultipleField,MultipleFileField,validators
 
-
 class Create_Product_Form(Form):
     product_name = StringField('Product Name',validators=[validators.InputRequired()]) 
     product_Description = TextAreaField('Product Description',validators=[validators.InputRequired()]) 
