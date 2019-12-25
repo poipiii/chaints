@@ -1,5 +1,6 @@
 import uuid #used for product id in product_model
 import shelve
+from passlib.hash import pbkdf2_sha256
 #user account details
 #user model - email,username,password,orders,payment,address
 #orders - item,price,quantity, order id
@@ -10,7 +11,7 @@ class User_Model:
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
-        self.__user_password=user_password
+        self.__user_password=pbkdf2_sha256.hash(user_password)
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
 

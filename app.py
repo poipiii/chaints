@@ -5,7 +5,7 @@ from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
-
+from passlib.hash import pbkdf2_sha256
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -15,6 +15,9 @@ app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
 #product display currently not working ui not done yet can do other stuff still will not affect
 @app.route("/")
 def landing_page():
+    #redirect to navbar with profile picture
+    if session.get('logged_in') == True:
+        return redirect(url_for('home_loginpage'))
     #Products = fetch_products()
     #return render_template('home_page.html' ,product_list = Products )
     return render_template('home_page.html')
@@ -25,6 +28,10 @@ def landing_page():
 #     get_product = get_product_by_id(productid)
 #     return render_template('product_view.html',product = get_product)
 
+#only be able to access if session['logged_in']==True
+@app.route("/home_login_page")
+def home_loginpage():
+    return render_template('home_login_page.html')
 
 @app.route("/dashboard")
 def dashboard_home():
@@ -80,7 +87,8 @@ def delete_products(productid):
 
 
 
-
+#User Management
+#sign up user
 @app.route('/signup', methods=['GET', 'POST'])
 
 def signupUser():
@@ -98,6 +106,8 @@ createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.
         return redirect(url_for("landing_page"))
     return render_template('Signup.html', form=createUserForm)
 
+#retrieve User to check db if input correctly
+#will move it to admin side after ui finished
 @app.route('/retrieveUsers')
 def retrieveUsers():
     usersDict = {}
@@ -110,6 +120,7 @@ def retrieveUsers():
 
     return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
 
+#login user, session['logged_in']==True here
 @app.route('/login', methods=('GET', 'POST'))
 def loginUser():
     createLoginForm = CreateLoginForm(request.form)
@@ -120,9 +131,7 @@ def loginUser():
             password = request.form['password']
             for user in db:
                 user=db[user]
-                if user.get_username()==username and user.get_user_password()==password:
-                    session['id'] = user.get_user_id()
-                    session['user_name'] = user.get_username()
+                if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
                     session['logged_in'] = True
             db.close()
         except:
@@ -130,6 +139,12 @@ def loginUser():
         return redirect(url_for('landing_page'))
 
     return render_template('login.html', form=createLoginForm)
+
+#pop the session['logged_in'] out so will redirect to normal main page
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('landing_page'))
 
 
 if __name__ == "__main__":
