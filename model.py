@@ -256,6 +256,7 @@ def delete_product_by_id(product_id):
 
 
 # for i in range(29):
+#     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
 #do not touch 
 # def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
 #     try:
@@ -278,25 +279,27 @@ def delete_product_by_id(product_id):
 #         raise ' key error in shelve'
     
 #     db.close()
-#     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
 
 
 #model for activity logging
 class Logger:
     def __init__(self,log_user_id):
         self.__log_user_id = log_user_id
-        self.__timestamp = datetime.timestamp(datetime.now())
+        self.__product_log_list = []
+        self.__user_log_list = []
+        self.__order_log_list = []
+        self.__delivery_log_list = []
+    def set_product_log_list(self,log_obj):
+        self.__product_log_list.append(log_obj)
     def get_log_user_id(self):
         return self.__log_user_id
-    def get_timestamp(self):
-        return self.__timestamp
-    def get_timestamp_as_datetime(self):
-        return datetime.fromtimestamp(self.__timestamp)
+    def get_product_log_list(self):
+        return self.__product_log_list
 
-class product_logger(Logger):
-    def __init__(self,log_user_id,p_activity,product_id,product_obj):
-        super().__init__(log_user_id)
+class product_logger:
+    def __init__(self,p_activity,product_id,product_obj):
         self.set_p_activty(p_activity)
+        self.__timestamp = datetime.timestamp(datetime.now())
         self.__product_id = product_id
         self.__product_obj = product_obj
     def set_p_activty(self,p_activity):
@@ -312,10 +315,58 @@ class product_logger(Logger):
         return self.__product_id
     def get_object(self):
         return self.__product_obj
+    def get_timestamp(self):
+        return self.__timestamp
+    def get_timestamp_as_datetime(self):
+        return datetime.fromtimestamp(self.__timestamp)
     def __str__(self):
-        return 'userid: {},activity: {},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_log_user_id(),self.get_p_activity(),self.get_product_id(),self.get_object()
-        ,self.get_timestamp(),self.get_timestamp_as_datetime())
-test = product_logger('TEST','CREATE','123456789','TEST2')
-print(test)
+        return 'activity: {},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_p_activity(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
+       
+
+def product_logging(userid,product_activity,product_id,product_obj):
+    db = shelve.open('database/logs_database/logs.db','c')
+    if userid in db:
+        new_log = product_logger(product_activity,product_id,product_obj)
+        product_log = db.get(userid)
+        product_log.set_product_log_list(new_log)
+        db[product_log.get_log_user_id()] = product_log
+    else:
+        user_new_logger = Logger(userid)
+        new_log = product_logger(product_activity,product_id,product_obj)
+        user_new_logger.set_product_log_list(new_log)
+        db[user_new_logger.get_log_user_id()] = user_new_logger
+        print('success2')
+    db.close()
+
+        
+
+def print_log():
+    db = shelve.open('database/logs_database/logs.db','c')
+    test = db.get('TEST')
+    for i in test.get_product_log_list():
+        print(i)
+    db.close()
+print_log()
+
+# test = product_logging('TEST','DELETE','123456789','TEST2')
+
+
+# def delete_db():
+#     db = shelve.open('database/logs_database/logs.db','c') 
+#     db.clear() 
+#     db.close() 
+# delete_db()
+# sheldict ={'1234uuid': {'user_log': ['TEST']}}
+# log_list = []
+# test_obj = "TEST"
+# log_list.append(test_obj)
+# test_dic = {} 
+# test_dic['product_log'] = log_list
+# sheldict['1234uuid'] = test_dic
+
+# # test = sheldict.get('1234uuid')
+# # test['product_log'].append('TEST3')
+# # sheldict['1234uuid'] = test
+# print(sheldict)
 
 

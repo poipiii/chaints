@@ -80,6 +80,7 @@ def dashboard_edit_products(productid):
 def delete_products(productid):
     get_product = get_product_by_id(productid)
     delete_product_by_id(get_product.get_product_id())
+    product_logging('TEST','DELETE',get_product.get_product_id(),get_product)
     return redirect(url_for('dashboard_products'))
 
 
