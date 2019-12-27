@@ -28,8 +28,10 @@ def landing_page():
 
 #only be able to access if session['logged_in']==True
 @app.route("/home_login_page")
-def home_loginpage():
+def home_loginpage(): 
     return render_template('home_login_page.html')
+
+
 
 @app.route("/dashboard")
 def dashboard_home():
@@ -37,7 +39,7 @@ def dashboard_home():
 
 @app.route("/manage_products",methods=['POST', 'GET'])
 def dashboard_products():
-    Products = fetch_products()
+    Products = fetch_products_by_user(session.get('user_id'))
     return render_template('staff_product_page.html',product_list = Products)
 
 #route to create new product form
@@ -53,9 +55,10 @@ def product_create():
              filename = secure_filename(i.filename)
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
-        Add_New_Products(Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
+        new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
         return redirect(url_for('dashboard_products'))      
     return render_template('productcreateform.html',form =Product_Form )
+
     
 #route to update product form
 @app.route("/update_products/<productid>",methods=['POST', 'GET'])
@@ -71,16 +74,14 @@ def dashboard_edit_products(productid):
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
         #pass form data to Edit_Products function in model.py
-        Edit_Products(productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+        Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
 
     return render_template('productcreateform.html',form =Product_Form)
 
 #take in product id and delete product from shelve  
 @app.route("/delete_products/<productid>",methods=['POST'])
 def delete_products(productid):
-    get_product = get_product_by_id(productid)
-    delete_product_by_id(get_product.get_product_id())
-    product_logging('TEST','DELETE',get_product.get_product_id(),get_product)
+    delete_product_by_id(productid,session.get('user_id'))
     return redirect(url_for('dashboard_products'))
 
 
@@ -133,23 +134,13 @@ def loginUser():
                 user=db[user]
                 if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
                     session['logged_in'] = True
+                    session['user_id']=user.get_user_id()
+
             db.close()
         except:
             print("Error")
         return redirect(url_for('landing_page'))
-        usersDict = {}
-        db = shelve.open('database/user_database/user.db', 'r')
-        usersDict = db['Users']
-        db.close()
-        username = request.form['username']
-        password = request.form['password']
-        for key in usersDict:
-            user = usersDict.get(key)
-            if user.get_username()==username and user.get_password()==password:
-                session['email'] = user.get_email()
-                session['user_name'] = user.get_username()
-                session['logged_in'] = True
-                return redirect(url_for('home'))
+       
 
     return render_template('login.html', form=createLoginForm)
 

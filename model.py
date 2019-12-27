@@ -15,7 +15,7 @@ class User_Model:
         self.__user_password=pbkdf2_sha256.hash(user_password)
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
-
+        self.set_owned_products()
     #User_Model Mutator
     def set_user_role(self,user_role):
         self.__user_role=user_role
@@ -38,6 +38,16 @@ class User_Model:
     def set__user_lastname(self,user_lastname):
         self.__user_lastname=user_lastname
 
+    def set_owned_products(self):
+        if self.__user_role == 'A':
+            self.__owned_products = []
+        else:
+            self.__owned_products = None
+    def append_owned_p(self,productid):
+        self.__owned_products.append(productid)
+    
+    def delete_owned_p(self,productid):
+        self.__owned_products.remove(productid)
     #User_Model Accessor
     def get_user_email(self):
         return self.__user_email
@@ -63,8 +73,56 @@ class User_Model:
     def get_user_role(self):
         return self.__user_role
 
+    def get_owned_products(self):
+        return self.__owned_products
+    
+
+    
+    def __str__(self):
+        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_password(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
+        ,self.get_user_id(),self.get_user_role(),self.get_owned_products())
 
 
+def update_usr_owned_p(userid,productid):
+    db = shelve.open('database/user_database/user.db','c') 
+    if userid in db:
+        user = db.get(userid)
+        user.append_owned_p(productid)
+        db[userid] = user
+    else:
+        pass
+    db.close() 
+
+def get_user(userid):
+    db = shelve.open('database/user_database/user.db','r')
+    if userid in db.keys():
+        user = db.get(userid)
+        db.close()   
+    return user
+
+def update_user(user_obj):
+    db = shelve.open('database/user_database/user.db','r')
+    if user_obj.get_user_id() in db.keys():
+        db[user_obj.get_user_id()] = user_obj
+        db.close()   
+
+
+def delete_db():
+    db = shelve.open('database/user_database/user.db','c') 
+    db.clear() 
+    db.close() 
+
+
+
+# test_usr = User_Model('qq@qmail.com','poipii','654321','P','I','B') 
+# print(test_usr)
+
+# def print_user_db():
+#     db = shelve.open('database/user_database/user.db','r')
+#     #for i in db.values():
+#     print(db.get('dc588c5abbe24bf68d47dd556d1c6955'))
+#     db.close()
+# print_user_db()
 
 
 class Product_Model:
@@ -144,20 +202,27 @@ class Product_Model:
 
 
 
+
+
 #take in product form fields and creaste new product and put into db
-def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+def Add_New_Products(user_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
         db = shelve.open('database/product_database/product.db','c')
         New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images)       
         db[New_Product.get_product_id()] = New_Product
+        update_usr_owned_p(user_id,New_Product.get_product_id())
+        product_logging(user_id,'CREATE',New_Product.get_product_id(),New_Product)
 
+        
     except IOError:
         raise 'db file not found'
     except KeyError:
         raise ' key error in shelve'
-    except:
-        raise 'unknown error'
+   
+    
     db.close()
+
+
 
 
 #grab all products in product db and return it
@@ -173,6 +238,27 @@ def fetch_products():
         raise ' key error in shelve'
     except:
         raise 'unknown error'
+    db.close()
+    return product_list
+
+
+def fetch_products_by_user(user_id):
+    try:
+        user_products = []
+        db = shelve.open('database/user_database/user.db','r')
+        user = db.get(user_id)
+        user_products = user.get_owned_products()
+        db.close()
+        print(user_products)
+        product_list = []
+        db = shelve.open('database/product_database/product.db','r')
+        for i in user_products:
+            product_list.append(db.get(i))
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    
     db.close()
     return product_list
 
@@ -193,10 +279,11 @@ def get_product_by_id(product_id):
 
 
 #edit take in product id and all product fields and overwrite sand update product in db 
-def Edit_Products(product_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+def Edit_Products(user_id,product_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
+        user = get_user(user_id)
         db = shelve.open('database/product_database/product.db','w')
-        if product_id in db.keys():
+        if product_id in db.keys() and product_id in user.get_owned_products():
             edit_product = db.get(product_id)
             edit_product.set_product_name(product_name)
             edit_product.set_product_current_qty(product_current_qty)
@@ -205,7 +292,8 @@ def Edit_Products(product_id,product_name,product_current_qty,product_desc,produ
             edit_product.set_product_discount(product_discount)
             edit_product.set_product_catergory(product_catergory)
             edit_product.set_product_images(product_images)
-            db[edit_product.get_product_id()] = edit_product
+            db[product_id] = edit_product
+            product_logging(user_id,'EDIT',product_id,edit_product)
         else:
             print('error product not found ')
     except IOError:
@@ -218,11 +306,16 @@ def Edit_Products(product_id,product_name,product_current_qty,product_desc,produ
 
 
 #take in product id and delete product in db
-def delete_product_by_id(product_id):
+def delete_product_by_id(product_id,user_id):
+    user = get_user(user_id)
     try:
-       
-        db = shelve.open('database/product_database/product.db','r')    
-        del(db[product_id])  
+        db = shelve.open('database/product_database/product.db','r')
+        if product_id in db.keys() and product_id in user.get_owned_products():
+            deleted_product = db.pop(product_id)
+            user.delete_owned_p(product_id)
+            update_user(user)
+            product_logging(user_id,'DELETE',product_id,deleted_product)
+
     except IOError:
         raise 'db file not found'
     except KeyError:
@@ -329,12 +422,12 @@ def product_logging(userid,product_activity,product_id,product_obj):
         new_log = product_logger(product_activity,product_id,product_obj)
         product_log = db.get(userid)
         product_log.set_product_log_list(new_log)
-        db[product_log.get_log_user_id()] = product_log
+        db[userid] = product_log
     else:
         user_new_logger = Logger(userid)
         new_log = product_logger(product_activity,product_id,product_obj)
         user_new_logger.set_product_log_list(new_log)
-        db[user_new_logger.get_log_user_id()] = user_new_logger
+        db[userid] = user_new_logger
         print('success2')
     db.close()
 
@@ -342,11 +435,13 @@ def product_logging(userid,product_activity,product_id,product_obj):
 
 def print_log():
     db = shelve.open('database/logs_database/logs.db','c')
-    test = db.get('TEST')
+    test = db.get('b831c6bd18ef4d10bf625cacb443dcde')
     for i in test.get_product_log_list():
         print(i)
     db.close()
 print_log()
+
+
 
 # test = product_logging('TEST','DELETE','123456789','TEST2')
 
@@ -356,6 +451,9 @@ print_log()
 #     db.clear() 
 #     db.close() 
 # delete_db()
+
+
+
 # sheldict ={'1234uuid': {'user_log': ['TEST']}}
 # log_list = []
 # test_obj = "TEST"
