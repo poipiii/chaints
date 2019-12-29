@@ -443,6 +443,43 @@ print_log()
 
 
 
+#delivery stuff
+
+#creating class for individual orders in one cart
+class indi_product_order:
+    def __init__(self,prodid,quantity):
+        self.__productid=prodid
+        self.__quantity=quantity
+        self.__deliverystat="pending"
+        self.__indi_orderid= uuid.uuid4().hex
+    def get_product_id(self):
+        return self.__productid
+    def get_quantity(self):
+        return self.__quantity
+    def get_deliverystat(self):
+        return self.__deliverystat
+
+#separating the orders in the order so that each item will have their own separate order id
+#sihui please use dictionary, have the product id be the key and the quantity be the value uwu
+#{'someid':3}
+def separating_orders(userid,userorders):
+    sepdict={}
+    somelist=[]
+    for i in userorders:
+        indiproduct=indi_product_order(i,userorders[i])
+        somelist.append(indiproduct)
+    sepdict[userid]=somelist #i put in dictionary first, still thinking whether to create a separate db for this
+    return sepdict
+
+
+
+
+
+
+
+
+
+
 # test = product_logging('TEST','DELETE','123456789','TEST2')
 
 
