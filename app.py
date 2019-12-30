@@ -21,15 +21,38 @@ def landing_page():
     return render_template('home_page.html' ,product_list = Products )
 
 #currently not working ui not done yet whatsapp me before touching this  
-# @app.route("/product/<productid>")
-# def product_page(productid):
-#     get_product = get_product_by_id(productid)
-#     return render_template('product_view.html',product = get_product)
+@app.route("/product/<productid>")
+def product_page(productid):
+    get_product = get_product_by_id(productid)
+    return render_template('productdetails.html',product = get_product)
 
 #only be able to access if session['logged_in']==True
+
+
+@app.route("/catergories")
+def catergory_page():
+    Products = fetch_products()
+    return render_template('productcatergory.html',product_list = Products)
+
+@app.route("/catergories/<catergory_type>")
+def sorted_catergory_page(catergory_type):
+    sorted_list = []
+    Products = fetch_products()
+    for i in Products:
+        if catergory_type in i.get_product_catergory():
+            sorted_list.append(i)
+    return render_template('productcatergory.html',product_list = sorted_list)
+
+
+
+@app.route("/details")
+def details_page():
+    return render_template('productdetails.html')
+
 @app.route("/home_login_page")
 def home_loginpage(): 
     return render_template('home_login_page.html')
+
 
 
 

@@ -99,7 +99,7 @@ def get_user(userid):
         user = db.get(userid)
         db.close()   
     return user
-
+ 
 def update_user(user_obj):
     db = shelve.open('database/user_database/user.db','r')
     if user_obj.get_user_id() in db.keys():
@@ -107,10 +107,10 @@ def update_user(user_obj):
         db.close()   
 
 
-def delete_db():
-    db = shelve.open('database/user_database/user.db','c') 
-    db.clear() 
-    db.close() 
+# def delete_db():
+#     db = shelve.open('database/user_database/user.db','c') 
+#     db.clear() 
+#     db.close() 
 
 
 
@@ -136,7 +136,7 @@ class Product_Model:
         self.__product_price = product_price
         self.__product_discount = product_discount
         self.__product_images = product_images
-        self.__product_catergory = product_catergory
+        self.__product_catergory = product_catergory  
         
     #Product_Model Mutator 
     def set_product_id(self):
@@ -213,7 +213,6 @@ def Add_New_Products(user_id,product_name,product_current_qty,product_desc,produ
         update_usr_owned_p(user_id,New_Product.get_product_id())
         product_logging(user_id,'CREATE',New_Product.get_product_id(),New_Product)
 
-        
     except IOError:
         raise 'db file not found'
     except KeyError:
@@ -330,15 +329,12 @@ def delete_product_by_id(product_id,user_id):
 #print all products in product db in command line
 # def test_print():
 #     db = shelve.open('database/product_database/product.db','c')  
-#     x = 0
 #     for i in db.values():
 #         print(i)
-#         x+=1        
-#     print(len(db))
-#     print(x)
+      
 #     db.close() 
 
-
+# test_print()
 #USE WITH CAUTION DELETE THE WHOLE PRODUCT DB
 # def delete_db():
 #     db = shelve.open('database/product_database/product.db','c') 
@@ -416,6 +412,8 @@ class product_logger:
         return 'activity: {},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_p_activity(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
 
+
+#take in user id , product activity product id product _obj
 def product_logging(userid,product_activity,product_id,product_obj):
     db = shelve.open('database/logs_database/logs.db','c')
     if userid in db:
@@ -433,13 +431,13 @@ def product_logging(userid,product_activity,product_id,product_obj):
 
         
 
-def print_log():
-    db = shelve.open('database/logs_database/logs.db','c')
-    test = db.get('b831c6bd18ef4d10bf625cacb443dcde')
-    for i in test.get_product_log_list():
-        print(i)
-    db.close()
-print_log()
+# def print_log():
+#     db = shelve.open('database/logs_database/logs.db','c')
+#     test = db.get('b831c6bd18ef4d10bf625cacb443dcde')
+#     for i in test.get_product_log_list():
+#         print(i)
+#     db.close()
+# print_log()
 
 
 
@@ -488,20 +486,4 @@ def separating_orders(userid,userorders):
 #     db.clear() 
 #     db.close() 
 # delete_db()
-
-
-
-# sheldict ={'1234uuid': {'user_log': ['TEST']}}
-# log_list = []
-# test_obj = "TEST"
-# log_list.append(test_obj)
-# test_dic = {} 
-# test_dic['product_log'] = log_list
-# sheldict['1234uuid'] = test_dic
-
-# # test = sheldict.get('1234uuid')
-# # test['product_log'].append('TEST3')
-# # sheldict['1234uuid'] = test
-# print(sheldict)
-
 
