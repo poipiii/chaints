@@ -180,7 +180,7 @@ def logout():
     return redirect(url_for('landing_page'))
 
 
-@app.route('/updateUser/<id>/', methods=['GET', 'POST'])
+@app.route('/updateUser/<id>', methods=['GET', 'POST'])
 def updateUser(id):
     updateUserForm = CreateUpdateForm(request.form)
     if request.method == 'POST' and updateUserForm.validate():
@@ -203,8 +203,7 @@ def updateUser(id):
         updateUserForm.lastname.data = user.get_user_lastname()
         updateUserForm.role.data = user.get_user_role()
         db.close()
-        return render_template('updateUser.html',
-form=updateUserForm)
+        return render_template('updateUser.html',form=updateUserForm)
 
 if __name__ == "__main__":
     app.run(debug=True)
