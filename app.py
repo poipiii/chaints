@@ -6,6 +6,7 @@ from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -60,6 +61,12 @@ def home_loginpage():
 def dashboard_home():
     return render_template('staff_dashboard.html')
 
+@app.route("/product_logs")
+def dashboard_logs():
+    product_log = get_product_log_by_id(session.get('user_id'))
+    user_id = session.get('user_id')
+    return render_template('staff_logs_page.html',product_log_list = product_log,userid = user_id )
+
 @app.route("/manage_products",methods=['POST', 'GET'])
 def dashboard_products():
     Products = fetch_products_by_user(session.get('user_id'))
@@ -89,7 +96,7 @@ def dashboard_edit_products(productid):
     Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
     #take in more than 1 images from form, rename images and upload to static/product_images
-    if request.method == 'POST'  and Product_Form.validate_on_submit():
+    if request.method == 'POST'  and Product_Form.validate():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
         for i in product_pics:
@@ -98,7 +105,7 @@ def dashboard_edit_products(productid):
              filenames.append(filename)
         #pass form data to Edit_Products function in model.py
         Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
-
+        return redirect(url_for('dashboard_products'))      
     return render_template('productcreateform.html',form =Product_Form)
 
 #take in product id and delete product from shelve  

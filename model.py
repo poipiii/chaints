@@ -248,7 +248,6 @@ def fetch_products_by_user(user_id):
         user = db.get(user_id)
         user_products = user.get_owned_products()
         db.close()
-        print(user_products)
         product_list = []
         db = shelve.open('database/product_database/product.db','r')
         for i in user_products:
@@ -322,6 +321,7 @@ def delete_product_by_id(product_id,user_id):
     except:
         raise 'unknown error'
     db.close()
+
 
 
 
@@ -429,6 +429,12 @@ def product_logging(userid,product_activity,product_id,product_obj):
         print('success2')
     db.close()
 
+def get_product_log_by_id(user_id):
+    db = shelve.open('database/logs_database/logs.db','r')
+    all_logs = db.get('b831c6bd18ef4d10bf625cacb443dcde')
+    product_logs = all_logs.get_product_log_list() 
+    db.close()
+    return product_logs
         
 
 # def print_log():
@@ -438,7 +444,6 @@ def product_logging(userid,product_activity,product_id,product_obj):
 #         print(i)
 #     db.close()
 # print_log()
-
 
 
 #delivery stuff
