@@ -1,7 +1,4 @@
 
-     .signupform {
-     border: 5px solid #f1f1f1;
-     }
      input[type=text], input[type=password] {
      width: 100%;
      padding: 16px 8px;
@@ -27,7 +24,7 @@
      }
      h1 {
      text-align:center;
-     fone-size:18;
+     font-size:18;
      }
      button:hover {
      opacity: 0.8;
@@ -50,4 +47,5 @@
      span.psw {
      display: block;
      float: none;
+     }
      }

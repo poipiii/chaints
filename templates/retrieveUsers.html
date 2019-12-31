@@ -1,14 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
+<head>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
+<script>
+     $(document).ready(function() {
+         $('#usertable').DataTable();
+       });
+
+  </script>
+</head>
 <h1 class="display-6">Retrieve Users</h1>
 <div>
- <table class="table table-striped">
+ <table id="usertable" class="table table-striped">
  <thead>
  <tr>
    <th>ID</th>
  <th>Email</th>
  <th>Username</th>
- <th>Password</th>
  <th>Firstname</th>
  <th>Lastname</th>
   <th>Role</th>
@@ -23,11 +32,10 @@
   <td>{{ user.get_user_id() }}</td>
  <td>{{ user.get_user_email() }}</td>
  <td>{{ user.get_username() }}</td>
- <td>{{ user.get_user_password() }}</td>
 <td>{{ user.get_user_firstname() }}</td>
  <td>{{ user.get_user_lastname() }}</td>
    <td>{{ user.get_user_role() }}</td>
- <td><a href="#" class="btn btn-warning">Update</a></td>
+ <td><a href="/updateUser/{{user.get_user_id()}}" class="btn btn-warning">Update</a></td>
  <td>
  <form action="" method="POST">
  <input type="submit" value="Delete" class="btn btndanger">
@@ -38,5 +46,6 @@
  </tbody>
  </table>
 </div>
+
 {% endblock %}
 

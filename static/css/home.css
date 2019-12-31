@@ -1,3 +1,10 @@
+.btn-success:active,
+.btn-success.active {
+  color: blue !important;
+}
 
 
 
+.carosell_img{
+  height:50vh;
+}

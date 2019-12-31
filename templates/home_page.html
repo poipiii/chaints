@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -9,8 +8,8 @@
     </ol>
     <div class="carousel-inner">
       <div class="carousel-item active ">
+        <img class="carosell_img" src="../static/product_images/home-1.jpg" alt="">
         <div class="container">
-          <img src="../static/product_images/home-1.jpg" alt="">
           <div class="carousel-caption text-left">
             <h1>Example headline.</h1>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
@@ -19,8 +18,8 @@
         </div>
       </div>
       <div class="carousel-item">
+        <img src="../static/product_images/home-2.1144b1b7.jpg" alt="">
         <div class="container">
-            <img src="../static/product_images/home-2.1144b1b7.jpg" alt="">
           <div class="carousel-caption">
             <h1>Another example headline.</h1>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
@@ -29,8 +28,8 @@
         </div>
       </div>
       <div class="carousel-item">
+        <img src="../static/product_images/home-3-plain.2c5cde0b.jpg" alt="">
         <div class="container">
-            <img src="../static/product_images/home-3-plain.2c5cde0b.jpg" alt="">
           <div class="carousel-caption text-right">
             <h1>One more for good measure.</h1>
             <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Donec id elit non mi porta gravida at eget metus. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
@@ -49,40 +48,55 @@
     </a>
 </div>
 <!--product start-->
-<div class="container">
-    <div class="row justify-content-between align-items-center mb-4">
-      <div class="col-12 col-sm">
-          <ul class="list-inline text-center text-sm-left mb-3 mb-sm-0">
-              <li class="list-inline-item"><a href="#" class="text-dark">All Products </a></li>
-              <li class="list-inline-item"><a href="#" class="text-muted text-hover-dark">Clothing </a></li>
-              <li class="list-inline-item"><a href="#" class="text-muted text-hover-dark">Bags</a></li>
-              <li class="list-inline-item"><a href="#" class="text-muted text-hover-dark">Shoes</a></li>
-              <li class="list-inline-item"><a href="#" class="text-muted text-hover-dark">Accessories</a></li>
-          </ul>
-      </div>
-      <div class="col-12 col-sm-auto text-center"><a href="#" class="btn btn-link px-0">All products</a></div>
-    </div>
-    <div class="row">
-      {% for product in product_list %}
-      <div class="col-12 col-sm-8 col-md-6 col-lg-3">
-        <div class="card">
-          <img class="card-img" src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid" alt="Grey shirt">
-          <div class="card-body">
-            <h4 class="card-title">{{product.get_product_name()}}</h4>
-            <p class="card-text">
-                {{product.get_product_desc()}}
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="price text-success"><h4 class="mt-4">${{product.get_discounted_price()}}</h4></div>
-              <div class="price text-success"><h5 class="mt-4">${{product.get_product_price()}}</h5></div>
-               <a href="#" type ="button" class="btn btn-danger mt-3">Add to Cart</a>
-            </div>
+<!-- ========================= SECTION  ========================= -->
+<section class="section-name  padding-y-sm">
+  <div class="container">
+  <header class="section-heading">
+    <a href="/catergories" class="btn btn-outline-primary float-right">See all</a>
+    <h3 class="section-title">Popular products</h3>
+  </header><!-- sect-heading -->
   
-          </div>
+  
+  <div class="row">
+      {% for product in product_list %}
+    <div class="col-md-3">
+      <div href="#" class="card card-product-grid">
+        <div class="img-wrap">
+          <img src="../static/product_images/{{product.get_product_images()[0]}}">
+          <span class="topbar">
+            <a href="#" class="float-right"><i class="fa fa-heart"></i></a>
+          </span>
         </div>
+        <figcaption class="info-wrap border-top">
+          <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
+          <div class="rating-wrap mt-1">
+            <ul class="rating-stars">
+              <li style="width:80%" class="stars-active"> 
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+              </li>
+              <li>
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
+              </li>
+            </ul>
+            <span class="label-rating text-muted"> 34 reviews</span>
+          </div>
+          <div class="price-wrap mt-3">
+            <span class="price">${{product.get_discounted_price()}}</span>
+            <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+          </div>
+          <a href="#" class="btn btn-sm btn-outline-primary float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
+        </figcaption>
       </div>
-      {% endfor %}
-  </div>
-</div>
+    </div> <!-- col.// -->
+    {% endfor %}
+    
+  </div> <!-- row.// -->
+  
+</div><!-- container // -->
+</section>
+
+<!-- ========================= SECTION  END// ========================= -->
+  
 <!--product end-->
 {% endblock  %}
 
