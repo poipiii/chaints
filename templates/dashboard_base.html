@@ -13,6 +13,9 @@
   <!-- Custom styles for this template-->
   <link href="../static/bootstrap-dashboard/css/sb-admin-2.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../static/bootstrap-select-1.13.9/bootstrap-select-1.13.9/dist/css/bootstrap-select.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
+
+
 
 </head>
 <body id="page-top">
@@ -50,7 +53,13 @@
   <!-- Custom scripts for all pages-->
   <script src="../static/bootstrap-dashboard/js/sb-admin-2.min.js"></script>
   <script src="../static/bootstrap-select-1.13.9/bootstrap-select-1.13.9/dist/js/bootstrap-select.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
+  <script>
+     $(document).ready(function() {
+         $('#dataTable').DataTable();
+       });
 
+  </script>
   {% endblock  %}
 
 </body>
