@@ -15,6 +15,7 @@
           padding-left:10px;
           padding-right:10px;
         }
+
 </style>
 
 
@@ -22,7 +23,6 @@
 <header>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
 <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #FBFBFC;">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,18 +50,29 @@
         </li>
       </ul>
       <ul class="navbar-nav ml-auto mr-sm-2">
-      <li class="nav-item">
-        <a class="nav-link" href="/login">LOGIN</a>
-      </li>
-        <li class="nav-item">
-        <a class="nav-link" href="/logout">LOGOUT</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/signup">SIGN UP</a>
-      </li>
+
+
+        {% if session['logged_in'] == True %}
+          <li class="dropdown">
+          <a href="#" class="navbar-brand dropdown" data-toggle="dropdown"> <img src="http://s3.amazonaws.com/37assets/svn/765-default-avatar.png" width="45" height="45"></a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="#">My Orders</a>
+            <a class="dropdown-item" href="#">Settings</a>
+            <a class="dropdown-item" href="/logout">Log Out</a>
+                  </div>
+                    </li>
+
+         {% else %}
+              <li class="nav-item">
+            <a class="nav-link" href="/login">LOGIN</a>
+            <li class="nav-item">
+            <a class="nav-link" href="/signup">SIGN UP</a>
+              </li>
       </ul>
-      <form class="form-inline">
-        <input class="form-control mr-sm-2" type="search" placeholder="search something..." aria-label="Search">
+        {% endif %}
+      <form class="form-inline" >
+        <input class="form-control mr-sm-2 " type="search" placeholder="Search" aria-label="Search">
         <button class="btn" type="submit"><i class="material-icons">search</i></button>
         <button class="btn"><i class="material-icons">shopping_cart</i></button>
       </form>

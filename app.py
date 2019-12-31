@@ -1,7 +1,7 @@
 import shelve
 from flask import *
 import os
-from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm
+from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
@@ -15,8 +15,6 @@ app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
 #product display currently not working ui not done yet can do other stuff still will not affect
 @app.route("/")
 def landing_page():
-    if session.get('logged_in') == True:
-        return redirect(url_for('home_loginpage'))
     Products = fetch_products()
     return render_template('home_page.html' ,product_list = Products )
 
@@ -48,10 +46,6 @@ def sorted_catergory_page(catergory_type):
 @app.route("/details")
 def details_page():
     return render_template('productdetails.html')
-
-@app.route("/home_login_page")
-def home_loginpage(): 
-    return render_template('home_login_page.html')
 
 
 
@@ -123,9 +117,10 @@ def signupUser():
 createUserForm.username.data, createUserForm.password.data,
 createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.data)
             db[user.get_user_id()]=user
+            db.close()
         except:
             print("Error in retrieving Users from database.")
-        db.close()
+
         return redirect(url_for("landing_page"))
     return render_template('Signup.html', form=createUserForm)
 
@@ -145,25 +140,29 @@ def retrieveUsers():
 
 #login user, session['logged_in']==True here
 @app.route('/login', methods=('GET', 'POST'))
-def loginUser():
-    createLoginForm = CreateLoginForm(request.form)
-    if request.method == 'POST' and createLoginForm.validate():
-        
-        try:
-            db = shelve.open('database/user_database/user.db', 'r')
-            username = request.form['username']
-            password = request.form['password']
-            for user in db:
-                user=db[user]
-                if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
-                    session['logged_in'] = True
-                    session['user_id']=user.get_user_id()
 
-            db.close()
-        except:
-            print("Error")
-        return redirect(url_for('landing_page'))
-       
+def loginUser():
+    if session.get('logged_in')==True:
+        return redirect(url_for("landing_page"))
+    else:
+        createLoginForm = CreateLoginForm(request.form)
+        if request.method == 'POST' and createLoginForm.validate():
+
+            try:
+                db = shelve.open('database/user_database/user.db', 'r')
+                username = request.form['username']
+                password = request.form['password']
+                for user in db:
+                    user=db[user]
+                    if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
+                        session['logged_in'] = True
+                        session['user_id']=user.get_user_id()
+
+                db.close()
+            except:
+                print("Error")
+            return redirect(url_for('landing_page'))
+
 
     return render_template('login.html', form=createLoginForm)
 
@@ -173,6 +172,32 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('landing_page'))
 
+
+@app.route('/updateUser/<id>/', methods=['GET', 'POST'])
+def updateUser(id):
+    updateUserForm = CreateUpdateForm(request.form)
+    if request.method == 'POST' and updateUserForm.validate():
+        db = shelve.open("database/user_database/user.db", "w")
+        user = db[id]
+        user.set_user_email(updateUserForm.email.data)
+        user.set_username(updateUserForm.username.data)
+        user.set_user_firstname(updateUserForm.firstname.data)
+        user.set_user_lastname(updateUserForm.lastname.data)
+        user.set_user_role(updateUserForm.role.data)
+
+        db.close()
+        return redirect(url_for("retrieveUsers"))
+    else:
+        db = shelve.open('database/user_database/user.db', 'r')
+        user = db[id]
+        updateUserForm.email.data = user.get_user_email()
+        updateUserForm.username.data = user.get_username()
+        updateUserForm.firstname.data = user.get_user_firstname()
+        updateUserForm.lastname.data = user.get_user_lastname()
+        updateUserForm.role.data = user.get_user_role()
+        db.close()
+        return render_template('updateUser.html',
+form=updateUserForm)
 
 if __name__ == "__main__":
     app.run(debug=True)

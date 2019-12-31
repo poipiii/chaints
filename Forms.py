@@ -28,3 +28,15 @@ class CreateLoginForm(Form):
 max=150), validators.DataRequired()])
  password = StringField('Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
+
+class CreateUpdateForm(Form):
+ email = StringField('Email', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ username = StringField('Username', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ firstname = StringField('First name', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ lastname = StringField('Last name', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+ role = RadioField('Role', choices=[('B', 'Buyer'),
+('A','Admin')], default='B')
