@@ -1,15 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<head>
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
-<script>
-     $(document).ready(function() {
-         $('#usertable').DataTable();
-       });
-
-  </script>
-</head>
 <h1 class="display-6">Retrieve Users</h1>
 <div>
  <table id="usertable" class="table table-striped">
@@ -25,6 +15,8 @@
  <th></th>
  <th></th>
  </tr>
+
+ <tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr>
  </thead>
  <tbody>
 {% for user in usersList %}
@@ -37,13 +29,14 @@
    <td>{{ user.get_user_role() }}</td>
  <td><a href="/updateUser/{{user.get_user_id()}}" class="btn btn-warning">Update</a></td>
  <td>
- <form action="" method="POST">
- <input type="submit" value="Delete" class="btn btndanger">
+ <form action= "{{url_for('deleteUser', id=user.get_user_id())}}" method="POST">
+ <input type="submit" value="Delete" class="btn btndanger" onclick="return confirm('Are you sure you want to delete this user?');">
  </form>
  </td>
  </tr>
  {% endfor %}
  </tbody>
+
  </table>
 </div>
 

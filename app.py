@@ -175,6 +175,7 @@ def loginUser():
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
 def logout():
+    session.pop('used_id',None)
     session.pop('logged_in', None)
     return redirect(url_for('landing_page'))
 
@@ -203,6 +204,13 @@ def updateUser(id):
         updateUserForm.role.data = user.get_user_role()
         db.close()
         return render_template('updateUser.html',form=updateUserForm)
+
+@app.route('/deleteUser/<id>', methods=['POST'])
+def deleteUser(id):
+ db = shelve.open('database/user_database/user.db', 'w')
+ db.pop(id)
+ db.close()
+ return redirect(url_for('retrieveUsers'))
 
 
 #Delivery Management

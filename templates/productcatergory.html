@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
-
 <!-- ========================= SECTION CONTENT ========================= -->
 <section class="section-content padding-y">
-    <div class="container">
+    <div class="container-fluid">
     <div class="row">
-    <aside class="col-md-3">
+    <aside class="col-md-2">
             
     <div class="card">
         <article class="filter-group">
@@ -15,7 +14,7 @@
                     <h6 class="title">Product type</h6>
                 </a>
             </header>
-            <div class="filter-content collapse show" id="collapse" style="">
+            <div class="filter-content collapse show" id="collapse_1" style="">
                 <div class="card-body">
                     <form class="pb-3">
                     <div class="input-group">
@@ -45,7 +44,7 @@
     </div> <!-- card.// -->
     
     </aside> <!-- col.// -->
-<main class="col-md-9">
+<main class="col-md-8">
     
     <header class="border-bottom mb-4 pb-3">
             <div class="form-inline">
@@ -66,7 +65,7 @@
     </header><!-- sect-heading -->
     <div class="row">
         {% for product in product_list %}   
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div href="#" class="card card-product-grid">
               <div class="img-wrap">
                 <img src="../static/product_images/{{product.get_product_images()[0]}}">
