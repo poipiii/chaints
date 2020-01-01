@@ -8,10 +8,30 @@ from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 
+
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
 
+@app.before_request
+def before_request():
+    if session.get('remember')==True:
+        pass
+    else:
+        now = datetime.now()
+        try:
+            last_active = session['last_active']
+            delta = now - last_active
+            if delta.seconds > 1800:
+                session['last_active'] = now
+                return logout()
+        except:
+            pass
+
+        try:
+            session['last_active'] = now
+        except:
+            pass
 
 #product display currently not working ui not done yet can do other stuff still will not affect
 @app.route("/")
@@ -115,6 +135,8 @@ def delete_products(productid):
 @app.route('/signup', methods=['GET', 'POST'])
 
 def signupUser():
+    if session.get('logged_in')==True:
+        return redirect(url_for("landing_page"))
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
         try:
@@ -164,7 +186,10 @@ def loginUser():
                     if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
                         session['logged_in'] = True
                         session['user_id']=user.get_user_id()
-
+                        session['name']=user.get_user_fullname()
+                        if request.form['remember']:
+                            session['remember']=True
+                            print('hi')
                 db.close()
             except:
                 print("Error")
@@ -176,8 +201,7 @@ def loginUser():
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
 def logout():
-    session.pop('user_id',None)
-    session.pop('logged_in', None)
+    session.clear()
     return redirect(url_for('landing_page'))
 
 

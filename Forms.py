@@ -1,4 +1,7 @@
-from wtforms import Form, StringField, RadioField, SelectField,TextAreaField,IntegerField, validators,SelectMultipleField,MultipleFileField,validators
+from wtforms import Form, StringField, RadioField, SelectField, TextAreaField, IntegerField, validators, \
+    SelectMultipleField, MultipleFileField, validators, PasswordField, BooleanField
+from wtforms.validators import EqualTo
+
 
 class Create_Product_Form(Form):
     product_name = StringField('Product Name',validators=[validators.InputRequired()]) 
@@ -11,10 +14,12 @@ class Create_Product_Form(Form):
 
 class CreateUserForm(Form):
  email = StringField('Email', [validators.Length(min=1,
-max=150), validators.DataRequired()])
+max=150), validators.DataRequired(), validators.email()])
  username = StringField('Username', [validators.Length(min=1,
 max=150), validators.DataRequired()])
- password = StringField('Password', [validators.Length(min=1,
+ password = PasswordField('Password', [validators.Length(min=1,
+max=150), validators.DataRequired(),EqualTo('confirm', message='Passwords must match')])
+ confirm = PasswordField('Confirm Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  firstname = StringField('First name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
@@ -28,6 +33,7 @@ class CreateLoginForm(Form):
 max=150), validators.DataRequired()])
  password = StringField('Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
+ remember= BooleanField('Remember')
 
 class CreateUpdateForm(Form):
  email = StringField('Email', [validators.Length(min=1,

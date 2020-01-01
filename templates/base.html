@@ -44,36 +44,27 @@
 
 
 <script>
-
 $(document).ready(function() {
-
-  var table = $('#usertable').DataTable({
-
-      orderCellsTop: true,
-              dom: 'Bfrtip',
-        initComplete: function () {
-            this.api().columns([5]).every( function () {
-                var column = this;
-                var select = $('<select><option value=""></option></select>')
-                    .appendTo( $("#usertable thead tr:eq(1) th").eq(column.index()).empty() )
-                    .on( 'change', function () {
-                        var val = $.fn.dataTable.util.escapeRegex(
-                            $(this).val()
-                        );
-
-                        column
-                            .search( val ? '^'+val+'$' : '', true, false )
-                            .draw();
-                    } );
-
-                column.data().unique().sort().each( function ( d, j ) {
-                    select.append( '<option value="'+d+'">'+d+'</option>' );
-                } );
-            } );
+    var table = $('#usertable').DataTable({
+     columnDefs: [
+        { "orderable": false, "targets": [0, 1,2,3,4,5,7,8] },
+        { "orderable": true, "targets": [6] }
+    ]});
+    $('select[name="filter"]').change(function() {
+        if (!$(this).val()) {
+            table.columns().search("").draw();
+        } else {
+            table.columns().search("");
+            var option = $(this).find(":selected");
+            var columns = Object.keys(option.data());
+            console.log(columns)
+            $.each(columns, function(k, v){
+                table.columns(parseInt(v, 10)).search(option.data(v));
+            });
+            table.draw();
         }
-    } );
     });
-
+});
 </script>
 
 {% endblock  %}
