@@ -16,6 +16,8 @@ class User_Model:
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
         self.set_owned_products()
+        self.__user_wishlist=[]
+
     #User_Model Mutator
     def set_user_role(self,user_role):
         self.__user_role=user_role
@@ -48,6 +50,10 @@ class User_Model:
 
     def delete_owned_p(self,productid):
         self.__owned_products.remove(productid)
+
+    def set_user_wishlist(self,wishlist):
+        self.__user_wishlist=wishlist
+
     #User_Model Accessor
     def get_user_email(self):
         return self.__user_email
@@ -75,6 +81,9 @@ class User_Model:
 
     def get_owned_products(self):
         return self.__owned_products
+
+    def get_user_wishlist(self):
+        return self.__user_wishlist
 
 
 

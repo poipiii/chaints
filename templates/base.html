@@ -39,6 +39,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="../static/bootstrap/js/script.js"></script>
 <script src="../static/bootstrap-select-1.13.9/bootstrap-select-1.13.9/dist/js/bootstrap-select.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
 <script>
   $(document).on('click', '.number-spinner button', function () {    
       var btn = $(this),
@@ -56,6 +58,40 @@
       }
       btn.closest('.number-spinner').find('input').val(newVal);
   });
+</script>
+
+<script>
+$(document).ready(function() {
+
+  var table = $('#usertable').DataTable({
+      orderCellsTop: true,
+              dom: 'Bfrtip',
+        initComplete: function () {
+            this.api().columns([5]).every( function () {
+                var column = this;
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo( $("#usertable thead tr:eq(1) th").eq(column.index()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+
+                column.data().unique().sort().each( function ( d, j ) {
+                    select.append( '<option value="'+d+'">'+d+'</option>' );
+                } );
+            } );
+        }
+    } );
+    });
+
+
+
+
 </script>
 {% endblock  %}
 </html>
