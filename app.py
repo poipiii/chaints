@@ -119,10 +119,12 @@ def signupUser():
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
         try:
+            now=datetime.now()
+            date=now.strftime("%d/%m/%Y, %H:%M:%S")
             db = shelve.open('database/user_database/user.db', 'c')
             user = User_Model(createUserForm.email.data,
 createUserForm.username.data, createUserForm.password.data,
-createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.data)
+createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.data,date)
             db[user.get_user_id()]=user
             db.close()
         except:
@@ -135,7 +137,6 @@ createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.
 #will move it to admin side after ui finished
 @app.route('/retrieveUsers')
 def retrieveUsers():
-    usersDict = {}
     db = shelve.open('database/user_database/user.db', 'r')
     usersList = []
     for user in db:
@@ -176,7 +177,7 @@ def loginUser():
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
 def logout():
-    session.pop('used_id',None)
+    session.pop('user_id',None)
     session.pop('logged_in', None)
     return redirect(url_for('landing_page'))
 

@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <h1 class="display-6">Retrieve Users</h1>
-<div>
- <table id="usertable" class="table table-striped">
+<div class="row justify-content-center">
+
+ <table id="usertable" class="table table-striped text-center">
  <thead>
  <tr>
    <th>ID</th>
@@ -11,12 +12,13 @@
  <th>Firstname</th>
  <th>Lastname</th>
   <th>Role</th>
+    <th>Joined Date</th>
 
  <th></th>
  <th></th>
  </tr>
 
- <tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr>
+ <tr><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th></tr>
  </thead>
  <tbody>
 {% for user in usersList %}
@@ -27,6 +29,7 @@
 <td>{{ user.get_user_firstname() }}</td>
  <td>{{ user.get_user_lastname() }}</td>
    <td>{{ user.get_user_role() }}</td>
+  <td>{{ user.get_user_joined_date() }}</td>
  <td><a href="/updateUser/{{user.get_user_id()}}" class="btn btn-warning">Update</a></td>
  <td>
  <form action= "{{url_for('deleteUser', id=user.get_user_id())}}" method="POST">

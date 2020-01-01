@@ -7,7 +7,7 @@ from passlib.hash import pbkdf2_sha256
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model
-    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role):
+    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role,joined_date,email_confirmation_sent_on=None):
         self.__user_role=user_role
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
@@ -17,6 +17,10 @@ class User_Model:
         self.__user_lastname=user_lastname
         self.set_owned_products()
         self.__user_wishlist=[]
+        self.__user_joined_date=joined_date
+        self.email_confirmation_sent_on = email_confirmation_sent_on
+        self.email_confirmed = False
+        self.email_confirmed_on = None
 
     #User_Model Mutator
     def set_user_role(self,user_role):
@@ -84,6 +88,9 @@ class User_Model:
 
     def get_user_wishlist(self):
         return self.__user_wishlist
+
+    def get_user_joined_date(self):
+        return self.__user_joined_date
 
 
 
