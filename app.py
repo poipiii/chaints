@@ -110,7 +110,6 @@ def delete_products(productid):
 
 
 
-
 #User Management
 #sign up user
 @app.route('/signup', methods=['GET', 'POST'])
@@ -213,6 +212,13 @@ def deleteUser(id):
  db.pop(id)
  db.close()
  return redirect(url_for('retrieveUsers'))
+
+
+#Delivery Management
+@app.route('/SellerDelivery')
+def seller_deliverystat():
+    return render_template('seller_delivery_status.html')
+#add in additional codes to read data from database :(
 
 if __name__ == "__main__":
     app.run(debug=True)

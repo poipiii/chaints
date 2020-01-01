@@ -1,7 +1,38 @@
 {% extends 'dashboard_base.html' %}
-<title>Seller Delivery Page</title>
 {% block content %}
-
+<div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Order Date</th>
+                  <th>Estimated Delivery Date</th>
+                    <th>Delivery Status</th>
+                    <th>Edit</th>
+                </tr>
+              </thead>
+              <tbody>
+               <!-- {% for log_item in product_log_list %} -->
+                <tr>
+                  <td>#</td>
+                  <td>#</td>
+                  <td>#</td>
+                  <td>#</td>
+                  <td>#</td>
+                </tr>
+                <!--{% endfor %}-->
+              </tbody>
+              </table>
+            </div>
+    </div>
+</div>
 
 
 {% endblock  %}

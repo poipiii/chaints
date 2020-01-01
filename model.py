@@ -588,7 +588,7 @@ def get_order_log_by_id(user_id):
 #         print(i)
 #     db.close()
 # print_log()
-
+#
 #==========DELIVERY=============
 
 # test = user_logging('17187343a81c4de4aed19489cbe8a41a','DELETE','TEST2')
@@ -631,34 +631,33 @@ class indi_product_order:
         return self.__indi_orderid
     def get_seller_id(self):
         return self.__sellerid
-    def __str__(self):
-        return "prod id: %s, seller id: %s, quantity: %d, deliverystat: %s, date: %s, indi id: %s"%(self.get_product_id(),self.get_seller_id(),self.get_quantity(),self.get_deliverystat(),self.get_order_date(),self.get_individual_orderid())
-
-
-#function to add individual order ids into the delivery status database rip
-#def Adding_to_delivery_db(productid,quantity,deliverystatus,orderdate,orderid):
-
-
-
-#separating the orders in the order so that each item will have their own separate order id
-#{'someid':3}
-
-#========To Be Passed from Order to Delivery :(==========
-#          -customer id
-#          -Dictionary with orders(above ref)
-#          -Date of orders
-
+    #def __str__(self):
+#        return "prod id: %s, seller id: %s, quantity: %d, deliverystat: %s, date: %s, indi id: %s"%(self.get_product_id(),self.get_seller_id(),self.get_quantity(),self.get_deliverystat(),self.get_order_date(),self.get_individual_orderid())
+#
+#
+##function to add individual order ids into the delivery status database rip
+#
+#
+#
+##separating the orders in the order so that each item will have their own separate order id
+##{'someid':3}
+#
+##========To Be Passed from Order to Delivery :(==========
+##          -customer id
+##          -Dictionary with orders(above ref)
+##          -Date of orders
+#
 def separating_orders(customerid,sellerid,userorders,orderdate): #reminder: use jc's db to get seller using product
     #<codes to open product db. The one above is temporary>
     somelist=[]
     for i in userorders:
         #<code to find the seller id using product id to be passed to class add here>
         indiproduct=indi_product_order(i,userorders[i],orderdate,sellerid)
-        print(indiproduct)
         somelist.append(indiproduct)
     try:
         db = shelve.open('database/delivery_database/delivery.db','c')
         db[customerid]=somelist
+        #db.clear()
         db.close()
     except IOError:
         raise Exception('db cannot be found')
@@ -666,8 +665,25 @@ def separating_orders(customerid,sellerid,userorders,orderdate): #reminder: use 
         raise Exception("an unknown error has occurred ")
 
 
+#def print_db_orders():
+#    db=shelve.open('database/delivery_database/delivery.db','r')
+#    for i in db:
+#        print("customer id: %s"%i)
+#        for n in db[i]:
+#            print("Seller id: %s"%n.get_seller_id())
+#            print("Product id: %s"%n.get_product_id())
+#            print("Quantity: %d"%n.get_quantity())
+#            print("Order date: %s"%n.get_order_date())
+#            print("Order id: %s"%n.get_individual_orderid())
+#            print("Delivery status: %s"%n.get_deliverystat())
+#
+#    db.close()
 
 
+#=====test (delivery)========
+#orderdict={"123shirt":3,"456shoe":1}
+#o1date="12/06/2019"
+#o1=separating_orders("Shopper1","Seller1",orderdict,o1date)
 
 
 
