@@ -142,8 +142,9 @@ def update_user(user_obj):
 
 
 class Product_Model:
-    def __init__(self,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
+    def __init__(self,seller_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
         #initaliser of Product_Model
+        self.__seller_id = seller_id
         self.__product_id = uuid.uuid4().hex #genterates a 32 bit random hexadecimal string that will be the product id
         self.__product_name =product_name
         self.__product_current_qty = product_current_qty
@@ -182,6 +183,8 @@ class Product_Model:
         self.__product_catergory = product_catergory
 
     #Product_Model Accessor
+    def get_seller_id(self):
+        return self.__seller_id
     def get_product_id(self):
         return self.__product_id
 
@@ -224,7 +227,7 @@ class Product_Model:
 def Add_New_Products(user_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
         db = shelve.open('database/product_database/product.db','c')
-        New_Product = Product_Model(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images)
+        New_Product = Product_Model(user_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images)
         db[New_Product.get_product_id()] = New_Product
         update_usr_owned_p(user_id,New_Product.get_product_id())
         product_logging(user_id,'CREATE',New_Product.get_product_id(),New_Product)
@@ -276,12 +279,15 @@ def fetch_products_by_user(user_id):
     db.close()
     return product_list
 
-#take in product id and return the specific product details
+#take in product id and return the specific product object
 def get_product_by_id(product_id):
     try:
 
         db = shelve.open('database/product_database/product.db','r')
-        product = db.get(product_id)
+        if product_id in db:
+            product = db.get(product_id)
+        else:
+            raise 'product id does not exist in database'
     except IOError:
         raise 'db file not found'
     except KeyError:

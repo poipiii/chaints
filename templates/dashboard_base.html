@@ -25,8 +25,9 @@
       {% block side_nav %}
       {% include 'components/_dashboard_navbar.html' %}
       {% endblock  %}
- 
-
+      <div id="content-wrapper" class="d-flex flex-column">
+      <div id="content">
+        {% include 'components/_navbar.html' %}
         <!-- Begin Page Content -->
         <div class="container-fluid">
         {% block content %}
@@ -40,6 +41,7 @@
     <!-- End of Content Wrapper -->
   </div>
   <!-- End of Page Wrapper -->
+
   <!-- Scroll to Top Button-->
   <a class="scroll-to-top rounded" href="#page-top">
     <i class="fas fa-angle-up"></i>
@@ -62,6 +64,92 @@
        });
 
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+<script>
+var getData = $.get('/data');
+getData.done(function(data){
+    
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: data[1].datetime,
+        datasets: [{
+            label: 'profit',
+            data: data[0].profit,
+            backgroundColor: [
+            
+                'rgba(54, 162, 235, 0.2)',
+               
+            ],
+            borderColor: [ 
+               
+                'rgba(75, 192, 192, 1)'
+              
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: true,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: true
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 10,
+        yPadding: 10,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+      }
+    }
+});
+});
+
+</script>
   {% endblock  %}
 
 </body>

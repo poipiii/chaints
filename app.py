@@ -7,7 +7,7 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
-
+from datapipeline import *
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -73,7 +73,15 @@ def details_page():
 
 @app.route("/dashboard")
 def dashboard_home():
-    return render_template('staff_dashboard.html')
+    return render_template('chart.html')
+
+@app.route("/data")
+def datapipe():
+    pdata = test_func()
+    profit = pdata[0]
+    dtime = pdata[1]
+    
+    return jsonify({"profit":profit},{"datetime":dtime})
 
 @app.route("/product_logs")
 def dashboard_logs():
