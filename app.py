@@ -276,6 +276,11 @@ def deleteUser(id):
 #Delivery Management
 @app.route('/SellerDelivery')
 def seller_deliverystat():
+    #deliverydict={}
+    #db=shelve.open('database/delivery_database/delivery.db','r')
+    #for key in db:
+#
+    #db.close()
     return render_template('seller_delivery_status.html')
 #add in additional codes to read data from database :(
 
