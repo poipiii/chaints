@@ -595,7 +595,7 @@ def get_order_log_by_id(user_id):
 #     db.close()
 # print_log()
 #
-#==========DELIVERY=============
+
 
 # test = user_logging('17187343a81c4de4aed19489cbe8a41a','DELETE','TEST2')
 
@@ -617,14 +617,21 @@ def get_order_log_by_id(user_id):
 #delivery stuff
 
 class indi_product_order:
-    def __init__(self,prodid,quantity,orderdate,sellerid):
+    def __init__(self,prodid,quantity,orderdate,sellerid,productname):#productimage
         self.__productid=prodid
         self.__sellerid=sellerid
         self.__quantity=quantity
         self.__deliverystat="Pending"
         self.__order_date=orderdate
         self.__indi_orderid= uuid.uuid4().hex
-        #self.adding_to_db()
+        self.__product_name=productname
+        #self.__product_image=productimage
+
+    #mutator
+    def set_delivery_status(self,delivery_stat):
+        self.__deliverystat=delivery_stat
+
+    #accessor
     def get_product_id(self):
         return self.__productid
     def get_quantity(self):
@@ -637,28 +644,35 @@ class indi_product_order:
         return self.__indi_orderid
     def get_seller_id(self):
         return self.__sellerid
-    #def __str__(self):
-#        return "prod id: %s, seller id: %s, quantity: %d, deliverystat: %s, date: %s, indi id: %s"%(self.get_product_id(),self.get_seller_id(),self.get_quantity(),self.get_deliverystat(),self.get_order_date(),self.get_individual_orderid())
-#
-#
-##function to add individual order ids into the delivery status database rip
-#
-#
-#
+    def get_product_name(self):
+        return self.__product_name
+    #def get_product_image(self):
+    #    return self.__product_image
+
+
+def obtaining_product_object(product_id):
+    product_obj=get_product_by_id(product_id)
+    return product_obj
+
 ##separating the orders in the order so that each item will have their own separate order id
 ##{'someid':3}
-#
-##========To Be Passed from Order to Delivery :(==========
-##          -customer id
-##          -Dictionary with orders(above ref)
-##          -Date of orders
-#
-def separating_orders(customerid,sellerid,userorders,orderdate): #reminder: use jc's db to get seller using product
-    #<codes to open product db. The one above is temporary>
+
+def separating_orders(customerid,userorders,orderdate): #reminder: use jc's db to get seller using product
+    productinfo={}
+    for n in userorders:
+        prod_iddict={}
+        productobject=obtaining_product_object(n)
+        sellerid=productobject.get_seller_id()
+        productname=productobject.get_product_name()
+        productimage=productobject.get_product_images()
+        productimage=productimage[0]
+        prod_iddict["Product Name"]=productname
+        prod_iddict["Product Image"]=productimage
+        prod_iddict["Seller ID"]=sellerid
+        productinfo[n]=prod_iddict
     somelist=[]
-    for i in userorders:
-        #<code to find the seller id using product id to be passed to class add here>
-        indiproduct=indi_product_order(i,userorders[i],orderdate,sellerid)
+    for i in userorders:  #{'123shirt':3,'124pants':5,'125shoe':6}
+        indiproduct=indi_product_order(i,userorders[i],orderdate,productinfo[i]["Seller ID"],productinfo[i]["Product Name"])#productinfo[i]["Product Image"]
         somelist.append(indiproduct)
     try:
         db = shelve.open('database/delivery_database/delivery.db','c')
@@ -670,26 +684,65 @@ def separating_orders(customerid,sellerid,userorders,orderdate): #reminder: use 
     except:
         raise Exception("an unknown error has occurred ")
 
+#edit delivery status (Not tested yet)
+def status_update(product_id,buyerid,status):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        if buyerid in db:
+            object_list=db[buyerid]
+            for i in object_list:
+                if i.get_product_id()==product_id:
+                    i.set_delivery_status(status)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("an error has occurred")
 
-#def print_db_orders():
-#    db=shelve.open('database/delivery_database/delivery.db','r')
-#    for i in db:
-#        print("customer id: %s"%i)
-#        for n in db[i]:
-#            print("Seller id: %s"%n.get_seller_id())
-#            print("Product id: %s"%n.get_product_id())
-#            print("Quantity: %d"%n.get_quantity())
-#            print("Order date: %s"%n.get_order_date())
-#            print("Order id: %s"%n.get_individual_orderid())
-#            print("Delivery status: %s"%n.get_deliverystat())
-#
-#    db.close()
+def print_db_orders():
+    db=shelve.open('database/delivery_database/delivery.db','r')
+    count=0
+    for i in db:
+        print("customer id: %s"%i)
+        count+=1
+        for n in db[i]:
+            print("Seller id: %s"%n.get_seller_id())
+            print("Product id: %s"%n.get_product_id())
+            print("Prduct Name: %s"%n.get_product_name())
+            print("Quantity: %d"%n.get_quantity())
+            print("Order date: %s"%n.get_order_date())
+            print("Order id: %s"%n.get_individual_orderid())
+            print("Delivery status: %s"%n.get_deliverystat())
+        print("============")
+    print(count)
+    print("===========")
 
+
+    db.close()
+
+
+
+#====clear delivery db======
+#db=shelve.open('database/delivery_database/delivery.db','c')
+#print(db.get)
+#del db["345buy"]
+#del db["678buy"]
+#print(db)
+#db.close()
 
 #=====test (delivery)========
-#orderdict={"123shirt":3,"456shoe":1}
-#o1date="12/06/2019"
-#o1=separating_orders("Shopper1","Seller1",orderdict,o1date)
+
+o1dict={"02f725e52413466abfb5a34208842c45":3}
+o2dict={"de79a6cc861f48788e586cc44287f7d7":6,"02f725e52413466abfb5a34208842c45":7}
+o3dict={"de79a6cc861f48788e586cc44287f7d7":2}
+
+o1=separating_orders("678buy",o1dict,"12/12/2002")
+o2=separating_orders("345buy",o2dict,"13/12/2002")
+o3=separating_orders("999buy",o3dict,"14/12/2002")
+
+print_db_orders()
+
+
 
 
 
