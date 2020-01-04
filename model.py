@@ -732,15 +732,15 @@ def print_db_orders():
 
 #=====test (delivery)========
 
-o1dict={"02f725e52413466abfb5a34208842c45":3}
-o2dict={"de79a6cc861f48788e586cc44287f7d7":6,"02f725e52413466abfb5a34208842c45":7}
-o3dict={"de79a6cc861f48788e586cc44287f7d7":2}
+# o1dict={"02f725e52413466abfb5a34208842c45":3}
+# o2dict={"de79a6cc861f48788e586cc44287f7d7":6,"02f725e52413466abfb5a34208842c45":7}
+# o3dict={"de79a6cc861f48788e586cc44287f7d7":2}
 
-o1=separating_orders("678buy",o1dict,"12/12/2002")
-o2=separating_orders("345buy",o2dict,"13/12/2002")
-o3=separating_orders("999buy",o3dict,"14/12/2002")
+# o1=separating_orders("678buy",o1dict,"12/12/2002")
+# o2=separating_orders("345buy",o2dict,"13/12/2002")
+# o3=separating_orders("999buy",o3dict,"14/12/2002")
 
-print_db_orders()
+# print_db_orders()
 
 
 

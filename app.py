@@ -75,13 +75,40 @@ def details_page():
 def dashboard_home():
     return render_template('chart.html')
 
-@app.route("/data")
-def datapipe():
-    pdata = test_func()
-    profit = pdata[0]
-    dtime = pdata[1]
+# @app.route("/data")
+# def datapipe():
+#     pdata = test_func()
+#     profit = pdata[0]
+#     dtime = pdata[1]
     
-    return jsonify({"profit":profit},{"datetime":dtime})
+#     return jsonify({"profit":profit},{"datetime":dtime})
+
+@app.route("/apitest")
+def datatest():
+    ownp = ['5a049440432c4216b749d0ba508b18b6','15e2329c70514520b665c66c4f9aa2c2']
+    if request.args.get('type') == 'ALL':
+        apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
+        if apidata is not None:
+            profit = []
+            dtime = []
+            for orders in apidata:
+                profit.append(orders.get_o_profit())
+                dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
+            return jsonify({"profit":profit},{"datetime":dtime})
+        else:
+            return jsonify({"profit":None},{"datetime":None})
+
+    else:
+        return jsonify({"profit":None},{"datetime":None})
+
+
+
+
+    # apidata = api_func()
+    # profit = apidata[0]
+    # dtime = apidata[1]
+    # return jsonify({"profit":profit},{"datetime":dtime})
+
 
 @app.route("/product_logs")
 def dashboard_logs():
