@@ -1,7 +1,7 @@
 import shelve
 from flask import *
 import os
-from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm
+from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm,Edit_Product_Form
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
@@ -85,7 +85,7 @@ def dashboard_home():
 
 @app.route("/apitest")
 def datatest():
-    ownp = ['5a049440432c4216b749d0ba508b18b6','15e2329c70514520b665c66c4f9aa2c2']
+    ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
     if request.args.get('type') == 'ALL':
         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
         if apidata is not None:
@@ -142,19 +142,32 @@ def product_create():
 #route to update product form
 @app.route("/update_products/<productid>",methods=['POST', 'GET'])
 def dashboard_edit_products(productid):
-    Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
+    original_product =  get_product_by_id(productid)
+    Product_Form = Edit_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
     #take in more than 1 images from form, rename images and upload to static/product_images
     if request.method == 'POST'  and Product_Form.validate():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
-        for i in product_pics:
-             filename = secure_filename(i.filename)
-             i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
-             filenames.append(filename)
-        #pass form data to Edit_Products function in model.py
-        Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
-        return redirect(url_for('dashboard_products'))      
+        check_if_empty = [i.filename for i in product_pics]
+        if '' in check_if_empty:
+            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
+        else:
+            for i in product_pics:
+                 filename = secure_filename(i.filename)
+                 i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+                 filenames.append(filename)
+            #pass form data to Edit_Products function in model.py
+            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+        return redirect(url_for('dashboard_products')) 
+    else:
+        Product_Form.product_name.data = original_product.get_product_name()
+        Product_Form.product_Quantity.data = original_product.get_product_current_qty()
+        Product_Form.product_Description.data = original_product.get_product_desc()
+        Product_Form.product_Selling_Price.data = original_product.get_product_price()
+        Product_Form.product_Discount.data = original_product.get_product_discount()
+        Product_Form.product_catergory.data = original_product.get_product_catergory()
+        Product_Form.product_images.data = original_product.get_product_images()
     return render_template('productcreateform.html',form =Product_Form)
 
 #take in product id and delete product from shelve  

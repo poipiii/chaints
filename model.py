@@ -100,7 +100,7 @@ class User_Model:
 
 
 def update_usr_owned_p(userid,productid):
-    db = shelve.open('database/user_database/user.db','c')
+    db = shelve.open('database/user_database/user.db','w')
     if userid in db:
         user = db.get(userid)
         user.append_owned_p(productid)
@@ -254,8 +254,7 @@ def fetch_products():
         raise 'db file not found'
     except KeyError:
         raise ' key error in shelve'
-    except:
-        raise 'unknown error'
+    
     db.close()
     return product_list
 
@@ -589,12 +588,12 @@ def get_order_log_by_id(user_id):
 
 # def print_log():
 #     db = shelve.open('database/logs_database/logs.db','r')
-#     test = db.get('17187343a81c4de4aed19489cbe8a41a')
-#     for i in test.get_user_log_list():
+#     test = db.get('49aa66e5bf71407daa1c6e91f41cbdb6')
+#     for i in test.get_order_log_list():
 #         print(i)
 #     db.close()
 # print_log()
-#
+
 
 
 # test = user_logging('17187343a81c4de4aed19489cbe8a41a','DELETE','TEST2')

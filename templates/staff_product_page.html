@@ -22,7 +22,7 @@
                     <p class="card-text">{{product.get_product_desc()}}</p>
                       </div>
                     <div class="col-auto">
-                    <a href="3" class="btn btn-outline-warning">Edit</a>
+                    <a href="" class="btn btn-outline-success">Update Quantity</a>
 
                     <a href="{{url_for('dashboard_edit_products', productid = product.get_product_id())}}" class="btn btn-outline-warning">Edit</a>
                     <form action="{{url_for('delete_products', productid = product.get_product_id())}}"method="POST">     
