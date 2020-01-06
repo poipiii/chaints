@@ -8,15 +8,28 @@ from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from datapipeline import *
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeSerializer
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
-
+app.config.update(
+	DEBUG=True,
+	#EMAIL SETTINGS
+	MAIL_SERVER='smtp.gmail.com',
+	MAIL_PORT=465,
+	MAIL_USE_SSL=True,
+	MAIL_USERNAME = 'tasky.webapp@gmail.com',
+	MAIL_PASSWORD = '7eNGs-Z76#G-LKFV?PP@@NwkzraC$egq'
+	)
+s= URLSafeSerializer(app.secret_key)
+mail = Mail(app)
 @app.before_request
 def before_request():
-    if session.get('remember')==True:
-        pass
+    if session.get('logged_in') == True:
+        if session.get('remember')==True:
+            pass
     else:
         now = datetime.now()
         try:
@@ -24,7 +37,7 @@ def before_request():
             delta = now - last_active
             if delta.seconds > 1800:
                 session['last_active'] = now
-                return logout()
+                session['forced_logout']= True
         except:
             pass
 
@@ -187,23 +200,36 @@ def signupUser():
         return redirect(url_for("landing_page"))
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
-        try:
-            now=datetime.now()
-            date=now.strftime("%d/%m/%Y, %H:%M:%S")
-            db = shelve.open('database/user_database/user.db', 'c')
-            user = User_Model(createUserForm.email.data,
-createUserForm.username.data, createUserForm.password.data,
-createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.data,date)
-            db[user.get_user_id()]=user
-            db.close()
-        except:
-            print("Error in retrieving Users from database.")
-
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        firstname= request.form['firstname']
+        lastname= request.form['lastname']
+        role= request.form['role']
+        user = (email,username,password,firstname,lastname,role)
+        token=s.dumps(user,salt='email-confirm')
+        msg=Message(subject='Confirm Email', sender='tasky.webapp@gmail.com', recipients=[email])
+        link = url_for('confirm_email',token=token, _external=True)
+        msg.body ='Your link is {}'.format(link)
+        mail.send(msg)
+        flash('An email has been sent. Please verify your account before logging in')
         return redirect(url_for("landing_page"))
     return render_template('Signup.html', form=createUserForm)
 
 #retrieve User to check db if input correctly
 #will move it to admin side after ui finished
+@app.route('/confirm_email/<token>')
+def confirm_email(token):
+    now=datetime.now()
+    date=now.strftime("%d/%m/%Y, %H:%M:%S")
+    user=s.loads(token,salt='email-confirm')
+    db = shelve.open('database/user_database/user.db', 'c')
+    user=User_Model(user[0],user[1],user[2],user[3],user[4],user[5],date)
+    db[user.get_user_id()]=user
+    db.close()
+    flash('Your account has been verified')
+    return redirect(url_for("landing_page"))
+
 @app.route('/retrieveUsers')
 def retrieveUsers():
     db = shelve.open('database/user_database/user.db', 'r')
@@ -237,7 +263,7 @@ def loginUser():
                         session['name']=user.get_user_fullname()
                         if request.form['remember']:
                             session['remember']=True
-                            print('hi')
+
                 db.close()
             except:
                 print("Error")

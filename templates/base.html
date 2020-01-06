@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <title>Bootstrap Example</title>
-  <meta charset="utf-8">
+  <meta charset="utf-8" >
+  <meta http-equiv="refresh" content="300" >
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../static/bootstrap/css/modiy_bootstrap.css">
   <link href="https://fonts.googleapis.com/css?family=Rubik&display=swap" rel="stylesheet">
@@ -21,8 +22,13 @@
 
 
   {% block content %}
-
-
+ {% if session['forced_logout'] == True %}
+<script>window.onload = function alert_logout() {
+    alert("Your session has expired");
+    window.location = '/logout'
+}
+</script>
+  {% endif %}
 
 
   {% endblock  %}
