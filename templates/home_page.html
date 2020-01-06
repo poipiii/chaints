@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 {% with messages = get_flashed_messages() %}
-{%endwith%}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-primary">{{message}}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <style>
   .navbar {
     transition: all 0.4s;
