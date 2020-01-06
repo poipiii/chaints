@@ -10,26 +10,28 @@
               <thead>
                 <tr>
                     <th>Order ID</th>
-                  <th>Customer ID</th>
                   <th>Product</th>
                   <th>Quantity</th>
+                  <th>Seller</th>
                   <th>Order Date</th>
                   <th>Estimated Delivery Date</th>
                     <th>Delivery Status</th>
                     <th>Edit</th>
+                    <th>More Information</th>
                 </tr>
               </thead>
               <tbody>
-                {% for delivery_item in delivery_list %}
+                {% for delivery_item in deliverylist %}
                 <tr>
                     <td>{{ delivery_item.get_individual_orderid() }}</td>
-                  <td>{{ delivery_item.get_buyer_id() }}</td>
                   <td>{{ delivery_item.get_product_name() }}</td>
                   <td>{{ delivery_item.get_quantity() }}</td>
+                  <td>#</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
                   <td>#</td>
                     <td>{{ delivery_item.get_deliverystat() }}</td>
-                    <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-outline-warning">Edit Status</a></td>
+                    <td><a href="" class="btn btn-outline-warning">Received</a></td>
+                    <td><a href="" class="btn btn-outline-warning">Order Details</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -40,3 +42,4 @@
 
 
 {% endblock  %}
+

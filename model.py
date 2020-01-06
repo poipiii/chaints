@@ -617,7 +617,7 @@ def get_order_log_by_id(user_id):
 #delivery stuff
 
 class indi_product_order:
-    def __init__(self,prodid,quantity,orderdate,sellerid,productname,productimage,buyerid): #
+    def __init__(self,prodid,quantity,orderdate,sellerid,productname,productimage,buyerid): #remember to get address from order,also need find way to get estimated order date
         self.__productid=prodid
         self.__sellerid=sellerid
         self.__quantity=quantity
@@ -708,6 +708,34 @@ def status_update(product_id,buyerid,status):
     except:
         raise Exception("an error has occurred")
 
+#to get the necessary stuff in order to pass to status_update function
+def passing_app_to_update(orderid,status):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        for i in db:
+            for n in db[i]:
+                if n.get_individual_orderid()==orderid:
+                    status_update(n.get_product_id(),n.get_buyer_id(),status)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("as error has occured")
+
+#create buyer's order list
+def create_buyer_order_list(buyerid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        buyerorderlist=[]
+        if buyerid in db:
+            for i in db[buyerid]:
+                buyerorderlist.append(i)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("an error has occurred")
+    return buyerorderlist
 
 #to get products of seller
 def obtaining_seller_product_id(sellerid):
@@ -782,6 +810,18 @@ def print_db_seller(sellerid):
         print("Delivery status: %s"%i.get_deliverystat())
         print("===^===^===")
 
+def print_list_buyer(buyerid):
+    listy=create_buyer_order_list(buyerid)
+    print("Buyer id: %s"%buyerid)
+    print("==========")
+    for i in listy:
+        print("Order id: %s"%i.get_individual_orderid())
+        print("product id: %s"%i.get_product_id())
+        print("seller id: %s"%i.get_seller_id())
+        print("product name: %s"%i.get_product_name())
+        print("Quantity: %s"%i.get_quantity())
+        print("Order date: %s"%i.get_order_date())
+        print("Delivery status: %s"%i.get_deliverystat())
     #db.close()
 
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
@@ -792,25 +832,29 @@ def print_db_seller(sellerid):
 #del db["345buy"]
 #del db["678buy"]
 #print(db)
+#db.clear()
 #db.close()
 
 #=====test (delivery)========
 
-#o1dict={"4ab7e5c164b24502bfccd49fec034e41":3}
-#o2dict={"4ab7e5c164b24502bfccd49fec034e41":6,"f9c18482274d42b8a2abd405698003ff":7}
-#o3dict={"de79a6cc861f48788e586cc44287f7d7":2}
+#o1dict={"1302136b76204224807a0cb7e0f5cc2e":3,"3c9638a906ad483ea98f8cc109774533":2}
+o6dict={"1302136b76204224807a0cb7e0f5cc2e":1,"812bd6edbd884ef0b6aa47c383f12b4d":4}
+#o2dict={"3dd0e0b5abe241d78cf672af76323aa9":2,"3c9638a906ad483ea98f8cc109774533":1}
 #o4dict={"29bc204ed2c0467597c227dcb3d914f6":3}
 #o5dict={"29bc204ed2c0467597c227dcb3d914f6":3,"4ab7e5c164b24502bfccd49fec034e41":5}
-#o1=separating_orders("678buy",o1dict,"12/12/2002")
-#o2=separating_orders("345buy",o2dict,"13/12/2002")
+#o1=separating_orders("578buy",o1dict,"12/12/2002")
+#o2=separating_orders("666buy",o2dict,"13/12/2002")
+o6=separating_orders("93e6002298c2476c9be716d30d02169a",o6dict,"12/12/2002")
+#print_list_buyer("578buy")
 #o3=separating_orders("999buy",o3dict,"14/12/2002")
 #o5=separating_orders("112buy",o5dict,"5/1/2020")
 
+#print(create_buyer_order_list("812bdi6edbd884ef0b6aa47c383f12b4d"))
 #print_db_orders()
+#status_update("1302136b76204224807a0cb7e0f5cc2e","578buy","Transit")
 #
-#status_update("4ab7e5c164b24502bfccd49fec034e41","678buy","Transit")
-#
-#print_db_orders()
+#assing_app_to_update("be9ca8c702394cbeb0cc02e22ba45a66","cancelled")
+#rint_db_orders()
 
 
 

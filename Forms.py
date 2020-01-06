@@ -46,3 +46,8 @@ max=150), validators.DataRequired()])
 max=150), validators.DataRequired()])
  role = RadioField('Role', choices=[('B', 'Buyer'),
 ('A','Admin')], default='B')
+
+
+
+class NewStatus(Form):
+    deliverystatus=SelectField('Status',[validators.Optional()],choices=[('Pending','Pending'),('Order Processing','Order Processing'),('Order Dispatched','Order Dispatched'),('Order Returned','Order Returned')],default='')
