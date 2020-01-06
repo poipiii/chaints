@@ -52,6 +52,15 @@ def landing_page():
     Products = fetch_products()
     return render_template('home_page.html' ,product_list = Products )
 
+@app.route('/cart/<productid>/<int:productqty>')
+def test_route(productid,productqty):
+        var = cartItem(productid,productqty)
+        var.to_json
+        cart = session["cart"]=[]
+        cart.append(var)
+        print(cart)
+        return jsonify({'id':'test'},{'qty':'test'})
+
 #currently not working ui not done yet whatsapp me before touching this  
 @app.route("/product/<productid>")
 def product_page(productid):

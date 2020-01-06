@@ -1,7 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
-<style>
 {% with messages = get_flashed_messages() %}
+{%endwith%}
+<style>
+  .navbar {
+    transition: all 0.4s;
+}
+
+nav{
+  background-color: transparent !important;
+}
+.navbar .nav-link {
+  background-color: transparent !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: palevioletred;
+    text-decoration: none;
+}
+
+
+
+
+/* Change navbar styling on scroll */
+.navbar.active {
+    background: #fff !important;
+    box-shadow: 1px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar.active .nav-link {
+    color: #555;
+}
+
+.navbar.active .nav-link:hover,
+.navbar.active .nav-link:focus {
+    color: palevioletred;
+    text-decoration: none;
+}
+
+.navbar.active .navbar-brand {
+    color: #555;
+}
+
+
+/* Change navbar styling on small viewports */
+@media (max-width: 991.98px) {
+    .navbar {
+        background: #fff;
+    }
+
+    .navbar .navbar-brand, .navbar .nav-link {
+        color: #555;
+    }
+}
+
+</style>
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -50,7 +104,7 @@
   
   
   <div class="row">
-      {% for product in product_list %}
+    {% for product in product_list %}
     <div class="col-md-3">
       <div href="#" class="card card-product-grid">
         <div class="img-wrap">
@@ -84,7 +138,8 @@
     
   </div> <!-- row.// -->
   
-</div><!-- container // -->
+</div>
+<!-- container // -->
 </section>
 
 <!-- ========================= SECTION  END// ========================= -->
@@ -107,9 +162,7 @@
 </script>
 {% endblock  %}
 
-  <!-- <section class="container pt-md-3 pb-5 mb-md-3">
-
-      
+<section class="container pt-md-3 pb-5 mb-md-3">      
  <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-4">
   <div class="card product-card"><span class="badge badge-danger badge-shadow">Sale</span>
       <button class="btn-wishlist btn-sm" type="button" data-toggle="tooltip" data-placement="left" title="Add to wishlist"><i class="czi-heart"></i></button>
@@ -132,7 +185,7 @@
   </div>
   <hr class="d-sm-none">
 </div>
-</section> -->
+</section> 
 
  <!-- Product
  <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-4">
@@ -181,4 +234,4 @@
       </div>
   </div>
   <hr class="d-sm-none">
-</div> -->
+</div>

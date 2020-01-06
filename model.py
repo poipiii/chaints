@@ -810,6 +810,18 @@ def print_db_seller(sellerid):
 #print_db_orders()
 
 
+class cartItem:
+    def __init__(self,productID,productqty):
+        self.__productID=productID
+        self.__productqty=productqty
+    def set__productID(self,productID):
+        self.__productID=productID
+    def set__productqty(self,productqty):
+        self.__productqty=productqty
+    def get_productID(self):
+        return self.__productID
+    def get_productqty(self):
+        return self.__productqty
 
 
 
