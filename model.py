@@ -602,15 +602,6 @@ def get_order_log_by_id(user_id):
 #     db.close() 
 # delete_db()
 
-
-
-
-
-
-
-
-
-
 #delivery stuff
 
 class indi_product_order:
@@ -803,41 +794,15 @@ class Order:
         self.__totalprice=totalprice
         self.__sellerID=sellerID
 
-#o1dict={"4ab7e5c164b24502bfccd49fec034e41":3}
-#o2dict={"4ab7e5c164b24502bfccd49fec034e41":6,"f9c18482274d42b8a2abd405698003ff":7}
-#o3dict={"de79a6cc861f48788e586cc44287f7d7":2}
-#o4dict={"29bc204ed2c0467597c227dcb3d914f6":3}
-#o5dict={"29bc204ed2c0467597c227dcb3d914f6":3,"4ab7e5c164b24502bfccd49fec034e41":5}
-#o1=separating_orders("678buy",o1dict,"12/12/2002")
-#o2=separating_orders("345buy",o2dict,"13/12/2002")
-#o3=separating_orders("999buy",o3dict,"14/12/2002")
-#o5=separating_orders("112buy",o5dict,"5/1/2020")
     def set_buyername(self,buyername):
         self.__buyername=buyername
 
-#print_db_orders()
-#
-#status_update("4ab7e5c164b24502bfccd49fec034e41","678buy","Transit")
-#
-#print_db_orders()
     def set_totalprice(self,totalprice):
         self.__totalprice=totalprice
 
     def set_sellerID(self,sellerID):
         self.__sellerID=sellerID
 
-class cartItem:
-    def __init__(self,productID,productqty):
-        self.__productID=productID
-        self.__productqty=productqty
-    def set__productID(self,productID):
-        self.__productID=productID
-    def set__productqty(self,productqty):
-        self.__productqty=productqty
-    def get_productID(self):
-        return self.__productID
-    def get_productqty(self):
-        return self.__productqty
     def get_orderId(self):
         return self.__orderID
 
@@ -862,6 +827,7 @@ class cartItem:
         return self.__productID
     def get_productqty(self):
         return self.__productqty
+
 
 
 
