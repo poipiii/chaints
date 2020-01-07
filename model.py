@@ -792,6 +792,16 @@ def print_db_seller(sellerid):
 #db.close()
 
 #=====test (delivery)========
+#orderdict={"123shirt":3,"456shoe":1}
+#o1date="12/06/2019"
+#o1=separating_orders("Shopper1","Seller1",orderdict,o1date)
+class Order:
+    def __init__(self,cart_list,sellerID,buyername,totalprice):
+        self.__orderID=uuid.uuid4().hex
+        self.__cart_list=cart_list
+        self.__buyername=buyername
+        self.__totalprice=totalprice
+        self.__sellerID=sellerID
 
 #o1dict={"4ab7e5c164b24502bfccd49fec034e41":3}
 #o2dict={"4ab7e5c164b24502bfccd49fec034e41":6,"f9c18482274d42b8a2abd405698003ff":7}
@@ -802,13 +812,19 @@ def print_db_seller(sellerid):
 #o2=separating_orders("345buy",o2dict,"13/12/2002")
 #o3=separating_orders("999buy",o3dict,"14/12/2002")
 #o5=separating_orders("112buy",o5dict,"5/1/2020")
+    def set_buyername(self,buyername):
+        self.__buyername=buyername
 
 #print_db_orders()
 #
 #status_update("4ab7e5c164b24502bfccd49fec034e41","678buy","Transit")
 #
 #print_db_orders()
+    def set_totalprice(self,totalprice):
+        self.__totalprice=totalprice
 
+    def set_sellerID(self,sellerID):
+        self.__sellerID=sellerID
 
 class cartItem:
     def __init__(self,productID,productqty):
@@ -822,6 +838,47 @@ class cartItem:
         return self.__productID
     def get_productqty(self):
         return self.__productqty
+    def get_orderId(self):
+        return self.__orderID
+
+    def get_buyername(self):
+        return self.__buyername
+
+    def get_totalprice(self):
+        return self.__totalprice
+
+    def get_sellerID(self):
+        return self.__sellerID
+
+class cartItem:
+    def __init__(self,productID,productqty):
+        self.__productID=productID
+        self.__productqty=productqty
+    def set__productID(self,productID):
+        self.__productID=productID
+    def set__productqty(self,productqty):
+        self.__productqty=productqty
+    def get_productID(self):
+        return self.__productID
+    def get_productqty(self):
+        return self.__productqty
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

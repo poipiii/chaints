@@ -56,3 +56,11 @@ max=150), validators.DataRequired()])
 max=150), validators.DataRequired()])
  role = RadioField('Role', choices=[('B', 'Buyer'),
 ('A','Admin')], default='B')
+class DeliveryForm(Form):
+    address= StringField('Address', [validators.length(min=1,max=150),validators.DataRequired()])
+    country= SelectField('Country', [validators.DataRequired()], choices=[('AF', 'Afghanistan'), ('AX', 'Åland Islands'), ('AL', 'Albania'), ('DZ', 'Algeria'), ('AS', 'American Samoa'), ('AD', 'Andorra'), ('AO', 'Angola')])
+    city= StringField('City',[validators.length(min=1,max=150),validators.DataRequired()])
+    state= StringField('State',[validators.length(min=1,max=150),validators.DataRequired()])
+    zip= StringField('Zip',[validators.length(min=1,max=150),validators.DataRequired()])
+
+

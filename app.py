@@ -320,6 +320,43 @@ def deleteUser(id):
  db.close()
  return redirect(url_for('retrieveUsers'))
 
+#Order Management
+@app.route('/add_to_cart/<productid>/<int:productqty>')
+def Add_to_cart(productid,productqty):
+    db= shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+    else:
+        usercart=[]
+    cart_item= cartItem(productid,productqty)
+    usercart.append(cart_item)
+    db[session.get('user_id')] = usercart
+    db.close()
+    return redirect(url_for('landing_page'))
+
+@app.route('/cart/<productid>/<int:productqty>')
+def cart(productid,productqty):
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+    else:
+        usercart=[]
+    cart_item=cartItem(productid,productqty)
+    usercart.append(cart_item)
+    db[session.get('user_id')]=usercart
+    print(usercart)
+    db.close()
+    return render_template('Add_To_Cart.html')
+@app.route('/Deliverydetails',methods=['GET','POST'])
+def Deliverydetails():
+     DeliveryForm= DeliveryForm(request.form)
+    if request.method=="POST" and DeliveryForm.validate():
+        return render_template('Payment.html',form=DeliveryForm)
+    else:
+        return redirect(url_for('Deliverydetails'))
+
+
+
 
 #Delivery Management
 @app.route('/SellerDelivery')
