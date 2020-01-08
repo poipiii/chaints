@@ -15,3 +15,15 @@ def dump_all():
     db.close()
 
 
+def init_all():
+    db = shelve.open('database/logs_database/logs.db','c')
+    db.close()
+    db = shelve.open('database/product_database/product.db','c')
+    db.close()
+    db = shelve.open('database/user_database/user.db','c')
+    db.close()
+    db = shelve.open('database/delivery_database/delivery.db','c')
+    db.close()
+
+
+

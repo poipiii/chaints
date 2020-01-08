@@ -1,0 +1,47 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+
+<div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
+            <div>
+                <h2>Order Details</h2>
+                <div>
+                    <h6>Order ID: {{ individual_order.get_individual_orderid() }}</h6>
+                    <h6>Product: {{ individual_order.get_product_id() }}</h6>
+                    <h6>Seller name: {{ individual_order.get_seller_name() }}</h6>
+                    <h6>Address: {{ individual_order.get_address() }}</h6>
+                    <h6>Delivery Status: {{ individual_order.get_deliverystat() }}</h6>
+                    <h5 style="font-weight:bold;">Delivery Tracking</h5>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                              <thead>
+                                <tr>
+                                    <th>Date</th>
+                                  <th>Status of Item</th>
+                                  <th>Location</th>
+
+                              </thead>
+                              <tbody>
+                                <!--{% for delivery_item in delivery_list %}-->
+                                <tr>
+                                    <td></td>
+                                  <td></td>
+                                  <td></td>
+
+                                </tr>
+                                <!--{% endfor %}-->
+                              </tbody>
+                              </table>
+                            </div>
+                    </div>
+
+                </div>
+            </div>
+            <a href="/SellerDelivery" class="btn btn-outline-warning">Delivery Status</a>
+    </div>
+</div>
+
+
+{% endblock  %}

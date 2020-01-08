@@ -1,22 +1,35 @@
 import shelve
 from flask import *
 import os
-from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm, NewStatus
+from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm,Edit_Product_Form,NewStatus
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from datapipeline import *
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeSerializer
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
-
+app.config.update(
+	DEBUG=True,
+	#EMAIL SETTINGS
+	MAIL_SERVER='smtp.gmail.com',
+	MAIL_PORT=465,
+	MAIL_USE_SSL=True,
+	MAIL_USERNAME = 'tasky.webapp@gmail.com',
+	MAIL_PASSWORD = '7eNGs-Z76#G-LKFV?PP@@NwkzraC$egq'
+	)
+s= URLSafeSerializer(app.secret_key)
+mail = Mail(app)
 @app.before_request
 def before_request():
-    if session.get('remember')==True:
-        pass
+    if session.get('logged_in') == True:
+        if session.get('remember')==True:
+            pass
     else:
         now = datetime.now()
         try:
@@ -24,7 +37,7 @@ def before_request():
             delta = now - last_active
             if delta.seconds > 1800:
                 session['last_active'] = now
-                return logout()
+                session['forced_logout']= True
         except:
             pass
 
@@ -38,6 +51,15 @@ def before_request():
 def landing_page():
     Products = fetch_products()
     return render_template('home_page.html' ,product_list = Products )
+
+@app.route('/cart/<productid>/<int:productqty>')
+def test_route(productid,productqty):
+        var = cartItem(productid,productqty)
+        var.to_json
+        cart = session["cart"]=[]
+        cart.append(var)
+        print(cart)
+        return jsonify({'id':'test'},{'qty':'test'})
 
 #currently not working ui not done yet whatsapp me before touching this  
 @app.route("/product/<productid>")
@@ -85,7 +107,7 @@ def dashboard_home():
 
 @app.route("/apitest")
 def datatest():
-    ownp = ['5a049440432c4216b749d0ba508b18b6','15e2329c70514520b665c66c4f9aa2c2']
+    ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
     if request.args.get('type') == 'ALL':
         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
         if apidata is not None:
@@ -142,19 +164,32 @@ def product_create():
 #route to update product form
 @app.route("/update_products/<productid>",methods=['POST', 'GET'])
 def dashboard_edit_products(productid):
-    Product_Form = Create_Product_Form(CombinedMultiDict((request.files, request.form)))
+    original_product =  get_product_by_id(productid)
+    Product_Form = Edit_Product_Form(CombinedMultiDict((request.files, request.form)))
     filenames = []
     #take in more than 1 images from form, rename images and upload to static/product_images
     if request.method == 'POST'  and Product_Form.validate():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
-        for i in product_pics:
-             filename = secure_filename(i.filename)
-             i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
-             filenames.append(filename)
-        #pass form data to Edit_Products function in model.py
-        Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
-        return redirect(url_for('dashboard_products'))      
+        check_if_empty = [i.filename for i in product_pics]
+        if '' in check_if_empty:
+            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
+        else:
+            for i in product_pics:
+                 filename = secure_filename(i.filename)
+                 i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+                 filenames.append(filename)
+            #pass form data to Edit_Products function in model.py
+            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+        return redirect(url_for('dashboard_products')) 
+    else:
+        Product_Form.product_name.data = original_product.get_product_name()
+        Product_Form.product_Quantity.data = original_product.get_product_current_qty()
+        Product_Form.product_Description.data = original_product.get_product_desc()
+        Product_Form.product_Selling_Price.data = original_product.get_product_price()
+        Product_Form.product_Discount.data = original_product.get_product_discount()
+        Product_Form.product_catergory.data = original_product.get_product_catergory()
+        Product_Form.product_images.data = original_product.get_product_images()
     return render_template('productcreateform.html',form =Product_Form)
 
 #take in product id and delete product from shelve  
@@ -174,23 +209,36 @@ def signupUser():
         return redirect(url_for("landing_page"))
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
-        try:
-            now=datetime.now()
-            date=now.strftime("%d/%m/%Y, %H:%M:%S")
-            db = shelve.open('database/user_database/user.db', 'c')
-            user = User_Model(createUserForm.email.data,
-createUserForm.username.data, createUserForm.password.data,
-createUserForm.firstname.data, createUserForm.lastname.data,createUserForm.role.data,date)
-            db[user.get_user_id()]=user
-            db.close()
-        except:
-            print("Error in retrieving Users from database.")
-
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        firstname= request.form['firstname']
+        lastname= request.form['lastname']
+        role= request.form['role']
+        user = (email,username,password,firstname,lastname,role)
+        token=s.dumps(user,salt='email-confirm')
+        msg=Message(subject='Confirm Email', sender='tasky.webapp@gmail.com', recipients=[email])
+        link = url_for('confirm_email',token=token, _external=True)
+        msg.body ='Your link is {}'.format(link)
+        mail.send(msg)
+        flash('An email has been sent. Please verify your account before logging in')
         return redirect(url_for("landing_page"))
     return render_template('Signup.html', form=createUserForm)
 
 #retrieve User to check db if input correctly
 #will move it to admin side after ui finished
+@app.route('/confirm_email/<token>')
+def confirm_email(token):
+    now=datetime.now()
+    date=now.strftime("%d/%m/%Y, %H:%M:%S")
+    user=s.loads(token,salt='email-confirm')
+    db = shelve.open('database/user_database/user.db', 'c')
+    user=User_Model(user[0],user[1],user[2],user[3],user[4],user[5],date)
+    db[user.get_user_id()]=user
+    db.close()
+    flash('Your account has been verified')
+    return redirect(url_for("landing_page"))
+
 @app.route('/retrieveUsers')
 def retrieveUsers():
     db = shelve.open('database/user_database/user.db', 'r')
@@ -224,7 +272,7 @@ def loginUser():
                         session['name']=user.get_user_fullname()
                         if request.form['remember']:
                             session['remember']=True
-                            print('hi')
+
                 db.close()
             except:
                 print("Error")
@@ -308,9 +356,29 @@ def delivery_status_update(orderid):
 @app.route('/BuyerDelivery')
 def buyer_deliverylist():
     userid=session.get('user_id')
-    deliverylist=create_buyer_order_list('812bd6edbd884ef0b6aa47c383f12b4d')
+    deliverylist=create_buyer_order_list(userid)
     print(deliverylist)
     return render_template('buyer_delivery_status.html',deliverylist=deliverylist)
+
+
+@app.route('/BuyerDeliveryDetails/<orderid>')
+def buyer_deliverydetails(orderid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db', 'c')
+        buyerorderlist=create_buyer_order_list(session.get('user_id'))
+        for i in buyerorderlist:
+            if i.get_individual_orderid()==orderid:
+                orderobj=i
+        db.close()
+    except IOError:
+        print("db does not exist")
+    except:
+        print("an unknown error occurred")
+    return render_template('buyer_order_details.html',individual_order=orderobj)
+
+#@app.route('/BuyerDelivery/<orderid>/<product>/<sellerusername>/<orderdate>')
+#def delivery_received(orderid,product,sellerusername,orderdate):
+#    delobj=delivery_received(orderid,product,sellerusername,orderdate)
 
 if __name__ == "__main__":
     app.run(debug=True)

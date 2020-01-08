@@ -7,7 +7,7 @@ from passlib.hash import pbkdf2_sha256
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model
-    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role,joined_date,email_confirmation_sent_on=None):
+    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role,joined_date):
         self.__user_role=user_role
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
@@ -18,9 +18,7 @@ class User_Model:
         self.set_owned_products()
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
-        self.email_confirmation_sent_on = email_confirmation_sent_on
-        self.email_confirmed = False
-        self.email_confirmed_on = None
+
 
     #User_Model Mutator
     def set_user_role(self,user_role):
@@ -100,7 +98,7 @@ class User_Model:
 
 
 def update_usr_owned_p(userid,productid):
-    db = shelve.open('database/user_database/user.db','c')
+    db = shelve.open('database/user_database/user.db','w')
     if userid in db:
         user = db.get(userid)
         user.append_owned_p(productid)
@@ -254,8 +252,7 @@ def fetch_products():
         raise 'db file not found'
     except KeyError:
         raise ' key error in shelve'
-    except:
-        raise 'unknown error'
+    
     db.close()
     return product_list
 
@@ -589,12 +586,12 @@ def get_order_log_by_id(user_id):
 
 # def print_log():
 #     db = shelve.open('database/logs_database/logs.db','r')
-#     test = db.get('17187343a81c4de4aed19489cbe8a41a')
-#     for i in test.get_user_log_list():
+#     test = db.get('49aa66e5bf71407daa1c6e91f41cbdb6')
+#     for i in test.get_order_log_list():
 #         print(i)
 #     db.close()
 # print_log()
-#
+
 
 
 # test = user_logging('17187343a81c4de4aed19489cbe8a41a','DELETE','TEST2')
@@ -617,9 +614,10 @@ def get_order_log_by_id(user_id):
 #delivery stuff
 
 class indi_product_order:
-    def __init__(self,prodid,quantity,orderdate,sellerid,productname,productimage,buyerid): #remember to get address from order,also need find way to get estimated order date
+    def __init__(self,prodid,quantity,orderdate,sellerid,productname,productimage,buyerid,address,sellername,buyername): #remember to get address from order,also need find way to get estimated order date
         self.__productid=prodid
         self.__sellerid=sellerid
+        self.__sellername=sellername
         self.__quantity=quantity
         self.__deliverystat="Pending"
         self.__order_date=orderdate
@@ -628,6 +626,8 @@ class indi_product_order:
         self.__product_image=productimage
         self.__delivery_location="Pending"
         self.__buyerid=buyerid
+        self.__buyername=buyername
+        self.__address=address
 
     #mutator
     def set_delivery_status(self,delivery_stat):
@@ -648,6 +648,8 @@ class indi_product_order:
         return self.__indi_orderid
     def get_seller_id(self):
         return self.__sellerid
+    def get_seller_name(self):
+        return self.__sellername
     def get_product_name(self):
         return self.__product_name
     def get_product_image(self):
@@ -656,6 +658,28 @@ class indi_product_order:
         return self.__delivery_location
     def get_buyer_id(self):
         return self.__buyerid
+    def get_buyer_name(self):
+        return self.__buyername
+    def get_address(self):
+        return self.__address
+
+#class to create past delivery object
+class past_deliveries():
+    def __init__(self,orderid,product,sellerusername,orderdate):
+        self.__orderid=orderid
+        self.__product=product
+        self.__sellerusername=sellerusername
+        self.__orderdate=orderdate
+
+    #accessor
+    def get_order_id(self):
+        return self.__orderid
+    def get_product(self):
+        return self.__product
+    def get_seller_name(self):
+        return self.__sellerusername
+    def get_order_date(self):
+        return self.__orderdate
 
 
 def obtaining_product_object(product_id):
@@ -665,7 +689,7 @@ def obtaining_product_object(product_id):
 ##separating the orders in the order so that each item will have their own separate order id
 ##{'someid':3}
 
-def separating_orders(customerid,userorders,orderdate): #reminder: ADDRESS ALSO TO BE PASSED IN FROM ORDER
+def separating_orders(customerid,userorders,orderdate,address): #reminder: ADDRESS ALSO TO BE PASSED IN FROM ORDER
     productinfo={}
     for n in userorders:
         prod_iddict={}
@@ -674,13 +698,20 @@ def separating_orders(customerid,userorders,orderdate): #reminder: ADDRESS ALSO 
         productname=productobject.get_product_name()
         productimage=productobject.get_product_images()
         productimage=productimage[0]
+        db=shelve.open('database/user_database/user.db','r')
+        userobj=db[sellerid]
+        sellername=userobj.get_username()
+        db.close()
         prod_iddict["Product Name"]=productname
         prod_iddict["Product Image"]=productimage
         prod_iddict["Seller ID"]=sellerid
+        prod_iddict["Seller Name"]=sellername
         productinfo[n]=prod_iddict
+    buyerobj=obtaining_buyer_object(customerid)
+    buyername=buyerobj.get_username()
     somelist=[]
     for i in userorders:  #{'123shirt':3,'124pants':5,'125shoe':6}
-        indiproduct=indi_product_order(i,userorders[i],orderdate,productinfo[i]["Seller ID"],productinfo[i]["Product Name"],productinfo[i]["Product Image"],customerid)#
+        indiproduct=indi_product_order(i,userorders[i],orderdate,productinfo[i]["Seller ID"],productinfo[i]["Product Name"],productinfo[i]["Product Image"],customerid,address,productinfo[i]["Seller Name"],buyername)#
         somelist.append(indiproduct)
     try:
         db = shelve.open('database/delivery_database/delivery.db','c')
@@ -691,6 +722,23 @@ def separating_orders(customerid,userorders,orderdate): #reminder: ADDRESS ALSO 
         raise Exception('db cannot be found')
     except:
         raise Exception("an unknown error has occurred ")
+
+
+
+
+
+#get buyer object
+def obtaining_buyer_object(customerid):
+    try:
+        db=shelve.open('database/user_database/user.db','r')
+        buyerobj=db[customerid]
+        db.close()
+        return buyerobj
+    except IOError:
+        raise Exception('db not found')
+    except:
+        raise Exception('an error occurred')
+
 
 #edit delivery status
 def status_update(product_id,buyerid,status):
@@ -722,6 +770,7 @@ def passing_app_to_update(orderid,status):
     except:
         raise Exception("as error has occured")
 
+    
 #create buyer's order list
 def create_buyer_order_list(buyerid):
     try:
@@ -773,7 +822,10 @@ def create_seller_order_list(sellerid):
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
 
-
+#to create past delivery object
+def delivery_received(orderid,product,sellerusername,orderdate):
+    delobj=past_deliveries(orderid,product,sellerusername,orderdate)
+    return delobj
 
 
 def print_db_orders():
@@ -784,10 +836,13 @@ def print_db_orders():
         count+=1
         for n in db[i]:
             print("customer id: %s"%n.get_buyer_id())
+            print("Customer name: %s"%n.get_buyer_name())
             print("Seller id: %s"%n.get_seller_id())
+            print("Seller username: %s"%n.get_seller_name())
             print("Product id: %s"%n.get_product_id())
-            print("Prduct Name: %s"%n.get_product_name())
+            print("Product Name: %s"%n.get_product_name())
             print("Quantity: %d"%n.get_quantity())
+            print("Address: %s"%n.get_address())
             print("Order date: %s"%n.get_order_date())
             print("Order id: %s"%n.get_individual_orderid())
             print("Delivery status: %s"%n.get_deliverystat())
@@ -828,28 +883,24 @@ def print_list_buyer(buyerid):
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")
 #====clear delivery db======
 #db=shelve.open('database/delivery_database/delivery.db','c')
-#print(db.get)
-#del db["345buy"]
-#del db["678buy"]
-#print(db)
+##print(db.get)
+##del db["345buy"]
+##del db["678buy"]
+##print(db)
 #db.clear()
 #db.close()
 
 #=====test (delivery)========
 
-#o1dict={"1302136b76204224807a0cb7e0f5cc2e":3,"3c9638a906ad483ea98f8cc109774533":2}
-o6dict={"1302136b76204224807a0cb7e0f5cc2e":1,"812bd6edbd884ef0b6aa47c383f12b4d":4}
-#o2dict={"3dd0e0b5abe241d78cf672af76323aa9":2,"3c9638a906ad483ea98f8cc109774533":1}
-#o4dict={"29bc204ed2c0467597c227dcb3d914f6":3}
-#o5dict={"29bc204ed2c0467597c227dcb3d914f6":3,"4ab7e5c164b24502bfccd49fec034e41":5}
-#o1=separating_orders("578buy",o1dict,"12/12/2002")
-#o2=separating_orders("666buy",o2dict,"13/12/2002")
-o6=separating_orders("93e6002298c2476c9be716d30d02169a",o6dict,"12/12/2002")
-#print_list_buyer("578buy")
-#o3=separating_orders("999buy",o3dict,"14/12/2002")
-#o5=separating_orders("112buy",o5dict,"5/1/2020")
-
-#print(create_buyer_order_list("812bdi6edbd884ef0b6aa47c383f12b4d"))
+#o1dict={"55560810edb54389acee1678245e14fb":3,"e11adcae2e704fb3a74f235c7d3c96f8":2}
+#o2dict={"e11adcae2e704fb3a74f235c7d3c96f8":8}
+#o1=separating_orders("19baf6460c9242b3b54499b81bcd02f8",o1dict,"12/12/2002","123 Street 31")
+#o2=separating_orders("7f9a8b956f474f5c8b30faeeaad04294",o2dict,"13/12/2002","333 Avenue 8")
+##print_list_buyer("578buy")
+##o3=separating_orders("999buy",o3dict,"14/12/2002")
+##o5=separating_orders("112buy",o5dict,"5/1/2020")
+##
+###print(create_buyer_order_list("812bdi6edbd884ef0b6aa47c383f12b4d"))
 #print_db_orders()
 #status_update("1302136b76204224807a0cb7e0f5cc2e","578buy","Transit")
 #
@@ -857,6 +908,18 @@ o6=separating_orders("93e6002298c2476c9be716d30d02169a",o6dict,"12/12/2002")
 #rint_db_orders()
 
 
+class cartItem:
+    def __init__(self,productID,productqty):
+        self.__productID=productID
+        self.__productqty=productqty
+    def set__productID(self,productID):
+        self.__productID=productID
+    def set__productqty(self,productqty):
+        self.__productqty=productqty
+    def get_productID(self):
+        return self.__productID
+    def get_productqty(self):
+        return self.__productqty
 
 
 

@@ -10,8 +10,8 @@
                 <div>
                     <h6><span>Order ID:</span> {{ orderid }}</h6>
                     <h6>Product: {{ individual_order.get_product_name() }}</h6>
-                    <h6>Buyer name: #</h6>
-                    <h6>Address: #</h6>
+                    <h6>Buyer name: {{ individual_order.get_buyer_name() }}</h6>
+                    <h6>Address: {{ individual_order.get_address() }}</h6>
                     <h6>Delivery Status: {{ individual_order.get_deliverystat() }}</h6>
                     <h6>Change status</h6>
                     <form method="POST" action="">
