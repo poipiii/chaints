@@ -7,12 +7,12 @@ from passlib.hash import pbkdf2_sha256
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model
-    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role,joined_date):
+    def __init__(self,user_email,username,user_pw,user_firstname,user_lastname,user_role,joined_date):
         self.__user_role=user_role
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
-        self.__user_password=pbkdf2_sha256.hash(user_password)
+        self.__user_pw=pbkdf2_sha256.hash(user_pw)
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
         self.set_owned_products()
@@ -33,13 +33,13 @@ class User_Model:
     def set_username(self,username):
         self.__username=username
 
-    def set_user_password(self,user_password):
-        self.__user_password=user_password
+    def set_user_pw(self,user_pw):
+        self.__user_pw=pbkdf2_sha256.hash(user_pw)
 
     def set_user_firstname(self,user_firstname):
         self.__user_firstname=user_firstname
 
-    def set__user_lastname(self,user_lastname):
+    def set_user_lastname(self,user_lastname):
         self.__user_lastname=user_lastname
 
     def set_owned_products(self):
@@ -63,8 +63,8 @@ class User_Model:
     def get_username(self):
         return self.__username
 
-    def get_user_password(self):
-        return self.__user_password
+    def get_user_pw(self):
+        return self.__user_pw
 
     def get_user_firstname(self):
         return self.__user_firstname

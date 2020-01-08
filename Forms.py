@@ -56,3 +56,14 @@ max=150), validators.DataRequired()])
 max=150), validators.DataRequired()])
  role = RadioField('Role', choices=[('B', 'Buyer'),
 ('A','Admin')], default='B')
+
+class GetEmailForm(Form):
+ email = StringField('Email', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+
+class PasswordReset(Form):
+ password = PasswordField('Password', [validators.Length(min=1,
+max=150), validators.DataRequired(),EqualTo('confirm', message='Passwords must match')])
+ confirm = PasswordField('Confirm Password', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+

@@ -1,7 +1,7 @@
 import shelve
 from flask import *
 import os
-from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm,Edit_Product_Form
+from Forms import *
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
@@ -9,7 +9,7 @@ from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from datapipeline import *
 from flask_mail import Mail, Message
-from itsdangerous import URLSafeSerializer
+from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -23,7 +23,7 @@ app.config.update(
 	MAIL_USERNAME = 'tasky.webapp@gmail.com',
 	MAIL_PASSWORD = '7eNGs-Z76#G-LKFV?PP@@NwkzraC$egq'
 	)
-s= URLSafeSerializer(app.secret_key)
+s= URLSafeTimedSerializer(app.secret_key)
 mail = Mail(app)
 @app.before_request
 def before_request():
@@ -231,7 +231,7 @@ def signupUser():
 def confirm_email(token):
     now=datetime.now()
     date=now.strftime("%d/%m/%Y, %H:%M:%S")
-    user=s.loads(token,salt='email-confirm')
+    user=s.loads(token,salt='email-confirm',max_age=300)
     db = shelve.open('database/user_database/user.db', 'c')
     user=User_Model(user[0],user[1],user[2],user[3],user[4],user[5],date)
     db[user.get_user_id()]=user
@@ -250,8 +250,48 @@ def retrieveUsers():
 
     return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
 
+@app.route('/passwordreset_email',methods=['GET','POST'])
+def passwordreset_email():
+    getEmailForm = GetEmailForm(request.form)
+    if request.method == 'POST' and getEmailForm.validate():
+        email=request.form['email']
+        db = shelve.open('database/user_database/user.db', 'r')
+        for user in db:
+            user=db[user]
+            if email==user.get_user_email():
+                userid = user.get_user_id()
+                token=s.dumps(userid,salt='password_reset')
+                msg=Message(subject='Password Reset', sender='tasky.webapp@gmail.com', recipients=[email])
+                link = url_for('create_newpassword',token=token, _external=True)
+                msg.body ='Your Password Reset link is {}'.format(link)
+                mail.send(msg)
+                db.close()
+                flash('An email has been sent. Please check your email to reset your password')
+                return redirect(url_for("loginUser"))
+        db.close()
+    return render_template('passwordreset_email.html',form=getEmailForm)
+
+
+
+@app.route('/create_newpassword/<token>',methods=['GET','POST'])
+def create_newpassword(token):
+    getPasswordForm=PasswordReset(request.form)
+    if request.method == 'POST' and getPasswordForm.validate():
+        userid =s.loads(token,salt='password_reset',max_age=300)
+        db = shelve.open('database/user_database/user.db', 'w')
+        user=db[userid]
+        pw=request.form['password']
+        user.set_user_pw(pw)
+        db[userid]=user
+        db.close()
+        flash('Your password has been reset')
+        return redirect(url_for("loginUser"))
+    return render_template('create_newpassword.html', form=getPasswordForm)
+
+
+
 #login user, session['logged_in']==True here
-@app.route('/login', methods=('GET', 'POST'))
+@app.route('/login', methods=['GET', 'POST'])
 
 def loginUser():
     if session.get('logged_in')==True:
@@ -259,7 +299,6 @@ def loginUser():
     else:
         createLoginForm = CreateLoginForm(request.form)
         if request.method == 'POST' and createLoginForm.validate():
-
             try:
                 db = shelve.open('database/user_database/user.db', 'r')
                 username = request.form['username']
@@ -270,16 +309,19 @@ def loginUser():
                         session['logged_in'] = True
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
+                        session['role']=user.get_user_role()
+                        db.close()
                         if request.form['remember']:
                             session['remember']=True
-
-                db.close()
+                        return redirect(url_for('landing_page'))
+                    else:
+                        db.close()
+                        error = 'Invalid Credentials. Please try again.'
+                        return render_template('login.html', form=createLoginForm, error=error)
             except:
                 print("Error")
-            return redirect(url_for('landing_page'))
+        return render_template('login.html', form=createLoginForm)
 
-
-    return render_template('login.html', form=createLoginForm)
 
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
@@ -299,6 +341,7 @@ def updateUser(id):
         user.set_user_firstname(updateUserForm.firstname.data)
         user.set_user_lastname(updateUserForm.lastname.data)
         user.set_user_role(updateUserForm.role.data)
+        db[id]=user
 
         db.close()
         return redirect(url_for("retrieveUsers"))
