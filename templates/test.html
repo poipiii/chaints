@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% for i in carts%}
+<h1>{{i.get_productID()}}</h1>
+<h1>{{i.get_productqty()}}</h1>
+{%endfor%}

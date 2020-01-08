@@ -7,12 +7,12 @@ from passlib.hash import pbkdf2_sha256
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model
-    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role,joined_date):
+    def __init__(self,user_email,username,user_pw,user_firstname,user_lastname,user_role,joined_date):
         self.__user_role=user_role
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
-        self.__user_password=pbkdf2_sha256.hash(user_password)
+        self.__user_pw=pbkdf2_sha256.hash(user_pw)
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
         self.set_owned_products()
@@ -33,13 +33,13 @@ class User_Model:
     def set_username(self,username):
         self.__username=username
 
-    def set_user_password(self,user_password):
-        self.__user_password=user_password
+    def set_user_pw(self,user_pw):
+        self.__user_pw=pbkdf2_sha256.hash(user_pw)
 
     def set_user_firstname(self,user_firstname):
         self.__user_firstname=user_firstname
 
-    def set__user_lastname(self,user_lastname):
+    def set_user_lastname(self,user_lastname):
         self.__user_lastname=user_lastname
 
     def set_owned_products(self):
@@ -63,8 +63,8 @@ class User_Model:
     def get_username(self):
         return self.__username
 
-    def get_user_password(self):
-        return self.__user_password
+    def get_user_pw(self):
+        return self.__user_pw
 
     def get_user_firstname(self):
         return self.__user_firstname
@@ -93,7 +93,7 @@ class User_Model:
 
 
     def __str__(self):
-        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_password(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
+        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_pw(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
         ,self.get_user_id(),self.get_user_role(),self.get_owned_products())
 
 
@@ -602,15 +602,6 @@ def get_order_log_by_id(user_id):
 #     db.close() 
 # delete_db()
 
-
-
-
-
-
-
-
-
-
 #delivery stuff
 
 class indi_product_order:
@@ -891,22 +882,37 @@ def print_list_buyer(buyerid):
 #db.close()
 
 #=====test (delivery)========
+#orderdict={"123shirt":3,"456shoe":1}
+#o1date="12/06/2019"
+#o1=separating_orders("Shopper1","Seller1",orderdict,o1date)
+class Order:
+    def __init__(self,cart_list,sellerID,buyername,totalprice):
+        self.__orderID=uuid.uuid4().hex
+        self.__cart_list=cart_list
+        self.__buyername=buyername
+        self.__totalprice=totalprice
+        self.__sellerID=sellerID
 
-#o1dict={"55560810edb54389acee1678245e14fb":3,"e11adcae2e704fb3a74f235c7d3c96f8":2}
-#o2dict={"e11adcae2e704fb3a74f235c7d3c96f8":8}
-#o1=separating_orders("19baf6460c9242b3b54499b81bcd02f8",o1dict,"12/12/2002","123 Street 31")
-#o2=separating_orders("7f9a8b956f474f5c8b30faeeaad04294",o2dict,"13/12/2002","333 Avenue 8")
-##print_list_buyer("578buy")
-##o3=separating_orders("999buy",o3dict,"14/12/2002")
-##o5=separating_orders("112buy",o5dict,"5/1/2020")
-##
-###print(create_buyer_order_list("812bdi6edbd884ef0b6aa47c383f12b4d"))
-#print_db_orders()
-#status_update("1302136b76204224807a0cb7e0f5cc2e","578buy","Transit")
-#
-#assing_app_to_update("be9ca8c702394cbeb0cc02e22ba45a66","cancelled")
-#rint_db_orders()
+    def set_buyername(self,buyername):
+        self.__buyername=buyername
 
+    def set_totalprice(self,totalprice):
+        self.__totalprice=totalprice
+
+    def set_sellerID(self,sellerID):
+        self.__sellerID=sellerID
+
+    def get_orderId(self):
+        return self.__orderID
+
+    def get_buyername(self):
+        return self.__buyername
+
+    def get_totalprice(self):
+        return self.__totalprice
+
+    def get_sellerID(self):
+        return self.__sellerID
 
 class cartItem:
     def __init__(self,productID,productqty):
@@ -920,6 +926,24 @@ class cartItem:
         return self.__productID
     def get_productqty(self):
         return self.__productqty
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

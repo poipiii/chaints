@@ -1,15 +1,15 @@
 import shelve
 from flask import *
 import os
-from Forms import Create_Product_Form, CreateLoginForm, CreateUserForm, CreateUpdateForm,Edit_Product_Form,NewStatus
+from Forms import *
 from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
-from datapipeline import *
 from flask_mail import Mail, Message
-from itsdangerous import URLSafeSerializer
+from itsdangerous import URLSafeTimedSerializer
+from datapipeline import *
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -23,7 +23,7 @@ app.config.update(
 	MAIL_USERNAME = 'tasky.webapp@gmail.com',
 	MAIL_PASSWORD = '7eNGs-Z76#G-LKFV?PP@@NwkzraC$egq'
 	)
-s= URLSafeSerializer(app.secret_key)
+s= URLSafeTimedSerializer(app.secret_key)
 mail = Mail(app)
 @app.before_request
 def before_request():
@@ -52,14 +52,7 @@ def landing_page():
     Products = fetch_products()
     return render_template('home_page.html' ,product_list = Products )
 
-@app.route('/cart/<productid>/<int:productqty>')
-def test_route(productid,productqty):
-        var = cartItem(productid,productqty)
-        var.to_json
-        cart = session["cart"]=[]
-        cart.append(var)
-        print(cart)
-        return jsonify({'id':'test'},{'qty':'test'})
+
 
 #currently not working ui not done yet whatsapp me before touching this  
 @app.route("/product/<productid>")
@@ -105,23 +98,23 @@ def dashboard_home():
     
 #     return jsonify({"profit":profit},{"datetime":dtime})
 
-@app.route("/apitest")
-def datatest():
-    ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
-    if request.args.get('type') == 'ALL':
-        apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
-        if apidata is not None:
-            profit = []
-            dtime = []
-            for orders in apidata:
-                profit.append(orders.get_o_profit())
-                dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
-            return jsonify({"profit":profit},{"datetime":dtime})
-        else:
-            return jsonify({"profit":None},{"datetime":None})
-
-    else:
-        return jsonify({"profit":None},{"datetime":None})
+# @app.route("/apitest")
+# def datatest():
+#     ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
+#     if request.args.get('type') == 'ALL':
+#         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
+#         if apidata is not None:
+#             profit = []
+#             dtime = []
+#             for orders in apidata:
+#                 profit.append(orders.get_o_profit())
+#                 dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
+#             return jsonify({"profit":profit},{"datetime":dtime})
+#         else:
+#             return jsonify({"profit":None},{"datetime":None})
+#
+#     else:
+#         return jsonify({"profit":None},{"datetime":None})
 
 
 
@@ -231,7 +224,7 @@ def signupUser():
 def confirm_email(token):
     now=datetime.now()
     date=now.strftime("%d/%m/%Y, %H:%M:%S")
-    user=s.loads(token,salt='email-confirm')
+    user=s.loads(token,salt='email-confirm',max_age=300)
     db = shelve.open('database/user_database/user.db', 'c')
     user=User_Model(user[0],user[1],user[2],user[3],user[4],user[5],date)
     db[user.get_user_id()]=user
@@ -250,8 +243,48 @@ def retrieveUsers():
 
     return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
 
+@app.route('/passwordreset_email',methods=['GET','POST'])
+def passwordreset_email():
+    getEmailForm = GetEmailForm(request.form)
+    if request.method == 'POST' and getEmailForm.validate():
+        email=request.form['email']
+        db = shelve.open('database/user_database/user.db', 'r')
+        for user in db:
+            user=db[user]
+            if email==user.get_user_email():
+                userid = user.get_user_id()
+                token=s.dumps(userid,salt='password_reset')
+                msg=Message(subject='Password Reset', sender='tasky.webapp@gmail.com', recipients=[email])
+                link = url_for('create_newpassword',token=token, _external=True)
+                msg.body ='Your Password Reset link is {}'.format(link)
+                mail.send(msg)
+                db.close()
+                flash('An email has been sent. Please check your email to reset your password')
+                return redirect(url_for("loginUser"))
+        db.close()
+    return render_template('passwordreset_email.html',form=getEmailForm)
+
+
+
+@app.route('/create_newpassword/<token>',methods=['GET','POST'])
+def create_newpassword(token):
+    getPasswordForm=PasswordReset(request.form)
+    if request.method == 'POST' and getPasswordForm.validate():
+        userid =s.loads(token,salt='password_reset',max_age=300)
+        db = shelve.open('database/user_database/user.db', 'w')
+        user=db[userid]
+        pw=request.form['password']
+        user.set_user_pw(pw)
+        db[userid]=user
+        db.close()
+        flash('Your password has been reset')
+        return redirect(url_for("loginUser"))
+    return render_template('create_newpassword.html', form=getPasswordForm)
+
+
+
 #login user, session['logged_in']==True here
-@app.route('/login', methods=('GET', 'POST'))
+@app.route('/login', methods=['GET', 'POST'])
 
 def loginUser():
     if session.get('logged_in')==True:
@@ -259,27 +292,29 @@ def loginUser():
     else:
         createLoginForm = CreateLoginForm(request.form)
         if request.method == 'POST' and createLoginForm.validate():
-
-            try:
                 db = shelve.open('database/user_database/user.db', 'r')
                 username = request.form['username']
                 password = request.form['password']
                 for user in db:
                     user=db[user]
-                    if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
+                    if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_pw())==True:
                         session['logged_in'] = True
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
-                        if request.form['remember']:
-                            session['remember']=True
+                        session['role']=user.get_user_role()
+                        db.close()
+                        try:
+                            if request.form['remember']:
+                                session['remember']=True
+                        except:
+                            pass
+                        return redirect(url_for('landing_page'))
+                    else:
+                        db.close()
+                        error = 'Invalid Credentials. Please try again.'
+                        return render_template('login.html', form=createLoginForm, error=error)
+        return render_template('login.html', form=createLoginForm)
 
-                db.close()
-            except:
-                print("Error")
-            return redirect(url_for('landing_page'))
-
-
-    return render_template('login.html', form=createLoginForm)
 
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
@@ -299,6 +334,7 @@ def updateUser(id):
         user.set_user_firstname(updateUserForm.firstname.data)
         user.set_user_lastname(updateUserForm.lastname.data)
         user.set_user_role(updateUserForm.role.data)
+        db[id]=user
 
         db.close()
         return redirect(url_for("retrieveUsers"))
@@ -319,6 +355,42 @@ def deleteUser(id):
  db.pop(id)
  db.close()
  return redirect(url_for('retrieveUsers'))
+
+#Order Management
+@app.route('/add_to_cart/<productid>/<int:productqty>')
+def Add_to_cart(productid,productqty):
+    db= shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+    else:
+        usercart=[]
+    cart_item= cartItem(productid,productqty)
+    usercart.append(cart_item)
+    db[session.get('user_id')] = usercart
+    db.close()
+    return redirect(url_for('landing_page'))
+
+@app.route('/cart')
+def cart():
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+    else:
+        usercart=[]
+    print(usercart)
+    db.close()
+    productincart = []
+    for item in usercart:
+       productincart.append(get_product_by_id(item.get_productID()))
+
+    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart)
+@app.route('/Deliverydetails',methods=['GET','POST'])
+def Deliverydetails():
+    DeliveryForm= DeliveryForm(request.form)
+    if request.method=="POST" and DeliveryForm.validate():
+        return render_template('Payment.html',form=DeliveryForm)
+    else:
+        return redirect(url_for('Deliverydetails'))
 
 
 #Delivery Management
