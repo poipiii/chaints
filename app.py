@@ -7,7 +7,6 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
-from datapipeline import *
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 
@@ -52,14 +51,7 @@ def landing_page():
     Products = fetch_products()
     return render_template('home_page.html' ,product_list = Products )
 
-@app.route('/cart/<productid>/<int:productqty>')
-def test_route(productid,productqty):
-        var = cartItem(productid,productqty)
-        var.to_json
-        cart = session["cart"]=[]
-        cart.append(var)
-        print(cart)
-        return jsonify({'id':'test'},{'qty':'test'})
+
 
 #currently not working ui not done yet whatsapp me before touching this  
 @app.route("/product/<productid>")
@@ -105,23 +97,23 @@ def dashboard_home():
     
 #     return jsonify({"profit":profit},{"datetime":dtime})
 
-@app.route("/apitest")
-def datatest():
-    ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
-    if request.args.get('type') == 'ALL':
-        apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
-        if apidata is not None:
-            profit = []
-            dtime = []
-            for orders in apidata:
-                profit.append(orders.get_o_profit())
-                dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
-            return jsonify({"profit":profit},{"datetime":dtime})
-        else:
-            return jsonify({"profit":None},{"datetime":None})
-
-    else:
-        return jsonify({"profit":None},{"datetime":None})
+# @app.route("/apitest")
+# def datatest():
+#     ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
+#     if request.args.get('type') == 'ALL':
+#         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
+#         if apidata is not None:
+#             profit = []
+#             dtime = []
+#             for orders in apidata:
+#                 profit.append(orders.get_o_profit())
+#                 dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
+#             return jsonify({"profit":profit},{"datetime":dtime})
+#         else:
+#             return jsonify({"profit":None},{"datetime":None})
+#
+#     else:
+#         return jsonify({"profit":None},{"datetime":None})
 
 
 
@@ -363,16 +355,54 @@ def deleteUser(id):
  db.close()
  return redirect(url_for('retrieveUsers'))
 
+#Order Management
+@app.route('/add_to_cart/<productid>/<int:productqty>')
+def Add_to_cart(productid,productqty):
+    db= shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+    else:
+        usercart=[]
+    cart_item= cartItem(productid,productqty)
+    usercart.append(cart_item)
+    db[session.get('user_id')] = usercart
+    db.close()
+    return redirect(url_for('landing_page'))
+
+@app.route('/cart')
+def cart():
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+    else:
+        usercart=[]
+    print(usercart)
+    db.close()
+    productincart = []
+    for item in usercart:
+       productincart.append(get_product_by_id(item.get_productID()))
+
+    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart)
+@app.route('/Deliverydetails',methods=['GET','POST'])
+def Deliverydetails():
+    DeliveryForm= DeliveryForm(request.form)
+    if request.method=="POST" and DeliveryForm.validate():
+        return render_template('Payment.html',form=DeliveryForm)
+    else:
+        return redirect(url_for('Deliverydetails'))
+
+
+
 
 #Delivery Management
-@app.route('/SellerDelivery')
-def seller_deliverystat():
-    #deliverydict={}
-    #db=shelve.open('database/delivery_database/delivery.db','r')
-    #for key in db:
-#
-    #db.close()
-    return render_template('seller_delivery_status.html')
+#@app.route('/SellerDelivery')
+#def seller_deliverystat():
+#    #deliverydict={}
+#    #db=shelve.open('database/delivery_database/delivery.db','r')
+#    #for key in db:
+##
+#    #db.close()
+#    return render_template('seller_delivery_status.html')
 #add in additional codes to read data from database :(
 
 if __name__ == "__main__":

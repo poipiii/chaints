@@ -1,6 +1,5 @@
 {% extends 'dashboard_base.html' %}
 <!-- Default Card Example -->
-
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Products</h1>
@@ -25,7 +24,7 @@
                     <a href="" class="btn btn-outline-success">Update Quantity</a>
 
                     <a href="{{url_for('dashboard_edit_products', productid = product.get_product_id())}}" class="btn btn-outline-warning">Edit</a>
-                    <form action="{{url_for('delete_products', productid = product.get_product_id())}}"method="POST">     
+                    <form action="{{url_for('delete_products', productid = product.get_product_id())}}" method="POST">
                       <input type="submit" value="Delete" class="btn btn-outline-danger mt-3" onclick="return confirm('Are you sure you want to delete this Product?');">
                     </form>
                     </div>
