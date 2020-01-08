@@ -93,7 +93,7 @@ class User_Model:
 
 
     def __str__(self):
-        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_password(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
+        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_pw(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
         ,self.get_user_id(),self.get_user_role(),self.get_owned_products())
 
 

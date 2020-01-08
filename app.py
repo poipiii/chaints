@@ -291,27 +291,27 @@ def loginUser():
     else:
         createLoginForm = CreateLoginForm(request.form)
         if request.method == 'POST' and createLoginForm.validate():
-            try:
                 db = shelve.open('database/user_database/user.db', 'r')
                 username = request.form['username']
                 password = request.form['password']
                 for user in db:
                     user=db[user]
-                    if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_password())==True:
+                    if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_pw())==True:
                         session['logged_in'] = True
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
                         session['role']=user.get_user_role()
                         db.close()
-                        if request.form['remember']:
-                            session['remember']=True
+                        try:
+                            if request.form['remember']:
+                                session['remember']=True
+                        except:
+                            pass
                         return redirect(url_for('landing_page'))
                     else:
                         db.close()
                         error = 'Invalid Credentials. Please try again.'
                         return render_template('login.html', form=createLoginForm, error=error)
-            except:
-                print("Error")
         return render_template('login.html', form=createLoginForm)
 
 
@@ -390,8 +390,6 @@ def Deliverydetails():
         return render_template('Payment.html',form=DeliveryForm)
     else:
         return redirect(url_for('Deliverydetails'))
-
-
 
 
 #Delivery Management
