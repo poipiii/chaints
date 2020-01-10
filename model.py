@@ -238,9 +238,6 @@ def Add_New_Products(user_id,product_name,product_current_qty,product_desc,produ
 
     db.close()
 
-
-
-
 #grab all products in product db and return it
 def fetch_products():
     try:
@@ -815,29 +812,14 @@ class Order:
     def get_sellerID(self):
         return self.__sellerID
 
-class cartItem:
-    def __init__(self,productID,productqty):
-        self.__productID=productID
-        self.__productqty=productqty
-    def set__productID(self,productID):
-        self.__productID=productID
-    def set__productqty(self,productqty):
-        self.__productqty=productqty
-    def get_productID(self):
-        return self.__productID
-    def get_productqty(self):
-        return self.__productqty
-
-
-
-
-
-
-
-
-
-
-
+def delivery_info(DeliveryInfo):
+    db=shelve.open('database/user_database/user.db','c')
+    if session.get('user_id') in db:
+        info=db.get(session.get('user_id'))
+        #Infodict={}
+        #Infodict["DeliveryInfo"]=info.get_deliveryinfo()
+        db[session.get('user_id')]=info.get_deliveryinfo()
+    db.close()
 
 
 

@@ -24,9 +24,9 @@
 </tr>
 </thead>
 <tbody>
-{%for item in usercart%}
+{%for item in usercart.keys()%}
 {%for i in productincart%}
-{%if i.get_product_id() == item.get_productID()%}
+{%if i.get_product_id() == item%}
 <tr>
 	<td>
 		<figure class="itemside align-items-center">
@@ -38,10 +38,7 @@
 	</td>
 	<td>
 		<select class="form-control">
-			<option>1</option>
-			<option>2</option>
-			<option>3</option>
-			<option>4</option>
+			<option>{{usercart[item]}}</option>
 		</select>
 	</td>
 	<td>
@@ -52,7 +49,9 @@
 	</td>
 	<td class="text-right d-none d-md-block">
 	<a data-original-title="Save to Wishlist" title="" href="" class="btn btn-light" data-toggle="tooltip"> <i class="fa fa-heart"></i></a>
-	<a href="" class="btn btn-light"> Remove</a>
+		<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
+		<input type="submit" value="Remove" class="btn btn-warning">
+		</form>
 	</td>
 </tr>
 {%endif%}
@@ -106,17 +105,12 @@
 		<p class="text-center mb-3">
 			<img src="bootstrap-ecommerce-html/images/misc/payments.png" height="26">
 		</p>
-		<a href="#" class="btn btn-primary btn-block"> Make Purchase </a>
-		<a href="#" class="btn btn-light btn-block">Continue Shopping</a>
+		<a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase </a>
+		<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
 </div> <!-- card-body.// -->
 </div> <!-- card.// -->
+
 	</aside> <!-- col.// -->
 </div> <!-- row.// -->
-	</output>
-	<a href="#" class="showcode" data-html="code_shopping_cart_1">show code</a>
-<!-- ============================ COMPONENT CART END .// ================================= -->
 
-
-</aside></div> <!-- container.// -->
-</div>
 {% endblock %}
