@@ -28,3 +28,10 @@ class CreateLoginForm(Form):
 max=150), validators.DataRequired()])
  password = StringField('Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
+
+class Question(Form):
+    mtitle= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
+    mbody=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])
+
+class Response(Form):
+    Response=TextAreaField("Response",[validators.DataRequired(),validators.Length(min=1,max=100)])

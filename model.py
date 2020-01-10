@@ -248,7 +248,6 @@ def fetch_products_by_user(user_id):
         user = db.get(user_id)
         user_products = user.get_owned_products()
         db.close()
-        print(user_products)
         product_list = []
         db = shelve.open('database/product_database/product.db','r')
         for i in user_products:
@@ -487,3 +486,119 @@ def separating_orders(userid,userorders):
 #     db.close() 
 # delete_db()
 
+#FAQ Forum
+class Message():
+    def __init__(self,userid,mtitle,mbody):
+        self.__userid=userid
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+    def getuid(self):
+        return self.__userid
+    def setmtitle(self,mtitle):
+        self.__mtitle=mtitle
+    def getmtitle(self):
+        return self.__mtitle
+    def setmbody(self,mbody):
+        self.__mbody=mbody
+    def getmbody(self):
+        return self.__mbody
+#Question
+class CQuestion(Message):
+    def __init__(self,UserID,mtitle,mbody):
+        super().__init__(UserID,mtitle,mbody)
+        self.__msgid_Qns=uuid.uuid4().hex
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+        self.__answers_list=[]
+    def setanslist(self,ansid):
+        self.__answers_list.append(ansid)
+    def get_msgid(self):
+        return self.__msgid_Qns
+    def get_ans_list(self):
+        return self.__answers_list
+    #def __str__(self):
+    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_msgid(),self.getuid(),self.getmtitle(),self.getmbody())
+#Response
+class CAnswer(Message):
+    def __init__(self,UserID,mtitle,mbody):
+        super().__init__(UserID,mtitle,mbody)
+        mtitle=None        
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+        self.__ansid=uuid.uuid4().hex
+        self.__Question=[]
+    def setQuestion(self,Qnsid):
+        self.__Question.append(Qnsid)
+    def getQuestion(self):
+        return self.__Question
+    def get_ansid(self):
+        return self.__ansid
+    #def __str__(self):
+    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_ansid(),self.getuid(),self.getmtitle(),self.getmbody())
+#FAQ Forum Shelve DB
+
+def get_question_by_id(question_id):
+    db = shelve.open('database/forum_database/FAQQ.db','r')
+    if question_id in db:
+        question_obj = db.get(question_id)
+        return question_obj
+    else:
+        print('question does not exist')
+    db.close()
+
+
+def RespondtoQns(Responseid, question_id):
+    db = shelve.open('database/forum_database/FAQQ.db','c')
+    if question_id in db:
+        question_obj = db.get(question_id)
+        question_obj.setanslist(Responseid)
+        db[question_id]=question_obj
+    else:
+        print('question does not exist')
+    db.close()
+
+
+def get_answer_by_id(id):
+    ans_obj_list = []
+    print(id)
+    db = shelve.open('database/forum_database/FAQQ.db','r')
+    for i in id:
+        if i in db:
+            ans_obj = db.get(i)
+            ans_obj_list.append(ans_obj)
+
+        else:
+                print('question does not exist')
+        
+    db.close()
+    return ans_obj_list
+
+
+
+#def test_faq_db():
+#    Gold=[]
+#    db = shelve.open('database/forum_database/FAQQ.db','r')
+#    for i in db.values():
+#        if isinstance(i,CQuestion):
+#            Gold.append(i)
+#    for i in Gold:
+#        print (i.getmtitle(),i.getmbody())
+#        print(i.get_msgid())
+#test_faq_db()
+
+
+
+# db = shelve.open('database/forum_database/FAQQ.db','c')
+# db.close()
+
+
+#def test_faq_db():
+#    db = shelve.open('database/forum_database/FAQQ.db','r')
+#    for i in db.values():
+#        if isinstance(i,CQuestion):
+#           print (i.get_ans_list())
+#        #elif isinstance(i,CAnswer):
+#        else:
+#            continue
+#    db.close()
+#test_faq_db()

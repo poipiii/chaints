@@ -6,7 +6,7 @@ from werkzeug.datastructures import CombinedMultiDict,FileStorage
 from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
-
+from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
@@ -172,8 +172,90 @@ def loginUser():
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('landing_page'))
+#FAQ Display
+@app.route('/FAQ')
+def FAQ():
+    Gold=[]
+    try:
+        Ein=shelve.open("database/forum_database/FAQQ.db","r")
+        Enamel=Ein.values()
+        for i in Enamel:
+            if isinstance(i,CQuestion):
+                Gold.append(i)
+
+        Ein.close()
+
+    except IOError:
+        print("Database not found")
+    return render_template('FAQ.html', Gold=Gold)
+
+#Forum Question
+@app.route('/createQns',methods=["GET","POST"])
+def createQns():
+    createquestion=Question(request.form)
+    if request.method=="POST" and createquestion.validate():
+
+        new_question = CQuestion('123456',createquestion.mtitle.data,createquestion.mbody.data)
+        try:
+            db=shelve.open('database/forum_database/FAQQ.db','c')
+            db[new_question.get_msgid()] = new_question
+        
+        except IOError:
+            print("Database failed to open")
+
+        db.close()
+        return redirect(url_for('FAQ'))
+    return render_template('createQns.html',form=createquestion)
+
+#Forum Answer
+@app.route('/Respond/<id>',methods=["GET","POST"])
+def Respond(id):
+    Reply=Response(request.form)
+    if request.method=="POST" and Reply.validate():
+        Respondents= CAnswer("6","",Reply.Response.data)
+        try:
+            dennis=shelve.open('database/forum_database/FAQQ.db','c')
+            dennis[Respondents.get_ansid()]=Respondents
+            
+        except:
+            print("Something screwed up")
+
+        dennis.close()
+        RespondtoQns(Respondents.get_ansid(),id)
+        return redirect(url_for('displayQns'))
+    return render_template('Response.html',form=Reply)
 
 
+@app.route('/displayQns/<id>')
+def displayQns(id):
+    question = get_question_by_id(id)
+    AnswerList=get_answer_by_id(question.get_ans_list())
+    return render_template('displayQns.html',question = question, AnswerList=AnswerList)
+
+
+#update Qns in Forum
+@app.route('/updateQns/<id>',methods=["GET","POST"])
+def updateQns(id):
+    updateQns=Question(request.form)
+    if request.method =='POST' and updateQns.validate():
+        db=shelve.open('database/forum_database/FAQQ.db','w')
+        Qns= db.get(id)
+        Qns.setmtitle(updateQns.mtitle.data)
+        Qns.setmbody(updateQns.mbody.data)
+
+        db[id]= Qns
+        db.close()
+        
+        return redirect(url_for('FAQ'))
+        
+    else:
+        db= shelve.open('database/forum_database/FAQQ.db','r')
+        Qns= db.get(id)
+        db.close()
+        
+        updateQns.mtitle.data= Qns.getmtitle()
+        updateQns.mbody.data=Qns.getmbody()
+        return render_template('updateqns.html',form=updateQns)
 if __name__ == "__main__":
     app.run(debug=True)
 
