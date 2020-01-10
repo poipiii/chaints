@@ -294,10 +294,10 @@ def loginUser():
         if request.method == 'POST' and createLoginForm.validate():
                 db = shelve.open('database/user_database/user.db', 'r')
                 username = request.form['username']
-                password = request.form['password']
+                pw = request.form['password']
                 for user in db:
                     user=db[user]
-                    if user.get_username()==username and pbkdf2_sha256.verify(password,user.get_user_pw())==True:
+                    if user.get_username()==username and pbkdf2_sha256.verify(pw,user.get_user_pw())==True:
                         session['logged_in'] = True
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
@@ -309,10 +309,9 @@ def loginUser():
                         except:
                             pass
                         return redirect(url_for('landing_page'))
-                    else:
-                        db.close()
-                        error = 'Invalid Credentials. Please try again.'
-                        return render_template('login.html', form=createLoginForm, error=error)
+                db.close()
+                error = 'Invalid Credentials. Please try again.'
+                return render_template('login.html', form=createLoginForm, error=error)
         return render_template('login.html', form=createLoginForm)
 
 
