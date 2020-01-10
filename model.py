@@ -7,17 +7,18 @@ from passlib.hash import pbkdf2_sha256
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model
-    def __init__(self,user_email,username,user_password,user_firstname,user_lastname,user_role,joined_date):
+    def __init__(self,user_email,username,user_pw,user_firstname,user_lastname,user_role,joined_date):
         self.__user_role=user_role
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
-        self.__user_password=pbkdf2_sha256.hash(user_password)
+        self.__user_pw=pbkdf2_sha256.hash(user_pw)
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
         self.set_owned_products()
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
+        self.__user_address={}
 
 
     #User_Model Mutator
@@ -33,13 +34,13 @@ class User_Model:
     def set_username(self,username):
         self.__username=username
 
-    def set_user_password(self,user_password):
-        self.__user_password=user_password
+    def set_user_pw(self,user_pw):
+        self.__user_pw=pbkdf2_sha256.hash(user_pw)
 
     def set_user_firstname(self,user_firstname):
         self.__user_firstname=user_firstname
 
-    def set__user_lastname(self,user_lastname):
+    def set_user_lastname(self,user_lastname):
         self.__user_lastname=user_lastname
 
     def set_owned_products(self):
@@ -56,6 +57,9 @@ class User_Model:
     def set_user_wishlist(self,wishlist):
         self.__user_wishlist=wishlist
 
+    def set_user_address(self,address):
+        self.__user_address=address
+
     #User_Model Accessor
     def get_user_email(self):
         return self.__user_email
@@ -63,8 +67,8 @@ class User_Model:
     def get_username(self):
         return self.__username
 
-    def get_user_password(self):
-        return self.__user_password
+    def get_user_pw(self):
+        return self.__user_pw
 
     def get_user_firstname(self):
         return self.__user_firstname
@@ -90,10 +94,12 @@ class User_Model:
     def get_user_joined_date(self):
         return self.__user_joined_date
 
+    def get_user_address(self):
+        return self.__user_address
 
 
     def __str__(self):
-        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_password(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
+        return 'username: {} email: {} password:{} firstname:{} lastname:{} fullname:{} usr_id:{} usr_role:{} owned_p:{}'.format(self.get_username(),self.get_user_email(),self.get_user_pw(),self.get_user_firstname(),self.get_user_lastname(),self.get_user_fullname()
         ,self.get_user_id(),self.get_user_role(),self.get_owned_products())
 
 
@@ -602,9 +608,10 @@ def get_order_log_by_id(user_id):
 #delivery stuff
 
 class indi_product_order:
-    def __init__(self,prodid,quantity,orderdate,sellerid,productname,productimage,buyerid): #
+    def __init__(self,prodid,quantity,orderdate,sellerid,productname,productimage,buyerid,address,sellername,buyername): #remember to get address from order,also need find way to get estimated order date
         self.__productid=prodid
         self.__sellerid=sellerid
+        self.__sellername=sellername
         self.__quantity=quantity
         self.__deliverystat="Pending"
         self.__order_date=orderdate
@@ -613,6 +620,8 @@ class indi_product_order:
         self.__product_image=productimage
         self.__delivery_location="Pending"
         self.__buyerid=buyerid
+        self.__buyername=buyername
+        self.__address=address
 
     #mutator
     def set_delivery_status(self,delivery_stat):
@@ -633,6 +642,8 @@ class indi_product_order:
         return self.__indi_orderid
     def get_seller_id(self):
         return self.__sellerid
+    def get_seller_name(self):
+        return self.__sellername
     def get_product_name(self):
         return self.__product_name
     def get_product_image(self):
@@ -641,6 +652,28 @@ class indi_product_order:
         return self.__delivery_location
     def get_buyer_id(self):
         return self.__buyerid
+    def get_buyer_name(self):
+        return self.__buyername
+    def get_address(self):
+        return self.__address
+
+#class to create past delivery object
+class past_deliveries():
+    def __init__(self,orderid,product,sellerusername,orderdate):
+        self.__orderid=orderid
+        self.__product=product
+        self.__sellerusername=sellerusername
+        self.__orderdate=orderdate
+
+    #accessor
+    def get_order_id(self):
+        return self.__orderid
+    def get_product(self):
+        return self.__product
+    def get_seller_name(self):
+        return self.__sellerusername
+    def get_order_date(self):
+        return self.__orderdate
 
 
 def obtaining_product_object(product_id):
@@ -650,7 +683,7 @@ def obtaining_product_object(product_id):
 ##separating the orders in the order so that each item will have their own separate order id
 ##{'someid':3}
 
-def separating_orders(customerid,userorders,orderdate): #reminder: ADDRESS ALSO TO BE PASSED IN FROM ORDER
+def separating_orders(customerid,userorders,orderdate,address): #reminder: ADDRESS ALSO TO BE PASSED IN FROM ORDER
     productinfo={}
     for n in userorders:
         prod_iddict={}
@@ -659,13 +692,20 @@ def separating_orders(customerid,userorders,orderdate): #reminder: ADDRESS ALSO 
         productname=productobject.get_product_name()
         productimage=productobject.get_product_images()
         productimage=productimage[0]
+        db=shelve.open('database/user_database/user.db','r')
+        userobj=db[sellerid]
+        sellername=userobj.get_username()
+        db.close()
         prod_iddict["Product Name"]=productname
         prod_iddict["Product Image"]=productimage
         prod_iddict["Seller ID"]=sellerid
+        prod_iddict["Seller Name"]=sellername
         productinfo[n]=prod_iddict
+    buyerobj=obtaining_buyer_object(customerid)
+    buyername=buyerobj.get_username()
     somelist=[]
     for i in userorders:  #{'123shirt':3,'124pants':5,'125shoe':6}
-        indiproduct=indi_product_order(i,userorders[i],orderdate,productinfo[i]["Seller ID"],productinfo[i]["Product Name"],productinfo[i]["Product Image"],customerid)#
+        indiproduct=indi_product_order(i,userorders[i],orderdate,productinfo[i]["Seller ID"],productinfo[i]["Product Name"],productinfo[i]["Product Image"],customerid,address,productinfo[i]["Seller Name"],buyername)#
         somelist.append(indiproduct)
     try:
         db = shelve.open('database/delivery_database/delivery.db','c')
@@ -676,6 +716,23 @@ def separating_orders(customerid,userorders,orderdate): #reminder: ADDRESS ALSO 
         raise Exception('db cannot be found')
     except:
         raise Exception("an unknown error has occurred ")
+
+
+
+
+
+#get buyer object
+def obtaining_buyer_object(customerid):
+    try:
+        db=shelve.open('database/user_database/user.db','r')
+        buyerobj=db[customerid]
+        db.close()
+        return buyerobj
+    except IOError:
+        raise Exception('db not found')
+    except:
+        raise Exception('an error occurred')
+
 
 #edit delivery status
 def status_update(product_id,buyerid,status):
@@ -693,6 +750,35 @@ def status_update(product_id,buyerid,status):
     except:
         raise Exception("an error has occurred")
 
+#to get the necessary stuff in order to pass to status_update function
+def passing_app_to_update(orderid,status):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        for i in db:
+            for n in db[i]:
+                if n.get_individual_orderid()==orderid:
+                    status_update(n.get_product_id(),n.get_buyer_id(),status)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("as error has occured")
+
+    
+#create buyer's order list
+def create_buyer_order_list(buyerid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        buyerorderlist=[]
+        if buyerid in db:
+            for i in db[buyerid]:
+                buyerorderlist.append(i)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("an error has occurred")
+    return buyerorderlist
 
 #to get products of seller
 def obtaining_seller_product_id(sellerid):
@@ -730,7 +816,10 @@ def create_seller_order_list(sellerid):
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
 
-
+#to create past delivery object
+def delivery_received(orderid,product,sellerusername,orderdate):
+    delobj=past_deliveries(orderid,product,sellerusername,orderdate)
+    return delobj
 
 
 def print_db_orders():
@@ -741,10 +830,13 @@ def print_db_orders():
         count+=1
         for n in db[i]:
             print("customer id: %s"%n.get_buyer_id())
+            print("Customer name: %s"%n.get_buyer_name())
             print("Seller id: %s"%n.get_seller_id())
+            print("Seller username: %s"%n.get_seller_name())
             print("Product id: %s"%n.get_product_id())
-            print("Prduct Name: %s"%n.get_product_name())
+            print("Product Name: %s"%n.get_product_name())
             print("Quantity: %d"%n.get_quantity())
+            print("Address: %s"%n.get_address())
             print("Order date: %s"%n.get_order_date())
             print("Order id: %s"%n.get_individual_orderid())
             print("Delivery status: %s"%n.get_deliverystat())
@@ -767,16 +859,29 @@ def print_db_seller(sellerid):
         print("Delivery status: %s"%i.get_deliverystat())
         print("===^===^===")
 
+def print_list_buyer(buyerid):
+    listy=create_buyer_order_list(buyerid)
+    print("Buyer id: %s"%buyerid)
+    print("==========")
+    for i in listy:
+        print("Order id: %s"%i.get_individual_orderid())
+        print("product id: %s"%i.get_product_id())
+        print("seller id: %s"%i.get_seller_id())
+        print("product name: %s"%i.get_product_name())
+        print("Quantity: %s"%i.get_quantity())
+        print("Order date: %s"%i.get_order_date())
+        print("Delivery status: %s"%i.get_deliverystat())
     #db.close()
 
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")
 #====clear delivery db======
 #db=shelve.open('database/delivery_database/delivery.db','c')
-#print(db.get)
-#del db["345buy"]
-#del db["678buy"]
-#print(db)
+##print(db.get)
+##del db["345buy"]
+##del db["678buy"]
+##print(db)
+#db.clear()
 #db.close()
 
 #=====test (delivery)========
