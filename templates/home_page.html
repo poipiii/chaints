@@ -1,25 +1,8 @@
-
 {% extends "base.html" %}
 {% block content %}
-
 {% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for message in messages %}
-      <div id='message' class="alert alert-primary alert-dismissible fade show" role="alert">
-       {{message}}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+{%endwith%}
 <style>
-
-   #message {
-   margin-top:4rem !important;
-   }
-
   .navbar {
     transition: all 0.4s;
 }
@@ -73,7 +56,6 @@ nav{
 }
 
 </style>
-
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <li data-target="#myCarousel" data-slide-to="0" class="active"></li>

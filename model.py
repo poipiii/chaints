@@ -926,6 +926,18 @@ def delivery_info(DeliveryInfo):
         db[session.get('user_id')]=info.get_deliveryinfo()
     db.close()
 
+def add_delivery_info(address,country,city,state,zip,userid):
+    add={}
+    add["address"]=address
+    add["country"]=country
+    add["city"]=city
+    add["state"]=state
+    add["zip"]=zip
+    db=shelve.open('database/order_database/order.db','c')
+    a=db[userid]
+    a.set_address(add)
+    db[userid]=a
+    db.close()
 
 
 

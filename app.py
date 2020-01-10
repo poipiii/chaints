@@ -412,10 +412,11 @@ def deletecart(cartproductid):
         raise 'user does not have a cart created'
     return redirect(url_for('cart'))
 
-@app.route('/Deliverydetails', methods=['GET','POST'])
+@app.route('/Deliverydetails', methods=['GET','POST']) #address,country,city,state,zip,userid
 def Deliverydetails():
     delivery_form= Delivery_Form(request.form)
-    if request.method == "POST" and Delivery_Form.validate():
+    if request.method == "POST" and delivery_form.validate():
+        add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
         return redirect(url_for('Payment'))
     return render_template('delivery_details.html',form=delivery_form)
 
