@@ -78,3 +78,10 @@ max=150), validators.DataRequired()])
 
 class NewStatus(Form):
     deliverystatus=SelectField('Status',[validators.Optional()],choices=[('Pending','Pending'),('Order Processing','Order Processing'),('Order Dispatched','Order Dispatched'),('Order Returned','Order Returned')],default='')
+
+class Question(Form):
+    mtitle= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
+    mbody=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])
+
+class Response(Form):
+    Response=TextAreaField("Response",[validators.DataRequired(),validators.Length(min=1,max=100)])
