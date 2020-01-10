@@ -73,3 +73,8 @@ max=150), validators.DataRequired(),EqualTo('confirm', message='Passwords must m
  confirm = PasswordField('Confirm Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
 
+
+
+
+class NewStatus(Form):
+    deliverystatus=SelectField('Status',[validators.Optional()],choices=[('Pending','Pending'),('Order Processing','Order Processing'),('Order Dispatched','Order Dispatched'),('Order Returned','Order Returned')],default='')

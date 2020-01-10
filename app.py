@@ -9,6 +9,7 @@ from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
+from datapipeline import *
 
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -393,15 +394,63 @@ def Deliverydetails():
 
 
 #Delivery Management
-#@app.route('/SellerDelivery')
-#def seller_deliverystat():
-#    #deliverydict={}
-#    #db=shelve.open('database/delivery_database/delivery.db','r')
-#    #for key in db:
-##
-#    #db.close()
-#    return render_template('seller_delivery_status.html')
+
+@app.route('/SellerDelivery')
+def seller_deliverylist():
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()!="A":
+        return redirect(url_for('buyer_deliverylist'))
+    db.close()
+    delivery_list=create_seller_order_list(session.get('user_id'))
+    return render_template('seller_delivery_status.html',delivery_list=delivery_list)
 #add in additional codes to read data from database :(
+
+@app.route('/SellerDeliveryUpdate/<orderid>',methods=['POST','GET'])
+def delivery_status_update(orderid):
+    updatedstatusform= NewStatus(request.form)
+    try:
+        db=shelve.open('database/delivery_database/delivery.db', 'c')
+        sellerorderlist=create_seller_order_list(session.get('user_id'))
+        for i in sellerorderlist:
+            if i.get_individual_orderid()==orderid:
+                orderobj=i
+        db.close()
+    except IOError:
+        print("ERROR db no exist")
+    except:
+        print("Some unknown error happened i guess")
+    if request.method=='POST' and updatedstatusform.validate():
+        passing_app_to_update(orderid,updatedstatusform.deliverystatus.data)
+        return redirect(url_for('seller_deliverylist'))
+    return render_template('seller_update_status.html',orderid=orderid,individual_order=orderobj,form=updatedstatusform)
+
+@app.route('/BuyerDelivery')
+def buyer_deliverylist():
+    userid=session.get('user_id')
+    deliverylist=create_buyer_order_list(userid)
+    print(deliverylist)
+    return render_template('buyer_delivery_status.html',deliverylist=deliverylist)
+
+
+@app.route('/BuyerDeliveryDetails/<orderid>')
+def buyer_deliverydetails(orderid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db', 'c')
+        buyerorderlist=create_buyer_order_list(session.get('user_id'))
+        for i in buyerorderlist:
+            if i.get_individual_orderid()==orderid:
+                orderobj=i
+        db.close()
+    except IOError:
+        print("db does not exist")
+    except:
+        print("an unknown error occurred")
+    return render_template('buyer_order_details.html',individual_order=orderobj)
+
+#@app.route('/BuyerDelivery/<orderid>/<product>/<sellerusername>/<orderdate>')
+#def delivery_received(orderid,product,sellerusername,orderdate):
+#    delobj=delivery_received(orderid,product,sellerusername,orderdate)
 
 if __name__ == "__main__":
     app.run(debug=True)
