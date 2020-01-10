@@ -957,7 +957,7 @@ class cartItem:
 
 
 #FAQ Forum
-class Message():
+class Dessage():
     def __init__(self,userid,mtitle,mbody):
         self.__userid=userid
         self.__mtitle=mtitle
@@ -973,7 +973,7 @@ class Message():
     def getmbody(self):
         return self.__mbody
 #Question
-class CQuestion(Message):
+class CQuestion(Dessage):
     def __init__(self,UserID,mtitle,mbody):
         super().__init__(UserID,mtitle,mbody)
         self.__msgid_Qns=uuid.uuid4().hex
@@ -989,7 +989,7 @@ class CQuestion(Message):
     #def __str__(self):
     #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_msgid(),self.getuid(),self.getmtitle(),self.getmbody())
 #Response
-class CAnswer(Message):
+class CAnswer(Dessage):
     def __init__(self,UserID,mtitle,mbody):
         super().__init__(UserID,mtitle,mbody)
         mtitle=None        
