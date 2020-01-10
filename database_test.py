@@ -24,7 +24,9 @@ def init_all():
     db.close()
     db = shelve.open('database/delivery_database/delivery.db','c')
     db.close()
-
-
+    db = shelve.open('database/forum_database/FAQQ.db','c')
+    db.close()
+    db = shelve.open('database/order_database/order.db','c')
+    db.close()
 
 
