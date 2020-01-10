@@ -18,6 +18,7 @@ class User_Model:
         self.set_owned_products()
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
+        self.__user_address={}
 
 
     #User_Model Mutator
@@ -56,6 +57,9 @@ class User_Model:
     def set_user_wishlist(self,wishlist):
         self.__user_wishlist=wishlist
 
+    def set_user_address(self,address):
+        self.__user_address=address
+
     #User_Model Accessor
     def get_user_email(self):
         return self.__user_email
@@ -90,6 +94,8 @@ class User_Model:
     def get_user_joined_date(self):
         return self.__user_joined_date
 
+    def get_user_address(self):
+        return self.__user_address
 
 
     def __str__(self):
