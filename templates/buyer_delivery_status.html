@@ -1,0 +1,45 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+<div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                    <th>Order ID</th>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Seller Username</th>
+                  <th>Order Date</th>
+                  <th>Estimated Delivery Date</th>
+                    <th>Delivery Status</th>
+                    <th>Edit</th>
+                    <th>More Information</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for delivery_item in deliverylist %}
+                <tr>
+                    <td>{{ delivery_item.get_individual_orderid() }}</td>
+                  <td>{{ delivery_item.get_product_name() }}</td>
+                  <td>{{ delivery_item.get_quantity() }}</td>
+                  <td>{{ delivery_item.get_seller_name() }}</td>
+                  <td>{{ delivery_item.get_order_date() }}</td>
+                  <td>#</td>
+                    <td>{{ delivery_item.get_deliverystat() }}</td>
+                    <td><a href="" class="btn btn-outline-warning">Received</a></td>
+                    <td><a href="/BuyerDeliveryDetails/{{ delivery_item.get_individual_orderid() }}" class="btn btn-outline-warning">Order Details</a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              </table>
+            </div>
+    </div>
+</div>
+
+
+{% endblock  %}
+

@@ -1,0 +1,31 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+{% from "includes/_formhelper.html" import render_field %}
+
+<div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
+            <div>
+                <h2>Order Details</h2>
+                <div>
+                    <h6><span>Order ID:</span> {{ orderid }}</h6>
+                    <h6>Product: {{ individual_order.get_product_name() }}</h6>
+                    <h6>Buyer name: {{ individual_order.get_buyer_name() }}</h6>
+                    <h6>Address: {{ individual_order.get_address() }}</h6>
+                    <h6>Delivery Status: {{ individual_order.get_deliverystat() }}</h6>
+                    <h6>Change status</h6>
+                    <form method="POST" action="">
+                        <div class="form-group">
+                            {{ render_field(form.deliverystatus, class="form-control") }}
+                        </div>
+                        <input type="submit" value="Update" class="btn btn-primary">
+                    </form>
+
+                </div>
+            </div>
+            <a href="/SellerDelivery" class="btn btn-outline-warning">Delivery Status</a>
+    </div>
+</div>
+
+
+{% endblock  %}

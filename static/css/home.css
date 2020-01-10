@@ -3,3 +3,17 @@
   color: blue !important;
 }
 
+
+body{
+  font-family: 'Rubik', sans-serif;
+}
+
+
+.carosell_img{
+  height: 100vh;
+  background: no-repeat;
+  background-size: cover;
+}
+
+
+/* class="d-flex align-items-center justify-content-center min-vh-100" */
