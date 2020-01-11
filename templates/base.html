@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Chaints</title>
   <meta charset="utf-8" >
   <meta http-equiv="refresh" content="300" >
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,8 +20,8 @@
 {% include 'components/_navbar.html' %}
 {% endblock  %}
 
+{% block content %}
 
-  {% block content %}
  {% if session['forced_logout'] == True %}
 <script>window.onload = function alert_logout() {
     alert("Your session has expired");
@@ -31,7 +31,8 @@
   {% endif %}
 
 
-  {% endblock  %}
+{% endblock  %}
+
 
 {% block footer %}
 {% include 'components/_footer.html' %}
@@ -70,7 +71,6 @@ $(document).ready(function() {
     });
 });
 </script>
-
 {% block script %}
 
 {% endblock  %}

@@ -59,7 +59,8 @@ def landing_page():
 @app.route("/product/<productid>")
 def product_page(productid):
     get_product = get_product_by_id(productid)
-    return render_template('productdetails.html',product = get_product)
+    seller = get_user(get_product.get_seller_id())
+    return render_template('productdetails.html',product = get_product,sellerinfo = seller.get_username() )
 
 #only be able to access if session['logged_in']==True
 
@@ -129,8 +130,11 @@ def dashboard_home():
 @app.route("/product_logs")
 def dashboard_logs():
     product_log = get_product_log_by_id(session.get('user_id'))
-    user_id = session.get('user_id')
-    return render_template('staff_logs_page.html',product_log_list = product_log,userid = user_id )
+    if product_log is not None:
+        user_id = session.get('user_id')
+        return render_template('staff_logs_page.html',product_log_list = product_log,userid = user_id )
+    else:
+        return render_template('productlognone.html')
 
 @app.route("/manage_products",methods=['POST', 'GET'])
 def dashboard_products():
@@ -151,6 +155,7 @@ def product_create():
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
         new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
+        flash('Product successfully created')
         return redirect(url_for('dashboard_products'))      
     return render_template('productcreateform.html',form =Product_Form )
 
@@ -175,6 +180,7 @@ def dashboard_edit_products(productid):
                  filenames.append(filename)
             #pass form data to Edit_Products function in model.py
             Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+        flash('Product successfully updated')
         return redirect(url_for('dashboard_products')) 
     else:
         Product_Form.product_name.data = original_product.get_product_name()
@@ -190,6 +196,7 @@ def dashboard_edit_products(productid):
 @app.route("/delete_products/<productid>",methods=['POST'])
 def delete_products(productid):
     delete_product_by_id(productid,session.get('user_id'))
+    flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
 
@@ -379,34 +386,74 @@ def deleteUser(id):
  db.close()
  return redirect(url_for('retrieveUsers'))
 
-#Order Management
+
+#adding  product to cart 
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
-    db= shelve.open('database/order_database/order.db','c')
+    #take in productid and product quantity from route 
+    db= shelve.open('database/order_database/cart.db','c')
+    #check if logged in user is in cart db 
     if session.get('user_id')in db:
+        # if user record exist fetch it from cart db and put it in varible usercart
+        #the record will be a dict
         usercart=db.get(session.get('user_id'))
     else:
-        usercart=[]
-    cart_item= cartItem(productid,productqty)
-    usercart.append(cart_item)
+        #if user record does not exist usercart is a empty dict 
+        usercart={}
+    #if productid in usercart dict add on to the quantity 
+    if productid in usercart.keys():
+        usercart[productid] += productqty
+    else:
+        #if does not exist add it to the usercart dict with product id as key and quantity as value 
+        usercart[productid] = productqty
+    #save the record to the cart db with current logged in user id as key and usercart dict as value 
     db[session.get('user_id')] = usercart
     db.close()
     return redirect(url_for('landing_page'))
 
 @app.route('/cart')
 def cart():
-    db=shelve.open('database/order_database/order.db','c')
+    #initalise a empty list for product objects in varible productincart
+    productincart = []
+    db=shelve.open('database/order_database/cart.db','c')
+    # if user record exist fetch it from cart db and put it in varible usercart
     if session.get('user_id')in db:
         usercart=db.get(session.get('user_id'))
+        print(usercart)
+        #retrive product object from product db using the product id stored in usercart dict
+        for item in usercart.keys():
+            productincart.append(get_product_by_id(item))
     else:
-        usercart=[]
-    print(usercart)
-    db.close()
-    productincart = []
-    for item in usercart:
-       productincart.append(get_product_by_id(item.get_productID()))
+        #if user record does not exist , usercart is initalise as a empty dict
+        # and save empty dict to db so if user open cart without adding items there will be no error  
+        usercart={}
+        db[session.get('user_id')] = usercart
 
+    db.close()
     return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart)
+
+
+@app.route('/deletecart/<cartproductid>',methods = ['POST'])
+#take in post request from the route and the product id of the item to be deleted 
+def deletecart(cartproductid):
+    db = shelve.open('database/order_database/cart.db','w')
+    # if user record exist fetch it from cart db and put it in varible usercart
+    if session.get('user_id') in db:
+        usercart = db.get(session.get('user_id'))
+        #delete the product from the usercart dict using pop and passing in the key of the product to be deleted 
+        usercart.pop(cartproductid)
+        #save the upadted dict to the cart db 
+        db[session.get('user_id')] = usercart
+    else:
+        raise 'user does not have a cart created'
+    return redirect(url_for('cart'))
+
+
+
+
+
+
+
 @app.route('/Deliverydetails',methods=['GET','POST'])
 def Deliverydetails():
     DeliveryForm= DeliveryForm(request.form)

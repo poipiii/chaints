@@ -576,10 +576,13 @@ def get_user_log_by_id(user_id):
 
 def get_product_log_by_id(user_id):
     db = shelve.open('database/logs_database/logs.db','r')
-    all_logs = db.get(user_id)
-    product_logs = all_logs.get_product_log_list() 
+    if user_id in db:
+        all_logs = db.get(user_id)
+        product_logs = all_logs.get_product_log_list() 
+        return product_logs
+    else:
+        return None
     db.close()
-    return product_logs
 
 def get_order_log_by_id(user_id):
     db = shelve.open('database/logs_database/logs.db','r')
@@ -919,20 +922,6 @@ class Order:
 
     def get_sellerID(self):
         return self.__sellerID
-
-class cartItem:
-    def __init__(self,productID,productqty):
-        self.__productID=productID
-        self.__productqty=productqty
-    def set__productID(self,productID):
-        self.__productID=productID
-    def set__productqty(self,productqty):
-        self.__productqty=productqty
-    def get_productID(self):
-        return self.__productID
-    def get_productqty(self):
-        return self.__productqty
-
 
 
 

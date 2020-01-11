@@ -1,7 +1,10 @@
 {% extends 'dashboard_base.html' %}
 {% block content %}
-<div class="container">
-    <h1 class="display-4">Product</h1>
+<div class="card">
+    <article class="card-body">
+    <header class="mb-4">
+        <h3 class="card-title">Create Product</h3>
+    </header>
     <form method="POST" action="" enctype="multipart/form-data">
     <div class="form-group">
         {{ form.product_name.label(class="form-control-label")}}
@@ -35,5 +38,7 @@
         </div>
      <input type="submit" value="Submit" class="btn btn-primary"/>
     </form>
+    <hr>
+</article> <!-- card-body end .// -->
 </div>
 {% endblock  %}
