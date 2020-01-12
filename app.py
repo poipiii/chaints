@@ -416,6 +416,9 @@ def Deliverydetails():
         return redirect(url_for('Deliverydetails'))
 
 
+
+
+
 #Delivery Management
 
 @app.route('/SellerDelivery')
@@ -465,15 +468,56 @@ def buyer_deliverydetails(orderid):
             if i.get_individual_orderid()==orderid:
                 orderobj=i
         db.close()
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        if orderid in db:
+            statuslist=db[orderid]
+            db.close()
+            return render_template('buyer_order_details.html',individual_order=orderobj,statuslist=statuslist)
+        return render_template('buyer_order_details2.html',individual_order=orderobj)
     except IOError:
         print("db does not exist")
     except:
         print("an unknown error occurred")
-    return render_template('buyer_order_details.html',individual_order=orderobj)
 
-#@app.route('/BuyerDelivery/<orderid>/<product>/<sellerusername>/<orderdate>')
-#def delivery_received(orderid,product,sellerusername,orderdate):
-#    delobj=delivery_received(orderid,product,sellerusername,orderdate)
+@app.route('/DeletingDelivery/<orderid>')
+def deleting_delivery(orderid):
+    userid=session.get('user_id')
+    cancelling_carrier_side(orderid)
+    db=shelve.open('database/delivery_database/delivery.db', 'c')
+    deliverylist=db[userid]
+    for i in deliverylist:
+        if i.get_individual_orderid()==orderid:
+            deliverylist.remove(i)
+    db[userid]=deliverylist
+    db.close()
+    return redirect(url_for('buyer_deliverylist'))
+
+
+@app.route('/DeliveryReceived/<orderid>/<productid>')
+def received_delivery(orderid,productid):
+    userid=session.get('user_id')
+    status_update(productid,userid,"Order Received")
+    deliverylist=create_buyer_order_list(userid)
+    return redirect(url_for('buyer_deliverylist'))
+
+
+@app.route('/CarrierUpdate', methods=['GET','POST'])
+def CarrierUpdate():
+    carrierupdateform=CarrierForm(request.form)
+    if request.method=='POST' and carrierupdateform.validate():
+        updatedate=carrierupdateform.updatedate.data
+        country=carrierupdateform.country.data
+        status=carrierupdateform.status.data
+        deliverynotes=carrierupdateform.deliverynotes.data
+        orderid=carrierupdateform.orderid.data
+        carrierobj_and_db(orderid,updatedate,country,status,deliverynotes)
+        return render_template('testing2.html')
+    return render_template('carrier_update.html',form=carrierupdateform)
+
+
+
+
+
 
 
 

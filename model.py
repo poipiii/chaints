@@ -660,24 +660,60 @@ class indi_product_order:
     def get_address(self):
         return self.__address
 
-#class to create past delivery object
-class past_deliveries():
-    def __init__(self,orderid,product,sellerusername,orderdate):
-        self.__orderid=orderid
-        self.__product=product
-        self.__sellerusername=sellerusername
-        self.__orderdate=orderdate
 
-    #accessor
-    def get_order_id(self):
-        return self.__orderid
-    def get_product(self):
-        return self.__product
-    def get_seller_name(self):
-        return self.__sellerusername
-    def get_order_date(self):
-        return self.__orderdate
+#class to create individual tracking details for each delivery based on delivery status
+class carrier_delivery:
+    def __init__(self,statusdate,location,status,deliverynotes,address):
+        self.__statusdate=statusdate
+        self.__location=location
+        self.__status=status
+        self.__deliverynotes=deliverynotes
+        self.__address=address
 
+    #accessors
+    def get_status_date(self):
+        return self.__statusdate
+    def get_status(self):
+        return self.__status
+    def get_location(self):
+        return self.__location
+    def get_delivery_notes(self):
+        return self.__deliverynotes
+    def get_address(self):
+        return self.__address
+
+#creates carrier updates object and stores in db
+def carrierobj_and_db(orderid,statusdate,location,status,deliverynotes):
+    db=shelve.open('database/delivery_database/delivery.db','c')
+    for i in db:
+        for n in db[i]:
+            if n.get_individual_orderid()==orderid:
+                address=n.get_address()
+    db.close()
+    carrierobj=carrier_delivery(statusdate,location,status,deliverynotes,address)
+    db=shelve.open("database/delivery_database/carrier.db","c")
+    if orderid in db:
+        statuslist=db[orderid]
+        statuslist.append(carrierobj)
+        db[orderid]=statuslist
+    else:
+        statuslist=[]
+        statuslist.append(carrierobj)
+        db[orderid]=statuslist
+    db.close()
+
+def print_db():
+    db=shelve.open("database/delivery_database/carrier.db","c")
+    for i in db:
+        print("Order id %s"%i)
+        for n in db[i]:
+            print("Status: %s"%n.get_status())
+            print("Location: %s"%n.get_location())
+            print("Notes: %s"%n.get_location())
+    db.close()
+
+#carrierobj_and_db("order1","12/12/12","Singapore","Transit","Slight delay","123 Happy")
+#print_db()
 
 def obtaining_product_object(product_id):
     product_obj=get_product_by_id(product_id)
@@ -719,9 +755,6 @@ def separating_orders(customerid,userorders,orderdate,address): #reminder: ADDRE
         raise Exception('db cannot be found')
     except:
         raise Exception("an unknown error has occurred ")
-
-
-
 
 
 #get buyer object
@@ -819,10 +852,34 @@ def create_seller_order_list(sellerid):
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
 
-#to create past delivery object
-def delivery_received(orderid,product,sellerusername,orderdate):
-    delobj=past_deliveries(orderid,product,sellerusername,orderdate)
-    return delobj
+#to delete delivery object from delivery db and
+def cancelling_carrier_side(orderid):
+    try:
+        statusobj=carrier_delivery("-","-","Delivery Cancelled","Cancelled by buyer","-")
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        if orderid in db:
+            statuslist=db[orderid]
+        else:
+            statuslist=[]
+        statuslist.append(statusobj)
+        db[orderid]=statuslist
+        db.close()
+
+    except IOError:
+        raise Exception('db does not exist')
+    except:
+        raise Exception('an unknown error has occurred')
+
+#cancelling order
+def deleting_delivery(userid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','r')
+        del db[userid]
+        db.close()
+    except IOError:
+        raise Exception('db does not exist')
+    except:
+        raise Exception('an unknown error has occurred')
 
 
 def print_db_orders():
@@ -888,9 +945,12 @@ def print_list_buyer(buyerid):
 #db.close()
 
 #=====test (delivery)========
-#orderdict={"123shirt":3,"456shoe":1}
-#o1date="12/06/2019"
-#o1=separating_orders("Shopper1","Seller1",orderdict,o1date)
+#o1dict={'65bed418f681479c95dc98b00b05923b':3,'8bc38fcbc4344b50bdce1f0a30793d57':2}
+#o2dict={'8bc38fcbc4344b50bdce1f0a30793d57':8}
+#o1=separating_orders('8d11b80c18374832a116e6918b24a816',o1dict,'12/12/2012','123 sunny vale')
+#o2=separating_orders('2c1b2925fa8d4ae9909f54d1945cca54',o2dict,'12/11/2012','456 greenwood ave')
+#
+
 class Order:
     def __init__(self,cart_list,sellerID,buyername,totalprice):
         self.__orderID=uuid.uuid4().hex

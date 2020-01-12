@@ -1,6 +1,8 @@
 from wtforms import Form, StringField, RadioField, SelectField, TextAreaField, IntegerField, validators, \
-    SelectMultipleField, MultipleFileField, validators, PasswordField, BooleanField
+    SelectMultipleField, MultipleFileField, validators, PasswordField, BooleanField,DateField
 from wtforms.validators import EqualTo
+from wtforms.fields.html5 import DateField
+
 
 
 class Create_Product_Form(Form):
@@ -79,9 +81,20 @@ max=150), validators.DataRequired()])
 class NewStatus(Form):
     deliverystatus=SelectField('Status',[validators.Optional()],choices=[('Pending','Pending'),('Order Processing','Order Processing'),('Order Dispatched','Order Dispatched'),('Order Returned','Order Returned')],default='')
 
+class CarrierForm(Form):
+    orderid=StringField('Order ID',[validators.Length(min=1,max=150),validators.DataRequired()])
+    updatedate=DateField('Date of Status', [validators.DataRequired(message=())], format='%Y-%m-%d')
+    country=SelectField('Country',[validators.DataRequired()],choices=[('AF', 'Afghanistan'), ('AX', 'Åland Islands'), ('AL', 'Albania'), ('DZ', 'Algeria'), ('AS', 'American Samoa'), ('AD', 'Andorra'), ('AO', 'Angola')])
+    status=SelectField('Status',[validators.DataRequired()],choices=[('Info Received','Info Received'),('In Transit','In Transit'),('Out for Delivery','Out for Delivery'),('Failed Attempt','Failed Attempt'),('Delivered','Delivered'),('Delayed','Delayed')])
+    deliverynotes=TextAreaField('Notes',[validators.DataRequired(),validators.Length(min=1,max=100)])
+
+
+
+
 class Question(Form):
     mtitle= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
     mbody=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])
 
 class Response(Form):
     Response=TextAreaField("Response",[validators.DataRequired(),validators.Length(min=1,max=100)])
+

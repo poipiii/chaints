@@ -1,7 +1,6 @@
 {% extends 'dashboard_base.html' %}
 {% block content %}
-
-    <style>
+<style>
     .title{
         font-weight:bold;!important
 
@@ -28,7 +27,6 @@
         position:relative;
     }
 </style>
-
 <div class="card shadow mb-4">
         <div class="card-header py-3">
           <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
@@ -37,15 +35,15 @@
                 <div>
                     <div>
                     <h6><span class="title">Order ID:</span> {{ individual_order.get_individual_orderid() }}</h6>
-                    <h6><span class="title">Product:</span> {{ individual_order.get_product_name() }}</h6>
+                    <h6><span class="title">Product:</span> {{ individual_order.get_product_id() }}</h6>
                     <h6><span class="title">Seller name:</span> {{ individual_order.get_seller_name() }}</h6>
                     <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
                     <h6><span class="title">Delivery Status:</span> {{ individual_order.get_deliverystat() }}</h6>
-                    <div class="productimage">
+                        <div class="productimage">
                                 <img src="../static/product_images/{{individual_order.get_product_image()}}" class="productimage">
                          </div>
                     </div>
-                    <h5 style="font-weight:bold;">Delivery Tracking</h5>
+                    <h4 class="header" >Delivery Tracking</h4>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -58,15 +56,15 @@
 
                               </thead>
                               <tbody>
-                                {% for carrier_item in statuslist %}
+
                                 <tr>
-                                    <td>{{ carrier_item.get_status_date() }}</td>
-                                  <td>{{ carrier_item.get_status() }}</td>
-                                  <td>{{ carrier_item.get_location() }}</td>
-                                    <td>{{ carrier_item.get_delivery_notes() }}</td>
+                                    <td></td>
+                                  <td></td>
+                                  <td></td>
+                                    <td></td>
 
                                 </tr>
-                                {% endfor %}
+
                               </tbody>
                               </table>
                             </div>
