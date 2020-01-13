@@ -223,7 +223,7 @@ class Product_Model:
     def get_product_catergory(self):
         return self.__product_catergory
     def get_discounted_price(self):
-        discounted_price = self.get_product_price() - self.get_product_discount()
+        discounted_price = round(self.get_product_price() - self.get_product_discount(),2) 
         return discounted_price
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
@@ -335,6 +335,22 @@ def Edit_Products(user_id,product_id,product_name,product_current_qty,product_de
     db.close()
 
 
+def updatequantity(user_id,product_id,quantity):
+    user = get_user(user_id)
+    try:
+        db = shelve.open('database/product_database/product.db','w')
+        if product_id in db.keys() and product_id in user.get_owned_products():
+            updateqty = db.get(product_id)
+            updateqty.set_product_current_qty(quantity)
+            db[product_id] =updateqty
+            product_logging(user_id,'EDIT',product_id,updateqty)
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
 #take in product id and delete product in db
 def delete_product_by_id(product_id,user_id):
     user = get_user(user_id)
@@ -374,27 +390,10 @@ def delete_all_user_product(product_id_list,user_id):
     db.close()
 
 
-#product db test codes
-#print all products in product db in command line
-# def test_print():
-#     db = shelve.open('database/product_database/product.db','c')
-#     for i in db.values():
-#         print(i)
-
-#     db.close()
-
-# test_print()
-#USE WITH CAUTION DELETE THE WHOLE PRODUCT DB
-# def delete_db():
-#     db = shelve.open('database/product_database/product.db','c')
-#     db.clear()
-#     db.close()
-
-#USE WITH CAUTION CREATE 30 GREY SHIRT PRODUCT IN PRODUCT DB
 
 
-# for i in range(29):
-#     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
+
+
 #do not touch
 # def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
 #     try:
@@ -583,10 +582,13 @@ def get_user_log_by_id(user_id):
 
 def get_product_log_by_id(user_id):
     db = shelve.open('database/logs_database/logs.db','r')
-    all_logs = db.get(user_id)
-    product_logs = all_logs.get_product_log_list() 
+    if user_id in db:
+        all_logs = db.get(user_id)
+        product_logs = all_logs.get_product_log_list() 
+        return product_logs
+    else:
+        return None
     db.close()
-    return product_logs
 
 def get_order_log_by_id(user_id):
     db = shelve.open('database/logs_database/logs.db','r')
@@ -667,24 +669,54 @@ class indi_product_order:
     def get_address(self):
         return self.__address
 
-#class to create past delivery object
-class past_deliveries():
-    def __init__(self,orderid,product,sellerusername,orderdate):
-        self.__orderid=orderid
-        self.__product=product
-        self.__sellerusername=sellerusername
-        self.__orderdate=orderdate
 
-    #accessor
-    def get_order_id(self):
-        return self.__orderid
-    def get_product(self):
-        return self.__product
-    def get_seller_name(self):
-        return self.__sellerusername
-    def get_order_date(self):
-        return self.__orderdate
+#class to create individual tracking details for each delivery based on delivery status
+class carrier_delivery:
+    def __init__(self,statusdate,location,status,deliverynotes,address):
+        self.__statusdate=statusdate
+        self.__location=location
+        self.__status=status
+        self.__deliverynotes=deliverynotes
+        self.__address=address
 
+    #accessors
+    def get_status_date(self):
+        return self.__statusdate
+    def get_status(self):
+        return self.__status
+    def get_location(self):
+        return self.__location
+    def get_delivery_notes(self):
+        return self.__deliverynotes
+    def get_address(self):
+        return self.__address
+
+#creates carrier updates object and stores in db
+def carrierobj_and_db(orderid,statusdate,location,status,deliverynotes,address):
+    carrierobj=carrier_delivery(statusdate,location,status,deliverynotes,address)
+    db=shelve.open("database/delivery_database/carrier.db","c")
+    if orderid in db:
+        statuslist=db[orderid]
+        statuslist.append(carrierobj)
+        db[orderid]=statuslist
+    else:
+        statuslist=[]
+        statuslist.append(carrierobj)
+        db[orderid]=statuslist
+    db.close()
+
+def print_db():
+    db=shelve.open("database/delivery_database/carrier.db","c")
+    for i in db:
+        print("Order id %s"%i)
+        for n in db[i]:
+            print("Status: %s"%n.get_status())
+            print("Location: %s"%n.get_location())
+            print("Notes: %s"%n.get_location())
+    db.close()
+
+#carrierobj_and_db("order1","12/12/12","Singapore","Transit","Slight delay","123 Happy")
+#print_db()
 
 def obtaining_product_object(product_id):
     product_obj=get_product_by_id(product_id)
@@ -726,9 +758,6 @@ def separating_orders(customerid,userorders,orderdate,address): #reminder: ADDRE
         raise Exception('db cannot be found')
     except:
         raise Exception("an unknown error has occurred ")
-
-
-
 
 
 #get buyer object
@@ -826,10 +855,34 @@ def create_seller_order_list(sellerid):
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
 
-#to create past delivery object
-def delivery_received(orderid,product,sellerusername,orderdate):
-    delobj=past_deliveries(orderid,product,sellerusername,orderdate)
-    return delobj
+#to delete delivery object from delivery db and
+def cancelling_carrier_side(orderid):
+    try:
+        statusobj=carrier_delivery("-","-","Delivery Cancelled","Cancelled by buyer","-")
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        if orderid in db:
+            statuslist=db[orderid]
+        else:
+            statuslist=[]
+        statuslist.append(statusobj)
+        db[orderid]=statuslist
+        db.close()
+
+    except IOError:
+        raise Exception('db does not exist')
+    except:
+        raise Exception('an unknown error has occurred')
+
+#cancelling order
+def deleting_delivery(userid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','r')
+        del db[userid]
+        db.close()
+    except IOError:
+        raise Exception('db does not exist')
+    except:
+        raise Exception('an unknown error has occurred')
 
 
 def print_db_orders():
@@ -895,9 +948,13 @@ def print_list_buyer(buyerid):
 #db.close()
 
 #=====test (delivery)========
-#orderdict={"123shirt":3,"456shoe":1}
-#o1date="12/06/2019"
-#o1=separating_orders("Shopper1","Seller1",orderdict,o1date)
+#o1dict={'65bed418f681479c95dc98b00b05923b':3,'8bc38fcbc4344b50bdce1f0a30793d57':2}
+#o2dict={'523b6d50208b45f489b5a59ad67822a3':8,"a5eacc8a83144c4eb0cfcd36c4cea125":2}
+###o3dict={'8bc38fcbc4344b50bdce1f0a30793d57':6}
+###o1=separating_orders('8d11b80c18374832a116e6918b24a816',o1dict,'12/12/2012','123 sunny vale')
+#o2=separating_orders('fb3047df8d6f41db97de800c5dbf81df',o2dict,'12/11/2012','456 greenwood ave')
+##o3=separating_orders('123abd',o3dict,'12/11/2012','777 greenwood ave')
+
 class Order:
     def __init__(self,cart_list,sellerID,buyername,totalprice):
         self.__orderID=uuid.uuid4().hex
@@ -927,18 +984,6 @@ class Order:
     def get_sellerID(self):
         return self.__sellerID
 
-class cartItem:
-    def __init__(self,productID,productqty):
-        self.__productID=productID
-        self.__productqty=productqty
-    def set__productID(self,productID):
-        self.__productID=productID
-    def set__productqty(self,productqty):
-        self.__productqty=productqty
-    def get_productID(self):
-        return self.__productID
-    def get_productqty(self):
-        return self.__productqty
 
 
 
@@ -958,8 +1003,173 @@ class cartItem:
 
 
 
+#FAQ Forum
+class Dessage():
+    def __init__(self,userid,mtitle,mbody):
+        self.__userid=userid
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+    def getuid(self):
+        return self.__userid
+    def setmtitle(self,mtitle):
+        self.__mtitle=mtitle
+    def getmtitle(self):
+        return self.__mtitle
+    def setmbody(self,mbody):
+        self.__mbody=mbody
+    def getmbody(self):
+        return self.__mbody
+#Question
+class CQuestion(Dessage):
+    def __init__(self,UserID,mtitle,mbody):
+        super().__init__(UserID,mtitle,mbody)
+        self.__msgid_Qns=uuid.uuid4().hex
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+        self.__answers_list=[]
+    def setanslist(self,ansid):
+        self.__answers_list.append(ansid)
+    def get_msgid(self):
+        return self.__msgid_Qns
+    def get_ans_list(self):
+        return self.__answers_list
+    #def __str__(self):
+    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_msgid(),self.getuid(),self.getmtitle(),self.getmbody())
+#Response
+class CAnswer(Dessage):
+    def __init__(self,UserID,mtitle,mbody):
+        super().__init__(UserID,mtitle,mbody)
+        mtitle=None        
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+        self.__ansid=uuid.uuid4().hex
+        self.__Question=[]
+    def setQuestion(self,Qnsid):
+        self.__Question.append(Qnsid)
+    def getQuestion(self):
+        return self.__Question
+    def get_ansid(self):
+        return self.__ansid
+    #def __str__(self):
+    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_ansid(),self.getuid(),self.getmtitle(),self.getmbody())
+#FAQ Forum Shelve DB
+
+def get_question_by_id(question_id):
+    db = shelve.open('database/forum_database/FAQQ.db','r')
+    if question_id in db:
+        question_obj = db.get(question_id)
+        return question_obj 
+    else:
+        print('question does not exist')
+    db.close()
+
+
+def RespondtoQns(Responseid, question_id):
+    db = shelve.open('database/forum_database/FAQQ.db','c')
+    if question_id in db:
+        question_obj = db.get(question_id)
+        question_obj.setanslist(Responseid)
+        db[question_id]=question_obj
+    else:
+        print('question does not exist')
+    db.close()
+
+
+def get_answer_by_id(id):
+    ans_obj_list = []
+    db = shelve.open('database/forum_database/FAQQ.db','r')
+    for i in id:
+        if i in db:
+            ans_obj = db.get(i)
+            ans_obj_list.append(ans_obj)
+
+        else:
+                print('question does not exist')
+        
+    db.close()
+    return ans_obj_list
+
+class FAQm():
+    def __init__(self,question,answer):
+        self.__faqid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__faqid
+        
+class Account_Issues():
+    def __init__(self,question,answer):
+        self.__AiCid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__AiCid
+class Contact():
+    def __init__(self,question,answer):
+        self.__CoUid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__CoUid
+
+        
+#def test_faq_db():
+#    Gold=[]
+#    db = shelve.open('database/forum_database/FAQQ.db','r')
+#    for i in db.values():
+#        if isinstance(i,CQuestion):
+#            Gold.append(i)
+#    for i in Gold:
+#        print (i.getmtitle(),i.getmbody())
+#        print(i.get_msgid())
+#test_faq_db()
 
 
 
+#fr = shelve.open('database/forum_database/FAQQ.db','r')
+#for i in fr:
+#    if isinstance(i,CQuestion):
+#        print(i.getmbody())
+#fr.close()
+
+#friend = shelve.open("database/forum_database/FAQDisplay.db",'r')
+#a=friend.values()
+#for aborginal in a:
+#    print(aborginal.getquestion())
+#friend.close()
 
 
+#def test_faq_db():
+#    db = shelve.open('database/forum_database/FAQQ.db','r')
+#    for i in db.values():
+#        if isinstance(i,CQuestion):
+#           print (i.get_ans_list())
+#        #elif isinstance(i,CAnswer):
+#        else:
+#            continue
+#    db.close()
+#test_faq_db()

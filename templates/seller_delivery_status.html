@@ -31,7 +31,7 @@
                   <td>{{ delivery_item.get_order_date() }}</td>
                   <td>#</td>
                     <td>{{ delivery_item.get_deliverystat() }}</td>
-                    <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-outline-warning">Edit Status</a></td>
+                    <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Edit Status</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -41,4 +41,13 @@
 </div>
 
 
+{% endblock  %}
+
+{% block script %}
+<script>
+  $(document).ready(function() {
+      $('#dataTable').DataTable();
+    });
+
+</script>
 {% endblock  %}

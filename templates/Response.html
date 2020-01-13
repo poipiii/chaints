@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+
+
+<br>
+<br>
+
+<h1 class="display-4"><strong>Response</strong></h1>
+<div class="container">
+<form method="POST" action="">
+    <div class="form-group">
+        {{render_field(form.Response, class="form-control", placeholder="Your Response")}}
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary"/>
+</form>
+</div>
+{% endblock %}

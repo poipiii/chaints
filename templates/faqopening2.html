@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+{% from "components/_formHelper.html" import render_field %}
+<br>
+<br>
+
+<h1 class="display-4"><strong>Create Question</strong></h1>
+<div class="container">
+<form method="POST" action="">
+    <div class="form-group">
+        {{render_field(form.question, class="form-control", placeholder="Question here")}}
+    </div>
+    <div class="form-group">
+        {{render_field(form.answer, class="form-control",placeholder="Answer here")}}
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary"/>
+</form>
+</div>
+{% endblock %}

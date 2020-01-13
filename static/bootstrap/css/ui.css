@@ -809,7 +809,6 @@ a[class*='card'] {
     position: relative;
     z-index: 10; }
   .card-banner .caption {
-    background-color: rgba(0, 0, 0, 0.65);
     z-index: 10;
     padding: 1.25rem;
     color: #fff; }

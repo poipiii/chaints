@@ -72,6 +72,9 @@
                 <img src="../static/product_images/{{product.get_product_images()[0]}}">
                 <span class="topbar">
                     <a href="#" class="float-right"><i class="fa fa-heart"></i></a>
+                    {% if product.get_product_discount() > 0 %}
+                    <span class="badge badge-success"> SALE </span>            
+                    {% endif %}
                 </span>
               </div>
               <figcaption class="info-wrap border-top">
@@ -88,8 +91,12 @@
                   <span class="label-rating text-muted"> 34 reviews</span>
                 </div>
                 <div class="price-wrap mt-3">
+                  {% if product.get_product_discount() <= 0 %}
+                  <span class="price">${{product.get_product_price()}}</span>
+                  {% else %}
                     <span class="price">${{product.get_discounted_price()}}</span>
                     <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+                  {% endif %}
                 </div>
                 <a href="#" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
               </figcaption>
