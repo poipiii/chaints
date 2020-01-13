@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<br>
 <link rel="stylesheet" type="text/css" href="../static/css/faq.css">
 <div class="container">
     <div class="row">
@@ -11,7 +12,7 @@
                     <a href="#tab2" class="nav-link" data-toggle="pill" role="tab" aria-controls="Account_Issues" aria-selected="false">
                         Account Issues
                     </a>
-                    <a href="#t-ab3" class="nav-link" data-toggle="pill" role="tab" aria-controls="Contact" aria-selected="false">
+                    <a href="#tab3" class="nav-link" data-toggle="pill" role="tab" aria-controls="Contact" aria-selected="false">
                         Contact Us
                     </a>
                     <a href="#tab4" class="nav-link disabled" data-toggle="pill" role="tab" aria-controls="StaffChat" aria-selected="false">
@@ -22,187 +23,122 @@
                     </a>
             </div>
         </div>
+
         <div class="col-lg-8">
             <div class="tab-content" id="faq-tab-content">
             <!--frequently asked questions-->
-                <div class="tab-pane show active" id="tab1" role="tabpanel" aria-labelledby="FAQ">
-                    <div class="accordion" id="tabno1">
-                        <div class="card">
-                            <div class="card-header" id="tabno1-heading-1">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-1" aria-expanded="false" aria-controls="tabno1-content-1">How do I use the App?</button>
-                                </h5>
+            <div class="tab-pane show active" id="tab1" role="tabpanel" aria-labelledby="FAQ">
+                <div class="accordion" id="tabno1">
+                {% for f in FaQ %}
+                    <div class="card">
+                        <div class="card-header" id="tabno1-heading-{{f.getid()}}">
+                            <h5>
+                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-{{f.getid()}}" aria-expanded="false" aria-controls="tabno1-content-{{f.getid()}}">{{ f.getquestion()}}</button>
+                            </h5>
+                            <div>
+                                <a type="button" href="/updateFAQueryF/{{f.getid()}}"> Edit </a>
                             </div>
-                            <div class="collapse show" id="tabno1-content-1" aria-labelledby="tabno1-heading-1" data-parent="#tabno1">
-                                <div class="card-body">
-                                   <strong>Step 1:</strong>
-                                    <p> step 1</p>
-                                   <strong>Step 2:</strong>
-                                    <p> step 2</p>
-                                </div>
+                            <div>
+                                <a type="button" href="/deleteQns/{{f.getid()}}">delete </a>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno1-heading-2">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-2" aria-expanded="false" aria-controls="tabno1-content-2">I am locked out of my account! What do I do?</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno1-content-2" aria-labelledby="tabno1-heading-2" data-parent="#tabno1">
-                                <div class="card-body">
-                                <p>Answer</p>   
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno1-heading-3">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-3" aria-expanded="false" aria-controls="tabno1-content-3">Question 3</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno1-content-3" aria-labelledby="tabno1-heading-3" data-parent="#tabno1">
-                                <div class="card-body">
-                                <p>Answer</p>    
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno1-heading-4">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-4" aria-expanded="false" aria-controls="tabno1-content-4">Question 4</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno1-content-4" aria-labelledby="tabno1-heading-4" data-parent="#tabno1">
-                                <div class="card-body">
-                                <p>Answer</p>    
-                                </div>
+                        <div class="collapse" id="tabno1-content-{{f.getid()}}" aria-labelledby="tabno1-heading-{{f.getid()}}" data-parent="#tabno1">
+                            <div class="card-body">
+                                <p>{{f.getanswer()}}</p>
                             </div>
                         </div>
                     </div>
+                {% endfor %}
                 </div>
-                <!--Account Issues-->
-                <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="Account_Issues">
-                    <div class="accordion" id="tabno2">
-                        <div class="card">
-                            <div class="card-header" id="tabno2-heading-1">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-1" aria-expanded="false" aria-controls="tabno2-content-1">I have haemmaroids so should I...</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno2-content-1" aria-labelledby="tabno2-heading-1" data-parent="#tabno2">
-                                <div class="card-body">
-                                <h6>Lance</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno2-heading-2">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-2" aria-expanded="false" aria-controls="tabno2-content-2">I need help with...</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno2-content-2" aria-labelledby="tabno2-heading-2" data-parent="#tabno2">
-                                <div class="card-body">
-                                 <h6> I gotta chill </h6>   
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno2-heading-3">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-3" aria-expanded="false" aria-controls="tabno2-content-3">I have been locked out....</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno2-content-3" aria-labelledby="tabno2-heading-3" data-parent="#tabno2">
-                                <div class="card-body">
-                                 <h6>Gott mitt uns!</h6>  
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno2-heading-4">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-4" aria-expanded="false" aria-controls="tabno2-content-4">I need help with...</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno2-content-4" aria-labelledby="tabno2-heading-4" data-parent="#tabno2">
-                                <div class="card-body">
-                                 <h6>Mein Arschloch</h6>
-                                </div>    
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!--contact us-->
-                <div class="tab-pane" id="t-id" role="tabpanel" aria-labelledby="contact">
-                    <div class="accordion" id="id">
-                        <div class="card">
-                            <div class="card-header" id="id-heading-indexoflist">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#id-content-indexoflist" aria-expanded="false" aria-controls="id-content-indexoflist">Send a Question Directly</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno3-content-1" aria-labelledby="tabno3-heading-1" data-parent="#tabno3">
-                                <div class="card-body">
-                                    <h6>What do you need help with?</h6>
-                                    <p><p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header" id="tabno3-heading-2">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno3-content-2" aria-expanded="false" aria-controls="tabno3-content-2">Contact Us</button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno3-content-2" aria-labelledby="tabno3-heading-2" data-parent="#tabno3">
-                                <div class="card-body">
-                                    <h2>Email us at:</h2>
-                                    <a href="#" style="font-size:20px;">doodoo@ymail.com</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!--Chat-->
-                <div class="tab-pane" id="tab4" role="tabpanel" aria-labelledby="StaffChat">
-                    <div class="accordion" id="tabno4">
-                        <div class="card">
-                            <div class="card-header" id="tabno4-heading-1">
-                                <h5>
-                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno4-content-1" aria-expanded="false" aria-controls="tabno4-content-1"></button>
-                                </h5>
-                            </div>
-                            <div class="collapse" id="tabno4-content-1" aria-labelledby="tabno4-heading-1" data-parent="#tabno4">
-                                <div class="card-body">
-                                    
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!--Forum-->
-                <div class="tab-pane" id="tab5" role="tabpanel" aria-labelledby="Forum">
-                    <div class="accordion" id="tabno5">
-                            <!--Forum Show Qns-->
-                            {% for Q in Gold%}
-                            <div class="card">
-                                <div class="card-header" id="forumheaders">
-                                    <h5>
-                                        <a  href="/displayQns/{{Q.get_msgid()}}">{{ Q.getmtitle() }}</a>
-                                    </h5>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    <!--add -->
-                    <div>
-                        <button type="button" class="btn btn-primary" onclick="window.location.href='/createQns'">Ask a Question!</button>
-                    </div>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryFaQ'">Add</button>
                 </div>
             </div>
+            <!--Account Issues-->
+            <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="FAQ">
+                <div class="accordion" id="tabno2">
+                {% for a in AcI %}
+                    <div class="card">
+                        <div class="card-header" id="tabno2-heading-{{a.getid()}}">
+                            <h5>
+                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-{{a.getid()}}" aria-expanded="false" aria-controls="tabno2-content-{{a.getid()}}">{{ a.getquestion()}}</button>
+                            </h5>
+                            <div>
+                                <a type="button" href="/updateFAQueryA/{{a.getid()}}"> Edit </a>
+                            </div>
+                            <div>
+                                <a type="button" href="/deleteQns/{{a.getid()}}">delete </a>
+                            </div>
+                        </div>
+                        <div class="collapse" id="tabno2-content-{{a.getid()}}" aria-labelledby="tabno2-heading-{{a.getid()}}" data-parent="#tabno2">
+                            <div class="card-body">
+                                <p>{{a.getanswer()}}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryAcI'">Add</button>
+                </div>
+            </div>
+            <!--contact us-->
+            <div class="tab-pane" id="tab3" role="tabpanel" aria-labelledby="contact">
+                <div class="accordion" id="tabno3">
+                    {% for c in CoU %}
+                        <div class="card">
+                            <div class="card-header" id="tabno3-heading-{{ c.getid() }}">
+                                <h5>
+                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno3-content-{{c.getid()}}" aria-expanded="false" aria-controls="tabno3-content-{{c.getid()}}">{{ c.getquestion()}}</button>
+                                </h5>
+                            <div>
+                                <a type="button" href="/updateFAQueryC/{{c.getid()}}"> Edit </a>
+                            </div>
+                            <div>
+                                <a type="button" href="/deleteQns/{{c.getid()}}">delete </a>
+                            </div>
+                            </div>
+                            <div class="collapse" id="tabno3-content-{{ c.getid() }}" aria-labelledby="tabno3-heading-{{c.getid()}}" data-parent="#tabno3">
+                                <div class="card-body">
+                                    <p>{{c.getanswer()}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryCoU'">Add</button>
+                </div>
+            </div>
+            <!--Chat-->
+            <div class="tab-pane" id="tab4" role="tabpanel" aria-labelledby="StaffChat">
+                <div class="accordion" id="tabno4">
+                </div>
+            </div>
+        <!--Forum-->
+        <div class="tab-pane" id="tab5" role="tabpanel" aria-labelledby="Forum">
+            <div class="accordion" id="tabno5">
+                    <!--Forum Show Qns-->
+                    {% for Q in Gold %}
+                    <div class="card">
+                        <div class="card-header" id="forumheaders">
+                            <h5>
+                                <a  href="/displayQns/{{Q.get_msgid()}}" >{{ Q.getmtitle() }}</a>
+                            </h5>
+                            <div>
+                                <a type="button" href="/deleteForumQns/{{Q.get_msgid()}}">delete </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            <!--add -->
+            <div>
+                <button type="button" class="btn btn-primary" onclick="window.location.href='/createQns'">Ask a Question!</button>
+            </div>
+        </div>
+        </div>
         </div>
     </div>
 </div>
-
 {% endblock %}

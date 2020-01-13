@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{question.getmtitle()}}</h1>
+<br>
+<br>
+<br>
 
-<h3>
-{{question.getmbody()}}
-</h3>
+
+<h1>{{question.getmtitle()}}</h1>
+<h3>{{question.getmbody()}}</h3>
+
 <a type="button" href="/updateQns/{{question.get_msgid()}}"> Update </a>
 
 
