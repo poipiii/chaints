@@ -26,6 +26,8 @@ def init_all():
     db.close()
     db = shelve.open('database/delivery_database/delivery.db','c')
     db.close()
+    db = shelve.open('database/delivery_database/carrier.db','c')
+    db.close()
     db = shelve.open('database/forum_database/FAQQ.db','c')
     db.close()
     db = shelve.open('database/order_database/cart.db','c')
@@ -60,4 +62,4 @@ def delete_all_db():
         print(f)
         os.remove(f)    
 
-init_all()
+
