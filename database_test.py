@@ -60,3 +60,4 @@ def delete_all_db():
         print(f)
         os.remove(f)    
 
+init_all()

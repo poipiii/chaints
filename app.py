@@ -557,8 +557,19 @@ def CarrierUpdate():
         status=carrierupdateform.status.data
         deliverynotes=carrierupdateform.deliverynotes.data
         orderid=carrierupdateform.orderid.data
-        carrierobj_and_db(orderid,updatedate,country,status,deliverynotes)
-        return render_template('testing2.html')
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        checker=False
+        for i in db:
+            for n in db[i]:
+                if n.get_individual_orderid()==orderid:
+                    checker=True
+                    address=n.get_address()
+        db.close()
+        if checker==True:
+            carrierobj_and_db(orderid,updatedate,country,status,deliverynotes,address)
+            return render_template('testing2.html')
+        else:
+            return render_template('carrier_update.html',form=carrierupdateform)
     return render_template('carrier_update.html',form=carrierupdateform)
 
 
@@ -638,7 +649,7 @@ def displayQns(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
 
 
 

@@ -686,13 +686,7 @@ class carrier_delivery:
         return self.__address
 
 #creates carrier updates object and stores in db
-def carrierobj_and_db(orderid,statusdate,location,status,deliverynotes):
-    db=shelve.open('database/delivery_database/delivery.db','c')
-    for i in db:
-        for n in db[i]:
-            if n.get_individual_orderid()==orderid:
-                address=n.get_address()
-    db.close()
+def carrierobj_and_db(orderid,statusdate,location,status,deliverynotes,address):
     carrierobj=carrier_delivery(statusdate,location,status,deliverynotes,address)
     db=shelve.open("database/delivery_database/carrier.db","c")
     if orderid in db:
@@ -949,10 +943,11 @@ def print_list_buyer(buyerid):
 
 #=====test (delivery)========
 #o1dict={'65bed418f681479c95dc98b00b05923b':3,'8bc38fcbc4344b50bdce1f0a30793d57':2}
-#o2dict={'8bc38fcbc4344b50bdce1f0a30793d57':8}
-#o1=separating_orders('8d11b80c18374832a116e6918b24a816',o1dict,'12/12/2012','123 sunny vale')
-#o2=separating_orders('2c1b2925fa8d4ae9909f54d1945cca54',o2dict,'12/11/2012','456 greenwood ave')
-#
+#o2dict={'523b6d50208b45f489b5a59ad67822a3':8,"a5eacc8a83144c4eb0cfcd36c4cea125":2}
+###o3dict={'8bc38fcbc4344b50bdce1f0a30793d57':6}
+###o1=separating_orders('8d11b80c18374832a116e6918b24a816',o1dict,'12/12/2012','123 sunny vale')
+#o2=separating_orders('fb3047df8d6f41db97de800c5dbf81df',o2dict,'12/11/2012','456 greenwood ave')
+##o3=separating_orders('123abd',o3dict,'12/11/2012','777 greenwood ave')
 
 class Order:
     def __init__(self,cart_list,sellerID,buyername,totalprice):
