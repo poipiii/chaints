@@ -98,3 +98,6 @@ class Question(Form):
 class Response(Form):
     Response=TextAreaField("Response",[validators.DataRequired(),validators.Length(min=1,max=100)])
 
+class FAQd(Form):
+    question= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
+    answer=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])

@@ -997,9 +997,6 @@ class Order:
 
 
 
-
-
-
 #FAQ Forum
 class Dessage():
     def __init__(self,userid,mtitle,mbody):
@@ -1055,7 +1052,7 @@ def get_question_by_id(question_id):
     db = shelve.open('database/forum_database/FAQQ.db','r')
     if question_id in db:
         question_obj = db.get(question_id)
-        return question_obj
+        return question_obj 
     else:
         print('question does not exist')
     db.close()
@@ -1074,7 +1071,6 @@ def RespondtoQns(Responseid, question_id):
 
 def get_answer_by_id(id):
     ans_obj_list = []
-    print(id)
     db = shelve.open('database/forum_database/FAQQ.db','r')
     for i in id:
         if i in db:
@@ -1087,8 +1083,54 @@ def get_answer_by_id(id):
     db.close()
     return ans_obj_list
 
+class FAQm():
+    def __init__(self,question,answer):
+        self.__faqid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__faqid
+        
+class Account_Issues():
+    def __init__(self,question,answer):
+        self.__AiCid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__AiCid
+class Contact():
+    def __init__(self,question,answer):
+        self.__CoUid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__CoUid
 
-
+        
 #def test_faq_db():
 #    Gold=[]
 #    db = shelve.open('database/forum_database/FAQQ.db','r')
@@ -1102,8 +1144,17 @@ def get_answer_by_id(id):
 
 
 
-# db = shelve.open('database/forum_database/FAQQ.db','c')
-# db.close()
+#fr = shelve.open('database/forum_database/FAQQ.db','r')
+#for i in fr:
+#    if isinstance(i,CQuestion):
+#        print(i.getmbody())
+#fr.close()
+
+#friend = shelve.open("database/forum_database/FAQDisplay.db",'r')
+#a=friend.values()
+#for aborginal in a:
+#    print(aborginal.getquestion())
+#friend.close()
 
 
 #def test_faq_db():
