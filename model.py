@@ -19,6 +19,7 @@ class User_Model:
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
         self.__user_address={}
+        self.__user_profile_picture='http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
 
 
     #User_Model Mutator
@@ -60,6 +61,9 @@ class User_Model:
     def set_user_address(self,address):
         self.__user_address=address
 
+    def set_user_profile_picture(self,profile_picture):
+        self.__user_profile_picture=profile_picture
+
     #User_Model Accessor
     def get_user_email(self):
         return self.__user_email
@@ -96,6 +100,9 @@ class User_Model:
 
     def get_user_address(self):
         return self.__user_address
+
+    def get_user_profile_picture(self):
+        return self.__user_profile_picture
 
 
     def __str__(self):

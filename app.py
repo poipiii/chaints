@@ -302,6 +302,7 @@ def loginUser():
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
                         session['role']=user.get_user_role()
+                        session['profile_picture']=user.get_user_profile_picture()
                         db.close()
                         try:
                             if request.form['remember']:
@@ -354,6 +355,13 @@ def deleteUser(id):
  db.pop(id)
  db.close()
  return redirect(url_for('retrieveUsers'))
+
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
+
+
 
 #Order Management
 @app.route('/add_to_cart/<productid>/<int:productqty>')
