@@ -51,7 +51,19 @@ def before_request():
 @app.route("/")
 def landing_page():
     Products = fetch_products()
-    return render_template('home_page.html' ,product_list = Products )
+    womenlist =[]
+    childernlist= []
+    menlist = []
+    for i in Products:
+        if 'female' in i.get_product_catergory():
+            womenlist.append(i)
+        if 'male'in i.get_product_catergory():
+            menlist.append(i)
+
+        if 'child'in i.get_product_catergory():
+            childernlist.append(i)
+    print(menlist)
+    return render_template('home_page.html' ,product_list = Products,women = womenlist,men = menlist,child = childernlist )
 
 
 
@@ -151,13 +163,15 @@ def product_create():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
         for i in product_pics:
+            #TODO 
              filename = secure_filename(i.filename)
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
+        print(filenames)
         new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
         flash('Product successfully created')
         return redirect(url_for('dashboard_products'))      
-    return render_template('productcreateform.html',form =Product_Form )
+    return render_template('productcreateform.html',form =Product_Form ,ftype = 'create')
 
     
 #route to update product form
@@ -175,6 +189,7 @@ def dashboard_edit_products(productid):
             Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
         else:
             for i in product_pics:
+                #TODO 
                  filename = secure_filename(i.filename)
                  i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
                  filenames.append(filename)
@@ -190,7 +205,22 @@ def dashboard_edit_products(productid):
         Product_Form.product_Discount.data = original_product.get_product_discount()
         Product_Form.product_catergory.data = original_product.get_product_catergory()
         Product_Form.product_images.data = original_product.get_product_images()
-    return render_template('productcreateform.html',form =Product_Form)
+    return render_template('productcreateform.html',form =Product_Form,ftype ='update')
+
+@app.route("/updateqty/<productid>",methods=['POST', 'GET'])
+def updateqty(productid):
+    original_product =  get_product_by_id(productid)
+    updateqty_form = update_Quantity_Form(request.form)
+    if request.method == 'POST'  and updateqty_form.validate():
+        updatequantity(session.get('user_id'),productid,updateqty_form.product_Quantity.data)
+        flash('Product quantity successfully updated')
+        return redirect(url_for('dashboard_products')) 
+
+    else:
+        updateqty_form.product_Quantity.data = original_product.get_product_current_qty()
+    return render_template('updateqtyform.html',form =updateqty_form)
+
+
 
 #take in product id and delete product from shelve  
 @app.route("/delete_products/<productid>",methods=['POST'])
@@ -198,6 +228,8 @@ def delete_products(productid):
     delete_product_by_id(productid,session.get('user_id'))
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
+
+
 
 
 
@@ -664,6 +696,9 @@ def addFAQueryF():
 def addFAQueryAcI():
     Vier=FAQd(request.form)
     if request.method=="POST" and Vier.validate():
+# @app.errorhandler(404)
+# def not_found_error(error):
+#     return render_template('404.html'), 404
 
         Baker=Account_Issues(Vier.question.data,Vier.answer.data)
         try:
@@ -675,6 +710,9 @@ def addFAQueryAcI():
         Four.close()
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Vier)
+# @app.errorhandler(Exception)
+# def internal_error(error):
+#     return render_template('500.html'), 500
 
 @app.route('/addFAQueryCoI',methods=["GET","POST"])
 def addFAQueryCoI():

@@ -41,7 +41,7 @@
             <td><img src="../static/product_images/{{product.get_product_images()[0]}}" width="60" height="60" alt="..."></td>
             <td>{{product.get_product_name()}}</td>
             <td>{{product.get_product_current_qty()}}</td>
-            <td><a href="" class="btn btn-outline-success">Update Quantity</a></td>
+            <td><a href="{{url_for('updateqty', productid = product.get_product_id())}}" class="btn btn-outline-success">Update Quantity</a></td>
             <td><a href="{{url_for('dashboard_edit_products', productid = product.get_product_id())}}" class="btn btn-outline-warning">Edit</a></td>
             <td>
               <form action="{{url_for('delete_products', productid = product.get_product_id())}}"method="POST">     
@@ -55,6 +55,8 @@
       </div>
 </div>
 </div>
+
+
 {% endblock  %}
 
 

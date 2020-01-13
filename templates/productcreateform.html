@@ -3,7 +3,11 @@
 <div class="card">
     <article class="card-body">
     <header class="mb-4">
-        <h3 class="card-title">Create Product</h3>
+        {% if ftype == 'create' %}
+        <h3 class="card-title">Create Product</h3>   
+        {% else %}
+        <h3 class="card-title">Edit Product</h3>   
+        {% endif %}
     </header>
     <form method="POST" action="" enctype="multipart/form-data">
     <div class="form-group">
@@ -20,11 +24,11 @@
         </div>
        <div class="form-group">
        {{ form.product_Selling_Price.label(class="form-control-label")}}
-       {{ form.product_Selling_Price(class="form-control",type="number") }}
+       {{ form.product_Selling_Price(class="form-control",type="number",step="0.01") }}
        </div>
        <div class="form-group">
        {{ form.product_Discount.label(class="form-control-label")}}
-       {{ form.product_Discount(class="form-control",type="number")}}
+       {{ form.product_Discount(class="form-control",type="number",step="0.01")}}
        </div>
     
        <div class="form-group">

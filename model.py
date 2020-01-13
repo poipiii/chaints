@@ -216,7 +216,7 @@ class Product_Model:
     def get_product_catergory(self):
         return self.__product_catergory
     def get_discounted_price(self):
-        discounted_price = self.get_product_price() - self.get_product_discount()
+        discounted_price = round(self.get_product_price() - self.get_product_discount(),2) 
         return discounted_price
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
@@ -328,6 +328,22 @@ def Edit_Products(user_id,product_id,product_name,product_current_qty,product_de
     db.close()
 
 
+def updatequantity(user_id,product_id,quantity):
+    user = get_user(user_id)
+    try:
+        db = shelve.open('database/product_database/product.db','w')
+        if product_id in db.keys() and product_id in user.get_owned_products():
+            updateqty = db.get(product_id)
+            updateqty.set_product_current_qty(quantity)
+            db[product_id] =updateqty
+            product_logging(user_id,'EDIT',product_id,updateqty)
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
 #take in product id and delete product in db
 def delete_product_by_id(product_id,user_id):
     user = get_user(user_id)
@@ -367,27 +383,10 @@ def delete_all_user_product(product_id_list,user_id):
     db.close()
 
 
-#product db test codes
-#print all products in product db in command line
-# def test_print():
-#     db = shelve.open('database/product_database/product.db','c')
-#     for i in db.values():
-#         print(i)
-
-#     db.close()
-
-# test_print()
-#USE WITH CAUTION DELETE THE WHOLE PRODUCT DB
-# def delete_db():
-#     db = shelve.open('database/product_database/product.db','c')
-#     db.clear()
-#     db.close()
-
-#USE WITH CAUTION CREATE 30 GREY SHIRT PRODUCT IN PRODUCT DB
 
 
-# for i in range(29):
-#     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
+
+
 #do not touch
 # def Add_New_Products(product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
 #     try:
