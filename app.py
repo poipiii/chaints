@@ -696,10 +696,6 @@ def addFAQueryF():
 def addFAQueryAcI():
     Vier=FAQd(request.form)
     if request.method=="POST" and Vier.validate():
-# @app.errorhandler(404)
-# def not_found_error(error):
-#     return render_template('404.html'), 404
-
         Baker=Account_Issues(Vier.question.data,Vier.answer.data)
         try:
             Four=shelve.open("database/forum_database/FAQDisplay.db","c")
@@ -710,9 +706,6 @@ def addFAQueryAcI():
         Four.close()
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Vier)
-# @app.errorhandler(Exception)
-# def internal_error(error):
-#     return render_template('500.html'), 500
 
 @app.route('/addFAQueryCoI',methods=["GET","POST"])
 def addFAQueryCoI():
@@ -824,6 +817,12 @@ def deleteForumQns(id):
     
     return redirect(url_for('FAQ'))
 
+# @app.errorhandler(404)
+# def not_found_error(error):
+#     return render_template('404.html'), 404
+# @app.errorhandler(Exception)
+# def internal_error(error):
+#     return render_template('500.html'), 500
 
 if __name__ == "__main__":
     app.run()
