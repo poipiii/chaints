@@ -64,7 +64,7 @@ def delete_all_db():
         os.remove(f)    
 
 
-
+init_all()
 # for i in range(29):
 #     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
 

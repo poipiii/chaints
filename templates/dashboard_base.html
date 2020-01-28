@@ -48,7 +48,7 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
-  {% block script %}
+
   <!-- Bootstrap core JavaScript-->
   <script src="../static/bootstrap/jquery/jquery.min.js"></script>
   <script src="../static/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -162,10 +162,36 @@ getData.done(function(data){
 });
 });
 
+
+</script>
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
+<script>
+$(document).ready(function() {
+    var table = $('#usertable').DataTable({
+     columnDefs: [
+        { "orderable": false, "targets": [0, 1,2,3,4,5,7,8] },
+        { "orderable": true, "targets": [6] }
+    ]});
+    $('select[name="filter"]').change(function() {
+        if (!$(this).val()) {
+            table.columns().search("").draw();
+        } else {
+            table.columns().search("");
+            var option = $(this).find(":selected");
+            var columns = Object.keys(option.data());
+            console.log(columns)
+            $.each(columns, function(k, v){
+                table.columns(parseInt(v, 10)).search(option.data(v));
+            });
+            table.draw();
+        }
+    });
+});
 </script>
 {% block script %}
   
-{% endblock  %}
+{% endblock %}
 
 </body>
 </html>

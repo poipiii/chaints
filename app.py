@@ -401,11 +401,21 @@ def deleteUser(id):
 #adding  product to cart 
 @app.route('/profile')
 def profile():
-    return render_template('profile.html')
+    db = shelve.open('database/user_database/user.db', 'r')
+    usersList = []
+    for user in db:
+        user=db[user]
+        usersList.append(user)
+    db.close()
+
+    return render_template('profile.html',usersList=usersList, count=len(usersList))
 
 
 
-
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
 #Order Management
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):

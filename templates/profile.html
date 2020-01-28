@@ -1,43 +1,44 @@
 {% extends "dashboard_base.html" %}
 {% block content %}
+{% for user in usersList %}
+	 {% if session['user_id'] ==  user.get_user_id() %}
 <div class="card">
       <div class="card-body">
       <h4 class="card-title mb-4">Profile</h4>
      <form>
 
      	<div class="form-group">
-	     	<img src="{{session['profile_picture']}}" class="img-xs rounded-circle border" width="100">
-
+			<img src="{{session['profile_picture']}}" class="img-xs rounded-circle border" width="100"></div>
+	 </form>
     </div>
 	     </div>
-        <div class="form-row">
-			<div class="col form-group">
-				<label>Name</label>
-			  	<input type="text" class="form-control" value="Komol">
-			</div> <!-- form-group end.// -->
+	<div class="form-row">
 			<div class="col form-group">
 				<label>Email</label>
-			  	<input type="email" class="form-control" value="Kuchkarov">
+			  	<input type="text" class="form-control" value="{{ user.get_user_email() }}">
+			</div>
+	</div>
+	<div class="form-row">
+			<div class="col form-group">
+				<label>Username</label>
+			  	<input type="text" class="form-control" value="{{ user.get_username() }}">
+			</div>
+			<div class="col form-group">
+			<label></label>
+			<p>Role: {{user.get_user_role()}}</p>
+			</div>
+	</div>
+        <div class="form-row">
+			<div class="col form-group">
+				<label>First Name</label>
+			  	<input type="text" class="form-control" value="{{ user.get_user_firstname() }}">
+			</div> <!-- form-group end.// -->
+			<div class="col form-group">
+				<label>Last Name</label>
+			  	<input type="text" class="form-control" value="{{ user.get_user_lastname() }}">
 			</div> <!-- form-group end.// -->
 		</div> <!-- form-row.// -->
 
-		<div class="form-row">
-			<div class="form-group col-md-6">
-			  <label>Country</label>
-			  <select id="inputState" class="form-control">
-			    <option> Choose...</option>
-			      <option>Uzbekistan</option>
-			      <option>Russia</option>
-			      <option selected="">United States</option>
-			      <option>India</option>
-			      <option>Afganistan</option>
-			  </select>
-			</div> <!-- form-group end.// -->
-			<div class="form-group col-md-6">
-			  <label>City</label>
-			  <input type="text" class="form-control">
-			</div> <!-- form-group end.// -->
-		</div> <!-- form-row.// -->
 
 		<div class="form-row">
 			<div class="form-group col-md-6">
@@ -54,6 +55,8 @@
       </form>
       </div> <!-- card-body.// -->
     </div> <!-- card .// -->
+	{% endif %}
+{% endfor %}
 {% endblock %}
 {% block script %}
 
