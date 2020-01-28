@@ -1017,8 +1017,9 @@ class CQuestion(Dessage):
     def __init__(self,UserID,mtitle,mbody):
         super().__init__(UserID,mtitle,mbody)
         self.__msgid_Qns=uuid.uuid4().hex
-        self.__mtitle=mtitle
-        self.__mbody=mbody
+        #This is wrong becuase parent class already set
+        #self.__mtitle=mtitle
+        #self.__mbody=mbody
         self.__answers_list=[]
     def setanslist(self,ansid):
         self.__answers_list.append(ansid)
@@ -1033,8 +1034,9 @@ class CAnswer(Dessage):
     def __init__(self,UserID,mtitle,mbody):
         super().__init__(UserID,mtitle,mbody)
         mtitle=None        
-        self.__mtitle=mtitle
-        self.__mbody=mbody
+        #This is wrong becuase parent class already set
+        #self.__mtitle=mtitle
+        #self.__mbody=mbody
         self.__ansid=uuid.uuid4().hex
         self.__Question=[]
     def setQuestion(self,Qnsid):
@@ -1081,8 +1083,7 @@ def get_answer_by_id(id):
         
     db.close()
     return ans_obj_list
-
-class FAQm():
+class FAQQuestions():
     def __init__(self,question,answer):
         self.__faqid=uuid.uuid4().hex
         self.__question=question
@@ -1098,37 +1099,16 @@ class FAQm():
     def getid(self):
         return self.__faqid
         
-class Account_Issues():
+class FAQm(FAQQuestions):
+    def __init__(self,question, answer):
+        super().__init__(question,answer)
+        
+class Account_Issues(FAQQuestions):
     def __init__(self,question,answer):
-        self.__AiCid=uuid.uuid4().hex
-        self.__question=question
-        self.__answer=answer
-    def setquestion(self,question):
-        self.__question=question
-    def getquestion(self):
-        return self.__question
-    def setanswer(self,answer):
-        self.__answer=answer
-    def getanswer(self):
-        return self.__answer
-    def getid(self):
-        return self.__AiCid
-class Contact():
+        super().__init__(question,answer)
+class Contact(FAQQuestions):
     def __init__(self,question,answer):
-        self.__CoUid=uuid.uuid4().hex
-        self.__question=question
-        self.__answer=answer
-    def setquestion(self,question):
-        self.__question=question
-    def getquestion(self):
-        return self.__question
-    def setanswer(self,answer):
-        self.__answer=answer
-    def getanswer(self):
-        return self.__answer
-    def getid(self):
-        return self.__CoUid
-
+        super().__init__(question,answer)
         
 #def test_faq_db():
 #    Gold=[]

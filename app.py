@@ -599,6 +599,7 @@ def FAQ():
         Enamel=Ein.values()
         for i in Enamel:
             if isinstance(i,CQuestion):
+                print(i.getmtitle())
                 Gold.append(i)
 
         Ein.close()
@@ -616,39 +617,46 @@ def FAQ():
                 CoI.append(i)
         Zwei.close()
     except:
-        print("A Database not found")
+        print("The Second Database has not been found")
     return render_template('FAQ.html', Gold=Gold, FaQ=FaQ , AcI=AcI,CoI=CoI)
 
 
 #Forum Question
 @app.route('/createQns',methods=["GET","POST"])
 def createQns():
-    createquestion=Question(request.form)
-    if request.method=="POST" and createquestion.validate():
-        new_question = CQuestion(session.get('user_id'),createquestion.mtitle.data,createquestion.mbody.data)
-        try:
-            db=shelve.open('database/forum_database/FAQQ.db','c')
-            db[new_question.get_msgid()] = new_question
-        except IOError:
-            print("Database failed to open")
-        db.close()
-        return redirect(url_for('FAQ'))
-    return render_template('createQns.html',form=createquestion)
+    if session.get('logged_in') == True:
+        createquestion=Question(request.form)
+        if request.method=="POST" and createquestion.validate():
+            new_question = CQuestion(session.get('user_id'),createquestion.mtitle.data,createquestion.mbody.data)
+            try:
+                db=shelve.open('database/forum_database/FAQQ.db','c')
+                db[new_question.get_msgid()] = new_question
+            except IOError:
+                print("Database failed to open")
+            db.close()
+            return redirect(url_for('FAQ'))
+        return render_template('createQns.html',form=createquestion)
+    else:
+        return redirect(url_for('loginUser'))
+
 #Forum Answer
 @app.route('/Respond/<id>',methods=["GET","POST"])
 def Respond(id):
-    Reply=Response(request.form)
-    if request.method=="POST" and Reply.validate():
-        Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
-        try:
-            dennis=shelve.open('database/forum_database/FAQQ.db','c')
-            dennis[Respondents.get_ansid()]=Respondents
-        except:
-            print("Something screwed up")
-        dennis.close()
-        RespondtoQns(Respondents.get_ansid(),id)
-        return redirect(url_for('displayQns',id=id))
-    return render_template('Response.html',form=Reply)
+    if session.get('logged_in')==True:
+        Reply=Response(request.form)
+        if request.method=="POST" and Reply.validate():
+            Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
+            try:
+                dennis=shelve.open('database/forum_database/FAQQ.db','c')
+                dennis[Respondents.get_ansid()]=Respondents
+            except:
+                print("Something screwed up")
+            dennis.close()
+            RespondtoQns(Respondents.get_ansid(),id)
+            return redirect(url_for('displayQns',id=id))
+        return render_template('Response.html',form=Reply)
+    else:
+        return redirect(url_for('loginUser'))
 
 @app.route('/displayQns/<id>')
 def displayQns(id):
