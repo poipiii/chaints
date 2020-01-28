@@ -11,7 +11,14 @@
         <i class="fas fa-fw fa-tachometer-alt"></i>
         <span>Dashboard</span></a>
     </li>
-
+     <!-- Nav Item - User list only for admin -->
+    {% if session['role'] == 'A' %}
+      <li class="nav-item">
+      <a class="nav-link" href="/retrieveUsers">
+        <i class="fas fa-fw fa-list"></i>
+        <span>User List</span></a>
+    </li>
+    {% endif %}
     <!-- Nav Item - Analytics -->
     <li class="nav-item">
       <a class="nav-link" href="">

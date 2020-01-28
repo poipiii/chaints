@@ -342,6 +342,7 @@ def loginUser():
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
                         session['role']=user.get_user_role()
+                        session['profile_picture']=user.get_user_profile_picture()
                         db.close()
                         try:
                             if request.form['remember']:
@@ -398,6 +399,24 @@ def deleteUser(id):
 
 
 #adding  product to cart 
+@app.route('/profile')
+def profile():
+    db = shelve.open('database/user_database/user.db', 'r')
+    usersList = []
+    for user in db:
+        user=db[user]
+        usersList.append(user)
+    db.close()
+
+    return render_template('profile.html',usersList=usersList, count=len(usersList))
+
+
+
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#Order Management
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
     #take in productid and product quantity from route 

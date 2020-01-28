@@ -40,7 +40,7 @@ max=150), validators.DataRequired()])
  lastname = StringField('Last name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  role = RadioField('Role', choices=[('B', 'Buyer'),
-('A','Admin')], default='B')
+('S','Seller')], default='B')
 
 class CreateLoginForm(Form):
  username = StringField('Username', [validators.Length(min=1,
@@ -59,7 +59,7 @@ max=150), validators.DataRequired()])
  lastname = StringField('Last name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  role = RadioField('Role', choices=[('B', 'Buyer'),
-('A','Admin')], default='B')
+('S','Seller')], default='B')
 class DeliveryForm(Form):
     address= StringField('Address', [validators.length(min=1,max=150),validators.DataRequired()])
     country= SelectField('Country', [validators.DataRequired()], choices=[('AF', 'Afghanistan'), ('AX', 'Åland Islands'), ('AL', 'Albania'), ('DZ', 'Algeria'), ('AS', 'American Samoa'), ('AD', 'Andorra'), ('AO', 'Angola')])

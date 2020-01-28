@@ -7,18 +7,19 @@ from passlib.hash import pbkdf2_sha256
 #orders - item,price,quantity, order id
 class User_Model:
     #initaliser of User_Model
-    def __init__(self,user_email,username,user_pw,user_firstname,user_lastname,user_role,joined_date):
-        self.__user_role=user_role
+    def __init__(self,user_email,username,user_pw,user_firstname,user_lastname,role,joined_date):
         self.__user_id = uuid.uuid4().hex
         self.__user_email=user_email
         self.__username=username
         self.__user_pw=pbkdf2_sha256.hash(user_pw)
         self.__user_firstname=user_firstname
         self.__user_lastname=user_lastname
+        self.__user_role=role
         self.set_owned_products()
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
         self.__user_address={}
+        self.__user_profile_picture='http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
 
 
     #User_Model Mutator
@@ -60,6 +61,9 @@ class User_Model:
     def set_user_address(self,address):
         self.__user_address=address
 
+    def set_user_profile_picture(self,profile_picture):
+        self.__user_profile_picture=profile_picture
+
     #User_Model Accessor
     def get_user_email(self):
         return self.__user_email
@@ -96,6 +100,9 @@ class User_Model:
 
     def get_user_address(self):
         return self.__user_address
+
+    def get_user_profile_picture(self):
+        return self.__user_profile_picture
 
 
     def __str__(self):

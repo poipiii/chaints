@@ -18,7 +18,7 @@
             <a class="dropdown-item" href="#">Men</a>
             <a class="dropdown-item" href="#">Women</a>
             <a class="dropdown-item" href="#">Kids</a>
-            <a class="dropdown-item" href="/retrieveUsers">Retrieve Users</a>
+            <a class="dropdown-item" href="/retrieveUsers">Users</a>
           </div>
         </li>
         <li class="nav-item">
@@ -31,9 +31,9 @@
         {% if session['logged_in'] == True %}
           <li class="dropdown">
               <div class="dropdown d-inline-block ">
-          <a href="#" class="navbar-brand dropdown icontext mr-4 dropdown-toggle" data-toggle="dropdown"> <img class="icon icon-xs rounded-circle" src="http://s3.amazonaws.com/37assets/svn/765-default-avatar.png"><div class="text">{{ session['name'] }}</div></a>
+          <a href="#" class="navbar-brand dropdown icontext mr-4 dropdown-toggle" data-toggle="dropdown"> <img class="icon icon-xs rounded-circle" src={{session['profile_picture']}}><div class="text">{{ session['name'] }}</div></a>
           <div class="dropdown-menu dropdown-menu-right">
-            <a class="dropdown-item" href="#">Profile</a>
+            <a class="dropdown-item" href="/profile">Profile</a>
             <a class="dropdown-item" href="#">My Orders</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="/dashboard">Dashboard</a>
@@ -49,7 +49,7 @@
             <a class="nav-link" href="/signup">SIGN UP</a>
               </li>
       </ul>
-        {% endif %}
+          {% endif %}
       <form class="form-inline" >
         <input class="form-control mr-sm-2 " type="search" placeholder="Search" aria-label="Search">
         <button class="btn" type="submit"><i class="material-icons">search</i></button>
