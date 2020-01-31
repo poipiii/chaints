@@ -104,31 +104,41 @@ def details_page():
 def dashboard_home():
     return render_template('chart.html')
 
-# @app.route("/data")
-# def datapipe():
-#     pdata = test_func()
-#     profit = pdata[0]
-#     dtime = pdata[1]
-    
-#     return jsonify({"profit":profit},{"datetime":dtime})
+@app.route("/data/<d_type>")
+def datapipe(d_type):
+    if session.get('role') == 'A':
+        ownp = get_usr_owned_p(session.get('user_id'))
+        if d_type == 'week':
+            chart_data = api_data_week(ownp)
+            return chart_data
+        elif d_type == 'month':
+            chart_data = api_data_month(ownp)
+            return chart_data
+        elif d_type == 'year':
+            chart_data = api_data_year(ownp)
+            return chart_data
+        else:
+             return None
+    else:
+        return None
 
-# @app.route("/apitest")
-# def datatest():
-#     ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
-#     if request.args.get('type') == 'ALL':
-#         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
-#         if apidata is not None:
-#             profit = []
-#             dtime = []
-#             for orders in apidata:
-#                 profit.append(orders.get_o_profit())
-#                 dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
-#             return jsonify({"profit":profit},{"datetime":dtime})
-#         else:
-#             return jsonify({"profit":None},{"datetime":None})
-#
-#     else:
-#         return jsonify({"profit":None},{"datetime":None})
+@app.route("/apitest")
+def datatest():
+    ownp = ['a9ee20758e2647f69d3bbf92066f3d31']
+    if request.args.get('type') == 'ALL':
+        apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
+        if apidata is not None:
+            profit = []
+            dtime = []
+            for orders in apidata:
+                profit.append(orders.get_o_profit())
+                dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
+            return jsonify({"profit":profit},{"datetime":dtime})
+        else:
+            return jsonify({"profit":None},{"datetime":None})
+
+    else:
+        return jsonify({"profit":None},{"datetime":None})
 
 
 
@@ -229,8 +239,14 @@ def delete_products(productid):
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
-
-
+@app.route("/review",methods = ['POST','GET'])
+def review():
+    Review_form = review_form(request.form)
+    if request.method == 'POST'  and Review_form.validate():
+        print(int(Review_form.rating.data))
+        add_review(session.get('user_id'),session.get('name'),'a9ee20758e2647f69d3bbf92066f3d31',int(Review_form.rating.data),Review_form.review_text.data)
+        return redirect(url_for('landing_page'))
+    return render_template('review_form.html',form = Review_form)
 
 
 #User Management
@@ -837,7 +853,7 @@ def deleteForumQns(id):
     return redirect(url_for('FAQ'))
 
 # @app.errorhandler(404)
-# def not_found_error(error):
+# def not_found_error(error):  
 #     return render_template('404.html'), 404
 # @app.errorhandler(Exception)
 # def internal_error(error):

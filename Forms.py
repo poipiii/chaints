@@ -103,3 +103,8 @@ class Response(Form):
 class FAQd(Form):
     question= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
     answer=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])
+
+
+class review_form(Form):
+    rating= SelectField('Rating', [validators.DataRequired()], choices=[('0', 0), ('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5)])
+    review_text = TextAreaField("write your review here",[validators.DataRequired()])

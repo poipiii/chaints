@@ -1,7 +1,8 @@
 import uuid #used for product id in product_model
 import shelve
-from datetime import datetime
+from datetime import datetime,timedelta
 from passlib.hash import pbkdf2_sha256
+import random
 #user account details
 #user model - email,username,password,orders,payment,address
 #orders - item,price,quantity, order id
@@ -120,6 +121,16 @@ def update_usr_owned_p(userid,productid):
         pass
     db.close()
 
+def get_usr_owned_p(userid):
+    db = shelve.open('database/user_database/user.db','r')
+    if userid in db:
+        user = db.get(userid)
+        ownp = user.get_owned_products()
+    else:
+        pass
+    return ownp
+    db.close()
+
 def get_user(userid):
     db = shelve.open('database/user_database/user.db','r')
     if userid in db.keys():
@@ -165,6 +176,7 @@ class Product_Model:
         self.__product_discount = product_discount
         self.__product_images = product_images
         self.__product_catergory = product_catergory
+        self.__product_reviews = []
 
     #Product_Model Mutator
     def set_product_id(self):
@@ -192,7 +204,8 @@ class Product_Model:
 
     def set_product_catergory(self,product_catergory):
         self.__product_catergory = product_catergory
-
+    def set_product_reviews(self,reviews):
+        self.__product_reviews.append(reviews)
     #Product_Model Accessor
     def get_seller_id(self):
         return self.__seller_id
@@ -225,6 +238,8 @@ class Product_Model:
     def get_discounted_price(self):
         discounted_price = round(self.get_product_price() - self.get_product_discount(),2) 
         return discounted_price
+    def get_product_reviews(self):
+        return self.__product_reviews
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
@@ -390,7 +405,15 @@ def delete_all_user_product(product_id_list,user_id):
     db.close()
 
 
-
+def add_review(userid,username,productid,rating,review_txt):
+    review_dict = {'userid':userid,'username':username,'rating':rating,'review_txt':review_txt}
+    db = shelve.open('database/product_database/product.db','w')
+    if productid in db:
+        product = db.get(productid)
+        product.set_product_reviews(review_dict)
+        db[productid] = product
+    print(review_dict)
+    db.close()
 
 
 
@@ -499,11 +522,24 @@ class product_logger:
     def __str__(self):
         return 'activity: {} ,userid: {}, user_obj {},timestamp {},datetime {}'.format(self.get_p_activity(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
+
+def current_week(p_year,p_week):
+    mon = datetime.strptime(f'{p_year}-W{int(p_week )- 1}-1', "%Y-W%W-%w").date()
+    mon = datetime.combine(mon,datetime.min.time())
+    tues = datetime.combine(mon+timedelta(days=1),datetime.min.time())
+    wed = datetime.combine(mon+timedelta(days=2),datetime.min.time()) 
+    thurs = datetime.combine(mon+timedelta(days=3),datetime.min.time())
+    fri =  datetime.combine(mon+timedelta(days=4),datetime.min.time())
+    sat = datetime.combine(mon+timedelta(days=5),datetime.min.time())
+    sun = datetime.combine(mon+timedelta(days=6),datetime.min.time())
+    return [mon,tues,wed,thurs,fri,sat,sun]
+
 class orders_logger:
     def __init__(self,o_amount,product_id,order_obj):
         self.__o_amount = o_amount
         self.set_o_profit(o_amount,product_id)
-        self.__timestamp = datetime.timestamp(datetime.now())
+        # self.__timestamp = datetime.timestamp(datetime.now())
+        self.__timestamp = datetime.timestamp(random.choice(current_week('2020','5')))
         self.__product_id = product_id
         self.__order_obj = order_obj
     def set_o_profit(self,o_amount,product_id):
