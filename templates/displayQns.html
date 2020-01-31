@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<br>
+<br>
+<br>
+
+
+<h1>{{question.getmtitle()}}</h1>
+<h3>{{question.getmbody()}}</h3>
+
+<a type="button" href="/updateQns/{{question.get_msgid()}}"> Update </a>
+
+
+{% for answer in AnswerList %}
+    <p>{{ answer.getmbody()}}</p>
+{% endfor %}
+
+<!--Reply Button-->
+<div>
+<a type="button" href="/Respond/{{question.get_msgid()}}">Reply </a>
+
+
+</div>
+{% endblock %}

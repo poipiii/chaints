@@ -16,7 +16,7 @@ nav{
 
 .navbar .nav-link:hover,
 .navbar .nav-link:focus {
-    color: palevioletred;
+    color: #FBC578;
     text-decoration: none;
 }
 
@@ -35,7 +35,7 @@ nav{
 
 .navbar.active .nav-link:hover,
 .navbar.active .nav-link:focus {
-    color: palevioletred;
+    color: #FBC578;
     text-decoration: none;
 }
 
@@ -56,6 +56,7 @@ nav{
 }
 
 </style>
+<link rel="stylesheet" href="../static/owlcarousel/assets/owl.carousel.css">
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
@@ -93,13 +94,219 @@ nav{
       <span class="sr-only">Next</span>
     </a>
 </div>
+
+<div class="row mt-5">
+<div class="col-md-4">
+  <div class="card">
+    <img src="static/product_images/68464746_p0_master1200.jpg" class="card-img">
+    <div class="card-img-overlay text-white  center-y">
+      <h5 class="card-title">Men</h5>
+      <p class="card-text">This is a wider card with text below</p>
+      <a href="#" class="btn btn-light">Shop Now</a>
+    </div>
+  </div>
+</div>
+<div class="col-md-4">
+  <div class="card">
+    <img src="static/product_images/68464746_p0_master1200.jpg" class="card-img">
+    <div class="card-img-overlay text-white center-y">
+      <h5 class="card-title">Women</h5>
+      <p class="card-text">This is a wider card with text below</p>
+      <a href="#" class="btn btn-light">Shop Now</a>
+    </div>
+  </div>
+</div>
+<div class="col-md-4">
+  <div class="card">
+    <img src="static/product_images/68464746_p0_master1200.jpg" class="card-img">
+    <div class="card-img-overlay text-white  center-y">
+      <h5 class="card-title">childern</h5>
+      <p class="card-text">This is a wider card with text below</p>
+      <a href="#" class="btn btn-light">Shop Now</a>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+
+
 <!--product start-->
-<!-- ========================= SECTION  ========================= -->
+
+<!-- ========================= SECTION MAIN  ========================= -->
+<section class="section-name  padding-y-sm">
+  <div class="container">
+  <header class="section-heading">
+    <a href="/catergories/{{'male'}}" class="btn btn-outline-primary float-right">See all</a>
+    <h3 class="section-title">Men</h3>
+  </header><!-- sect-heading -->
+  
+  
+  <div class="row">
+    <div class="slider-items-owl owl-carousel owl-theme">
+      {% for product in men %}
+      <div class="item-slide">
+      <figure class="card card-product-grid">
+        <div class="img-wrap">
+          <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
+          <span class="topbar">
+            <a href="#" class="float-right"><i class="fa fa-heart wishlist favourite "></i></a>
+            {% if product.get_product_discount() > 0 %}
+            <span class="badge badge-success"> SALE </span>            
+            {% endif %}
+          </span>
+        </div>
+        <figcaption class="info-wrap ">
+          <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
+          <div class="rating-wrap mt-1">
+            <ul class="rating-stars">
+              <li style="width:80%" class="stars-active"> 
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+              </li>
+              <li>
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
+              </li>
+            </ul>
+            <span class="label-rating text-muted"> 34 reviews</span>
+          </div>
+          <div class="price-wrap mt-3">
+            {% if product.get_product_discount() <= 0 %}
+              <span class="price">${{product.get_product_price()}}</span>
+            {% else %}
+              <span class="price">${{product.get_discounted_price()}}</span>
+              <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+            {% endif %}
+          </div>
+          <a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
+        </figcaption>
+      </figure>
+      </div> <!-- col.// -->
+    {% endfor %}
+  </div> <!-- row.// -->
+  
+</div>
+<!-- container // -->
+</section>
+<!-- ========================= SECTION MAIN END// ========================= -->
+
+<!-- ========================= SECTION MAIN  ========================= -->
+<section class="section-name  padding-y-sm">
+  <div class="container">
+  <header class="section-heading">
+    <a href="/catergories/{{'female'}}" class="btn btn-outline-primary float-right">See all</a>
+    <h3 class="section-title">Women</h3>
+  </header><!-- sect-heading -->
+  
+  
+  <div class="row">
+    <div class="slider-items-owl owl-carousel owl-theme">
+      {% for product in women %}
+      <div class="item-slide">
+      <figure class="card card-product-grid">
+        <div class="img-wrap">
+          <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
+          <span class="topbar">
+            <a href="#" class="float-right "><i class="fa fa-heart wishlist "></i></a>
+            {% if product.get_product_discount() > 0 %}
+            <span class="badge badge-success"> SALE </span>            
+            {% endif %}
+          </span>
+        </div>
+        <figcaption class="info-wrap ">
+          <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
+          <div class="rating-wrap mt-1">
+            <ul class="rating-stars">
+              <li style="width:80%" class="stars-active"> 
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+              </li>
+              <li>
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
+              </li>
+            </ul>
+            <span class="label-rating text-muted"> 34 reviews</span>
+          </div>
+          <div class="price-wrap mt-3">
+            {% if product.get_product_discount() <= 0 %}
+              <span class="price">${{product.get_product_price()}}</span>
+            {% else %}
+              <span class="price">${{product.get_discounted_price()}}</span>
+              <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+            {% endif %}
+          </div>
+          <a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
+        </figcaption>
+      </figure>
+      </div> <!-- col.// -->
+    {% endfor %}
+  </div> <!-- row.// -->
+  
+</div>
+<!-- container // -->
+</section>
+<!-- ========================= SECTION MAIN END// ========================= -->
+
+<!-- ========================= SECTION MAIN  ========================= -->
+<section class="section-name  padding-y-sm">
+  <div class="container">
+  <header class="section-heading">
+    <a href="/catergories/{{'child'}}" class="btn btn-outline-primary float-right">See all</a>
+    <h3 class="section-title">Children</h3>
+  </header><!-- sect-heading -->
+  
+  
+  <div class="row">
+    <div class="slider-items-owl owl-carousel owl-theme">
+      {% for product in child %}
+      <div class="item-slide">
+      <figure class="card card-product-grid">
+        <div class="img-wrap">
+          <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
+          <span class="topbar">
+            <a href="#" class="float-right "><i class="fa fa-heart wishlist "></i></a>
+            {% if product.get_product_discount() > 0 %}
+            <span class="badge badge-success"> SALE </span>            
+            {% endif %}
+          </span>
+        </div>
+        <figcaption class="info-wrap ">
+          <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
+          <div class="rating-wrap mt-1">
+            <ul class="rating-stars">
+              <li style="width:80%" class="stars-active"> 
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+              </li>
+              <li>
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
+              </li>
+            </ul>
+            <span class="label-rating text-muted"> 34 reviews</span>
+          </div>
+          <div class="price-wrap mt-3">
+            {% if product.get_product_discount() <= 0 %}
+              <span class="price">${{product.get_product_price()}}</span>
+            {% else %}
+              <span class="price">${{product.get_discounted_price()}}</span>
+              <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+            {% endif %}
+          </div>
+          <a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
+        </figcaption>
+      </figure>
+      </div> <!-- col.// -->
+    {% endfor %}
+  </div> <!-- row.// -->
+  
+</div>
+<!-- container // -->
+</section>
+<!-- ========================= SECTION MAIN END// ========================= -->
+
+<!-- ========================= SECTION MAIN  ========================= -->
 <section class="section-name  padding-y-sm">
   <div class="container">
   <header class="section-heading">
     <a href="/catergories" class="btn btn-outline-primary float-right">See all</a>
-    <h3 class="section-title">Popular products</h3>
+    <h3 class="section-title">Products</h3>
   </header><!-- sect-heading -->
   
   
@@ -111,6 +318,9 @@ nav{
           <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
           <span class="topbar">
             <a href="#" class="float-right"><i class="fa fa-heart"></i></a>
+            {% if product.get_product_discount() > 0 %}
+            <span class="badge badge-success"> SALE </span>            
+            {% endif %}
           </span>
         </div>
         <figcaption class="info-wrap border-top">
@@ -127,10 +337,14 @@ nav{
             <span class="label-rating text-muted"> 34 reviews</span>
           </div>
           <div class="price-wrap mt-3">
-            <span class="price">${{product.get_discounted_price()}}</span>
-            <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+            {% if product.get_product_discount() <= 0 %}
+              <span class="price">${{product.get_product_price()}}</span>
+            {% else %}
+              <span class="price">${{product.get_discounted_price()}}</span>
+              <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
+            {% endif %}
           </div>
-          <a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-sm btn-outline-primary float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
+          <a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
         </figcaption>
       </div>
     </div> <!-- col.// -->
@@ -141,8 +355,7 @@ nav{
 </div>
 <!-- container // -->
 </section>
-
-<!-- ========================= SECTION  END// ========================= -->
+<!-- ========================= SECTION MAIN END// ========================= -->
   
 <!--product end-->
 {% endblock  %}
@@ -160,9 +373,68 @@ nav{
     });
   });
 </script>
+<script src="../static/owlcarousel/owl.carousel.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    
+      /////////////////  items slider. /plugins/owlcarousel/
+      if ($('.slider-banner-owl').length > 0) { // check if element exists
+          $('.slider-banner-owl').owlCarousel({
+              loop:true,
+              margin:0,
+              items: 1,
+              dots: false,
+              nav:true,
+              navText: ["<i class='fa fa-chevron-left'></i>", "<i class='fa fa-chevron-right'></i>"],
+          });
+      } // end if 
+  
+      /////////////////  items slider. /plugins/owlslider/
+      if ($('.slider-items-owl').length > 0) { // check if element exists
+          $('.slider-items-owl').owlCarousel({
+              loop:true,
+              margin:10,
+              nav:true,
+              navText: ["<i class='fa fa-chevron-left'></i>", "<i class='fa fa-chevron-right'></i>"],
+              responsive:{
+                  0:{
+                      items:1
+                  },
+                  640:{
+                      items:3
+                  },
+                  1024:{
+                      items:4
+                  }
+              }
+          })
+      } // end if
+  
+      /////////////////  items slider. /plugins/owlcarousel/
+      if ($('.slider-custom-owl').length > 0) { // check if element exists
+          var slider_custom_owl = $('.slider-custom-owl');
+          slider_custom_owl.owlCarousel({
+              loop: true,
+              margin:15,
+              items: 2,
+              nav: false,
+          });
+  
+          // for custom navigation
+          $('.owl-prev-custom').click(function(){
+              slider_custom_owl.trigger('prev.owl.carousel');
+          });
+  
+          $('.owl-next-custom').click(function(){
+             slider_custom_owl.trigger('next.owl.carousel');
+          });
+  
+      } // end if 
+  });	
+    </script>
 {% endblock  %}
 
-<section class="container pt-md-3 pb-5 mb-md-3">      
+<!-- <section class="container pt-md-3 pb-5 mb-md-3">      
  <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-4">
   <div class="card product-card"><span class="badge badge-danger badge-shadow">Sale</span>
       <button class="btn-wishlist btn-sm" type="button" data-toggle="tooltip" data-placement="left" title="Add to wishlist"><i class="czi-heart"></i></button>
@@ -185,7 +457,9 @@ nav{
   </div>
   <hr class="d-sm-none">
 </div>
-</section> 
+</section>  -->
+
+
 
  <!-- Product
  <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-4">

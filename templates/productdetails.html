@@ -1,98 +1,230 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+	#carouselExampleIndicators .list-inline {
+		white-space:nowrap;
+		overflow-x:auto;
+	}
+	
+	#carouselExampleIndicators .carousel-indicators {
+		position: static;
+		left: initial;
+		width: initial;
+		margin-left: initial;
+	}
+	
+	#carouselExampleIndicators .carousel-indicators > li {
+		width: initial;
+		height: initial;
+		text-indent: initial;
+	}
+	
+	#carouselExampleIndicators .carousel-indicators > li.active img {
+		opacity: 0.7;
+	}
+</style>
 <br><br><br><br>
 <section class="section-content padding-y bg">
     <div class="container">    
 <!-- ============================ COMPONENT 1 ================================= -->
 <div class="card">
-	<div class="row no-gutters">
-		<aside class="col-md-6">
-<article class="gallery-wrap"> 
-	<div class="img-big-wrap">
-	   <a href="#"><img src="../static/product_images/{{product.get_product_images()[0]}}"></a>
-	</div> <!-- img-big-wrap.// -->
-	<div class="thumbs-wrap">
-      {% for images in product.get_product_images() %}  
-	  <a href="#" class="item-thumb"> <img src="../static/product_images/{{images}}"></a>
-      {% endfor %}
-	</div> <!-- thumbs-wrap.// -->
-</article> <!-- gallery-wrap .end// -->
-		</aside>
-		<main class="col-md-6 border-left">
-<article class="content-body">
-
-<h2 class="title">{{product.get_product_name()}}</h2>
-<h3 class="float-right">sold by</h3>
-<div class="rating-wrap my-3">
-	<ul class="rating-stars">
-		<li style="width:80%" class="stars-active"> 
-			<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-			<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-			<i class="fa fa-star"></i> 
-		</li>
-		<li>
-			<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-			<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-			<i class="fa fa-star"></i> 
-		</li>
-	</ul>
-	<small class="label-rating text-muted">132 reviews</small>
-	<small class="label-rating text-success"> <i class="fa fa-clipboard-check"></i> 154 orders </small>
-</div> <!-- rating-wrap.// -->
-
-<div class="mb-3"> 
-	<var class="price h4">${{product.get_product_price()}}</var> 
-</div> 
-
-<p>{{product.get_product_desc()}}</p>
-
-
-
-<hr>
-	<div class="form-row">
-		<div class="form-group col-md flex-grow-0">
-			<label>Quantity</label>
-			<div class="input-group mb-3 input-spinner number-spinner">
-			  <div class="input-group-prepend">
-			    <button class="btn btn-light" data-dir="up" type="button" id="button-plus"> + </button>
-			  </div>
-			  <input type="text" class="form-control" value="1">
-			  <div class="input-group-append">
-			    <button class="btn btn-light" data-dir="dwn" type="button" id="button-minus"> &minus; </button>
-			  </div>
-			</div>
-		</div> <!-- col.// -->
-		<div class="form-group col-md">
-				<label>Select size</label>
-				<div class="mt-1">
-					<label class="custom-control custom-radio custom-control-inline">
-					  <input type="radio" name="select_size" checked="" class="custom-control-input">
-					  <div class="custom-control-label">Small</div>
-					</label>
-
-					<label class="custom-control custom-radio custom-control-inline">
-					  <input type="radio" name="select_size" class="custom-control-input">
-					  <div class="custom-control-label">Medium</div>
-					</label>
-
-					<label class="custom-control custom-radio custom-control-inline">
-					  <input type="radio" name="select_size" class="custom-control-input">
-					  <div class="custom-control-label">Large</div>
-					</label>
-
+		<div class="row no-gutters">
+			<aside class="col-md-6">
+				<article class="gallery-wrap"> 
+					<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+						<div class="carousel-inner">
+							{% for images in product.get_product_images() %}
+							{% if loop.index0 == 0  %}
+							<div class="carousel-item active">
+								<div class="img-big-wrap ml-5">
+									<img class="center-block" src="../static/product_images/{{images}}">
+								</div> <!-- img-big-wrap.// -->
+							</div>
+							{% else %}
+							<div class="carousel-item">
+								<div class="img-big-wrap ml-5">
+									<img src="../static/product_images/{{images}}">
+								</div> <!-- img-big-wrap.// -->
+								
+							</div>
+							{% endif %}  
+							{% endfor %}
+							</div>
+							<div class="thumbs-wrap">
+								<ol class="carousel-indicators">
+									{% for images in product.get_product_images() %}  
+									<li data-target="#carouselExampleIndicators" data-slide-to="{{loop.index0}}" class="active">
+										<img src="../static/product_images/{{images}}" class="item-thumb" >
+									</li>
+									{% endfor %}
+								</ol>
+								<div>
+								</div>
+							</div>
+						</div>
+								<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+									<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+									<span class="sr-only">Previous</span>
+								</a>
+								<a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+									<span class="carousel-control-next-icon" aria-hidden="true"></span>
+									<span class="sr-only">Next</span>
+								</a>
+				</article> 
+				
+			</aside>
+			<main class="col-md-6 border-left">
+	<article class="content-body">
+		<div  class="float-right"> 
+			<div class="icontext align-items-start " style="max-width: 300px;">
+				<div class="text">
+					<p class="text-muted">Sold By:</p>
+					<h5 class="title">{{sellerinfo}}</h5>
 				</div>
-		</div> <!-- col.// -->
-	</div> <!-- row.// -->
-	<a href="#" class="btn  btn-primary"> Buy now </a>
-	<a href="#" class="btn  btn-outline-primary"> <span class="text">Add to cart</span> <i class="fa fa-shopping-cart"></i>  </a>
-</article> <!-- product-info-aside .// -->
-		</main> <!-- col.// -->
-	</div> <!-- row.// -->
-</div> <!-- card.// -->
+				<span class="icon icon-xs rounded-circle mt-3">
+					<img class="icon icon-xs rounded-circle" src="http://s3.amazonaws.com/37assets/svn/765-default-avatar.png">
+				</span>
+			</div>
+		</div>
+	<h2 class="title">{{product.get_product_name()}}</h2>
+	
+	<div class="rating-wrap my-3">
+		<ul class="rating-stars">
+			<li style="width:100%" class="stars-active"> 
+				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+				<i class="fa fa-star"></i>
+
+			</li>
+			<li>
+				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+				<i class="fa fa-star"></i> 
+			</li>
+		</ul>
+		<!-- <small class="label-rating text-muted">132 reviews</small>
+		<small class="label-rating text-success"> <i class="fa fa-clipboard-check"></i> 154 orders </small> -->
+	</div> <!-- rating-wrap.// -->
+	
+	<div class="mb-3"> 
+		<var class="price h4">${{product.get_discounted_price()}}</var> 
+		<span class="text-muted">${{product.get_product_price()}}</span> 
+	</div> 
+	
+	<p>{{product.get_product_desc()}}</p>
+	
+	<!-- <dl class="row">
+	  <dt class="col-sm-3">Model#</dt>
+	  <dd class="col-sm-9">Odsy-1000</dd>
+	
+	  <dt class="col-sm-3">Color</dt>
+	  <dd class="col-sm-9">Brown</dd>
+	
+	  <dt class="col-sm-3">Delivery</dt>
+	  <dd class="col-sm-9">Russia, USA, and Europe </dd>
+	</dl> -->
+	
+	<hr>
+		<div class="form-row">
+			<div class="form-group col-md flex-grow-0">
+				<label>Quantity</label>
+				<div class="input-group mb-3  number-spinner input-spinner ">
+				  <div class="input-group-prepend ">
+					<button class="btn btn-light" type="button" id="button-plus"> + </button>
+				  </div>
+				  <input type="text" class="form-control" value="1">
+				  <div class="input-group-append">
+					<button class="btn btn-light" type="button" id="button-minus"> &minus; </button>
+				  </div>
+				</div>
+			</div> 
+			<!-- col.// -->
+			<!-- <div class="form-group col-md">
+					<label>Select size</label>
+					<div class="mt-1">
+						<label class="custom-control custom-radio custom-control-inline">
+						  <input type="radio" name="select_size" checked="" class="custom-control-input">
+						  <div class="custom-control-label">Small</div>
+						</label>
+	
+						<label class="custom-control custom-radio custom-control-inline">
+						  <input type="radio" name="select_size" class="custom-control-input">
+						  <div class="custom-control-label">Medium</div>
+						</label>
+	
+						<label class="custom-control custom-radio custom-control-inline">
+						  <input type="radio" name="select_size" class="custom-control-input">
+						  <div class="custom-control-label">Large</div>
+						</label>
+	
+					</div>
+			</div>  -->
+			<!-- col.// -->
+		</div> <!-- row.// -->
+		<a href="#" class="btn  btn-primary"> Buy now </a>
+		<a href="#" class="btn  btn-outline-primary"> <span class="text">Add to cart</span> <i class="fa fa-shopping-cart"></i>  </a>
+	</article> <!-- product-info-aside .// -->
+			</main> <!-- col.// -->
+		</div> <!-- row.// -->
+	</div> <!-- card.// -->
+
+
 <!-- ============================ COMPONENT 1 END .// ================================= -->
 </div>
 </section>
+<section>
+ <div class="container">
+	 <header class="section-heading">
+		 <h3 class="section-title">Reviews</h3>
+	 </header>
+	{% for reviews in product.get_product_reviews() %}	
+	<div class="card mt-3">
+		<div class="card-body">
+		<h5 class="card-title">{{reviews['username']}}</h5>
+
+		  <div class="rating-wrap my-3">
+			<ul class="rating-stars">
+				<li style="width:100%" class="stars-active">
+					{% for star in range(reviews['rating']) %}
+					<i class="fa fa-star"></i> 
+					{% endfor %}
+				</li>
+				<li>
+					<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+					<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+					<i class="fa fa-star"></i> 
+				</li>
+			</ul>
+			
+		</div>
+		  <p class="card-text">{{reviews['review_txt']}}</p>
+		</div>
+	</div>
+	{% endfor %}
+	
+ </div>
+</section>
+<hr>
 
 
-
+{% endblock  %}
+{% block script %}
+<script>
+    $(document).on('click', '.number-spinner button', function () {    
+        var btn = $(this),
+            oldValue = btn.closest('.number-spinner').find('input').val().trim(),
+            newVal = 0;
+        
+        if (btn.attr('data-dir') == 'up') {
+            newVal = parseInt(oldValue) + 1;
+        } else {
+            if (oldValue > 1) {
+                newVal = parseInt(oldValue) - 1;
+            } else {
+                newVal = 1;
+            }
+        }
+        btn.closest('.number-spinner').find('input').val(newVal);
+    });
+</script>
 {% endblock  %}

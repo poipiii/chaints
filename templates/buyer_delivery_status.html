@@ -30,8 +30,8 @@
                   <td>{{ delivery_item.get_order_date() }}</td>
                   <td>#</td>
                     <td>{{ delivery_item.get_deliverystat() }}</td>
-                    <td><a href="" class="btn btn-outline-warning">Received</a></td>
-                    <td><a href="/BuyerDeliveryDetails/{{ delivery_item.get_individual_orderid() }}" class="btn btn-outline-warning">Order Details</a></td>
+                    <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}/{{ delivery_item.get_product_id() }}" class="btn btn-success">Received</a></td>
+                    <td><a href="/BuyerDeliveryDetails/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Order Details</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -43,3 +43,11 @@
 
 {% endblock  %}
 
+{% block script %}
+<script>
+  $(document).ready(function() {
+      $('#dataTable').DataTable();
+    });
+
+</script>
+{% endblock  %}

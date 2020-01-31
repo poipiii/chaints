@@ -1,0 +1,90 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+<style>
+    .title{
+        font-weight:bold;!important
+
+    }
+
+    .header{
+        font-weight:bold;
+        padding: 20px 0px 0px 0px;
+    }
+    .orderdetails img{
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 200px;
+        float: right;
+        left: 700px;
+        position: absolute;
+        bottom:10px;
+        top:6px;
+
+  }
+
+    .orderdetails{
+
+        position:relative;
+    }
+</style>
+<div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
+            <div class="orderdetails">
+                <h2>Order Details</h2>
+                <div>
+                    <div>
+                    <h6><span class="title">Order ID:</span> {{ individual_order.get_individual_orderid() }}</h6>
+                    <h6><span class="title">Product:</span> {{ individual_order.get_product_id() }}</h6>
+                    <h6><span class="title">Seller name:</span> {{ individual_order.get_seller_name() }}</h6>
+                    <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
+                    <h6><span class="title">Delivery Status:</span> {{ individual_order.get_deliverystat() }}</h6>
+                        <div class="productimage">
+                                <img src="../static/product_images/{{individual_order.get_product_image()}}" class="productimage">
+                         </div>
+                    </div>
+                    <h4 class="header" >Delivery Tracking</h4>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                              <thead>
+                                <tr>
+                                    <th>Date</th>
+                                  <th>Status of Item</th>
+                                  <th>Location</th>
+                                    <th>Notes</th>
+
+                              </thead>
+                              <tbody>
+
+                                <tr>
+                                    <td></td>
+                                  <td></td>
+                                  <td></td>
+                                    <td></td>
+
+                                </tr>
+
+                              </tbody>
+                              </table>
+                            </div>
+                    </div>
+
+                </div>
+            </div>
+            <a href="/DeletingDelivery/{{ individual_order.get_individual_orderid() }}" class="btn btn-danger">Cancel and Delete</a>
+            <a href="/SellerDelivery" class="btn btn-warning">Delivery Status</a>
+    </div>
+</div>
+
+
+{% endblock  %}
+
+{% block script %}
+<script>
+  $(document).ready(function() {
+      $('#dataTable').DataTable();
+    });
+
+</script>
+{% endblock  %}

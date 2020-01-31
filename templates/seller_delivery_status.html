@@ -22,11 +22,8 @@
                <!-- {% for delivery_item in delivery_list %} -->
                 <tr>
                   <td>#</td>
-                  <td>#</td>
-                  <td>#</td>
-                  <td>#</td>
-                  <td>#</td>
-                    <td><a href="#" class="btn btn-warning">Edit Status</a></td>
+                    <td>{{ delivery_item.get_deliverystat() }}</td>
+                    <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Edit Status</a></td>
                 </tr>
                 <!--{% endfor %}-->
               </tbody>
@@ -36,4 +33,13 @@
 </div>
 
 
+{% endblock  %}
+
+{% block script %}
+<script>
+  $(document).ready(function() {
+      $('#dataTable').DataTable();
+    });
+
+</script>
 {% endblock  %}

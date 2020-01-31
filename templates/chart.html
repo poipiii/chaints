@@ -7,7 +7,7 @@
       <div class="card shadow mb-4">
         <!-- Card Header - Dropdown -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Profit Overview</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Profit Overview Weekly</h6>
           <div class="dropdown no-arrow">
             <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
@@ -24,11 +24,341 @@
         <!-- Card Body -->
         <div class="card-body">
           <div class="chart-area">
-            <canvas id="myChart"></canvas>
+            <canvas id="weeklychart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-6 col-lg-5">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Profit Overview Monthly</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Dropdown Header:</div>
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          <div class="chart-area">
+            <canvas id="monthlychart"></canvas>
           </div>
         </div>
       </div>
     </div>
 </div>
+<div class="col-xl-6 col-lg-5">
+  <div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Profit Overview Yearly</h6>
+      <div class="dropdown no-arrow">
+        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+          <div class="dropdown-header">Dropdown Header:</div>
+          <a class="dropdown-item" href="#">Action</a>
+          <a class="dropdown-item" href="#">Another action</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Something else here</a>
+        </div>
+      </div>
+    </div>
+    <!-- Card Body -->
+    <div class="card-body">
+      <div class="chart-area">
+        <canvas id="yearlychart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock  %}
 
+{% block script %}
+
+<script>
+  var getData = $.get('/data/week');
+  getData.done(function(data){
+    parsed_data = JSON.parse(data)
+    var ctx = document.getElementById('weeklychart').getContext('2d');
+    var dates = []
+    for (var i in Object.keys(parsed_data.profit)){
+      dates.push(Object.keys(parsed_data.profit)[i].split("T")[0])
+      
+      }
+    var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [{
+            label: 'profit',
+            data: Object.values(parsed_data.profit),
+            backgroundColor: [
+            
+                'rgba(54, 162, 235, 0.2)',
+               
+            ],
+            borderColor: [ 
+               
+                'rgba(75, 192, 192, 1)'
+              
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: true,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: true
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 10,
+        yPadding: 10,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+      }
+    }
+  });
+  });
+  
+  
+</script>
+
+<script>
+  var getData = $.get('/data/month');
+  getData.done(function(data){
+    parsed_data = JSON.parse(data)
+    var ctx = document.getElementById('monthlychart').getContext('2d');
+    var dates = []
+    for (var i in Object.keys(parsed_data)){
+      dates.push(Object.keys(parsed_data)[i].slice(0,7))
+      }
+    console.log(dates)
+    var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [{
+            label: 'profit',
+            data: Object.values(parsed_data),
+            backgroundColor: [
+            
+                'rgba(54, 162, 235, 0.2)',
+               
+            ],
+            borderColor: [ 
+               
+                'rgba(75, 192, 192, 1)'
+              
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: true,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: true
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 10,
+        yPadding: 10,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+      }
+    }
+  });
+  });
+  
+  
+</script>
+
+<script>
+  var getData = $.get('/data/year');
+  getData.done(function(data){
+    parsed_data = JSON.parse(data)
+    var ctx = document.getElementById('yearlychart').getContext('2d');
+    var dates = []
+    for (var i in Object.keys(parsed_data)){
+      dates.push(Object.keys(parsed_data)[i].slice(0,4))
+      }
+    console.log(dates)
+    var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [{
+            label: 'profit',
+            data: Object.values(parsed_data),
+            backgroundColor: [
+            
+                'rgba(54, 162, 235, 0.2)',
+               
+            ],
+            borderColor: [ 
+               
+                'rgba(75, 192, 192, 1)'
+              
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          left: 10,
+          right: 25,
+          top: 25,
+          bottom: 0
+        }
+      },
+      scales: {
+        xAxes: [{
+          time: {
+            unit: 'date'
+          },
+          gridLines: {
+            display: true,
+            drawBorder: false
+          },
+          ticks: {
+            maxTicksLimit: 7
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            maxTicksLimit: 5,
+            padding: 10,
+          },
+          gridLines: {
+            color: "rgb(234, 236, 244)",
+            zeroLineColor: "rgb(234, 236, 244)",
+            drawBorder: false,
+            borderDash: [2],
+            zeroLineBorderDash: [2]
+          }
+        }],
+      },
+      legend: {
+        display: true
+      },
+      tooltips: {
+        backgroundColor: "rgb(255,255,255)",
+        bodyFontColor: "#858796",
+        titleMarginBottom: 10,
+        titleFontColor: '#6e707e',
+        titleFontSize: 14,
+        borderColor: '#dddfeb',
+        borderWidth: 1,
+        xPadding: 10,
+        yPadding: 10,
+        displayColors: false,
+        intersect: false,
+        mode: 'index',
+        caretPadding: 10,
+      }
+    }
+  });
+  });
+  
+  
+</script>
 {% endblock  %}

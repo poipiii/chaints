@@ -1,0 +1,18 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+<div class="card">
+    <article class="card-body">
+    <header class="mb-4">
+        <h3 class="card-title">Update Quantity</h3>
+    </header>
+    <form method="POST" action="">
+        <div class="form-group">
+        {{ form.product_Quantity.label(class="form-control-label")}}
+        {{ form.product_Quantity(class="form-control",type="number") }}
+        </div>
+     <input type="submit" value="Submit" class="btn btn-primary float-right"/>
+    </form>
+    <hr>
+</article> <!-- card-body end .// -->
+</div>
+{% endblock  %}
