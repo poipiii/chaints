@@ -9,8 +9,7 @@ from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
-
-
+from datapipeline import *
 from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -97,7 +96,9 @@ def details_page():
 
 @app.route("/dashboard")
 def dashboard_home():
-    return render_template('chart.html')
+    if session.get('role') == 'A':
+        all_profit = api_all_profit(get_usr_owned_p(session.get('user_id')))
+    return render_template('chart.html',all_profit=all_profit)
 
 @app.route("/data/<d_type>")
 def datapipe(d_type):
@@ -117,23 +118,23 @@ def datapipe(d_type):
     else:
         return None
 
-@app.route("/apitest")
-def datatest():
-    ownp = ['a9ee20758e2647f69d3bbf92066f3d31']
-    if request.args.get('type') == 'ALL':
-        apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
-        if apidata is not None:
-            profit = []
-            dtime = []
-            for orders in apidata:
-                profit.append(orders.get_o_profit())
-                dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
-            return jsonify({"profit":profit},{"datetime":dtime})
-        else:
-            return jsonify({"profit":None},{"datetime":None})
+# @app.route("/apitest")
+# def datatest():
+#     ownp = ['a9ee20758e2647f69d3bbf92066f3d31']
+#     if request.args.get('type') == 'ALL':
+#         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
+#         if apidata is not None:
+#             profit = []
+#             dtime = []
+#             for orders in apidata:
+#                 profit.append(orders.get_o_profit())
+#                 dtime.append(orders.get_timestamp_as_datetime().strftime("%m/%d/%Y %H:%M:%S"))
+#             return jsonify({"profit":profit},{"datetime":dtime})
+#         else:
+#             return jsonify({"profit":None},{"datetime":None})
 
-    else:
-        return jsonify({"profit":None},{"datetime":None})
+#     else:
+#         return jsonify({"profit":None},{"datetime":None})
 
 
 
@@ -242,7 +243,8 @@ def review():
         add_review(session.get('user_id'),session.get('name'),'a9ee20758e2647f69d3bbf92066f3d31',int(Review_form.rating.data),Review_form.review_text.data)
         return redirect(url_for('landing_page'))
     return render_template('review_form.html',form = Review_form)
-
+ 
+ 
 
 #User Management
 #sign up user
@@ -539,8 +541,9 @@ def confirmation():
         add = usr.get_user_address()
         full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
         print(full_address)
-    # separating_orders(session.get('user_id'),productincart,Neworder.get_timestamp_as_datetime(),full_address)
     db.close()
+    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
+    order_log_preprocess(session.get('user_id'),Neworder)
     return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
 @app.route('/Myorder')
