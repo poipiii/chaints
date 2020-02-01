@@ -989,12 +989,13 @@ def print_list_buyer(buyerid):
 ##o3=separating_orders('123abd',o3dict,'12/11/2012','777 greenwood ave')
 
 class Order:
-    def __init__(self,cart_list,sellerID,buyername,totalprice):
+    def __init__(self,cart_list,buyername,totalprice):
         self.__orderID=uuid.uuid4().hex
         self.__cart_list=cart_list
         self.__buyername=buyername
         self.__totalprice=totalprice
-        self.__sellerID=sellerID
+        # self.__sellerID=sellerID
+        self.__timestamp = datetime.timestamp(datetime.now())
 
     def set_buyername(self,buyername):
         self.__buyername=buyername
@@ -1002,8 +1003,8 @@ class Order:
     def set_totalprice(self,totalprice):
         self.__totalprice=totalprice
 
-    def set_sellerID(self,sellerID):
-        self.__sellerID=sellerID
+    # def set_sellerID(self,sellerID):
+    #     self.__sellerID=sellerID
 
     def get_orderId(self):
         return self.__orderID
@@ -1014,16 +1015,63 @@ class Order:
     def get_totalprice(self):
         return self.__totalprice
 
-    def get_sellerID(self):
-        return self.__sellerID
+    def get_cart_list(self):
+        return self.__cart_list
+
+    # def get_sellerID(self):
+    #     return self.__sellerID
+
+    def get_timestamp(self):
+        return self.__timestamp
+
+    def get_timestamp_as_datetime(self):
+        return datetime.fromtimestamp(self.__timestamp)
+
+class confirm_order():
+    def __init__(self,cardholder,cardno,expiry,cvc):
+        self.__cardholder=cardholder
+        self.__cardno=cardno
+        self.__expiry=expiry
+        self.__cvc=cvc
+        self.__cartdict={}
+
+    def set__cardholder(self,cardholder):
+        self.__cardholder=cardholder
+
+    def set__cardno(self,cardno):
+        self.__cardno=cardno
+
+    def set__expiry(self,expiry):
+        self.__expiry=expiry
+
+    def set__cvc(self,cvc):
+        self.__cvc=cvc
+
+    def set_cartdict(self,cartdict):
+        self.__cartdict=cartdict
+
+    def get_cardholder(self):
+        return self.__cardholder
+
+    def get_cardno(self):
+        return self.__cardno
+
+    def get_expiry(self):
+        return self.__expiry
+
+    def get_cvc(self):
+        return self.__cvc
+
+    def get_cartdict(self):
+        return self.__cartdict
 
 def delivery_info(DeliveryInfo):
     db=shelve.open('database/user_database/user.db','c')
     if session.get('user_id') in db:
         info=db.get(session.get('user_id'))
-        #Infodict={}
-        #Infodict["DeliveryInfo"]=info.get_deliveryinfo()
-        db[session.get('user_id')]=info.get_deliveryinfo()
+            #Infodict={}
+            #Infodict["DeliveryInfo"]=info.get_deliveryinfo()
+        db[session.get('user_id')]=info.get_user_address()
     db.close()
 
 def add_delivery_info(address,country,city,state,zip,userid):
@@ -1033,11 +1081,195 @@ def add_delivery_info(address,country,city,state,zip,userid):
     add["city"]=city
     add["state"]=state
     add["zip"]=zip
-    db=shelve.open('database/order_database/order.db','c')
-    a=db[userid]
-    a.set_address(add)
-    db[userid]=a
+    db=shelve.open('database/user_database/user.db','c')
+    if userid in db:
+        a=db[userid]
+        a.set_user_address(add)
+        db[userid]=a
+    else:
+        db[userid]=add
     db.close()
+
+def payment_confirmation(cardholder,cardno,expiry,cvc,userid):
+    db=shelve.open('database/order_database/cart.db','c')# open the cart
+    if userid in db:
+        retrieve=db[userid]
+    db.close()
+    db=shelve.open('database/order_database/order.db','c')
+    order_object=confirm_order(cardholder,cardno,expiry,cvc)
+    db[userid]=order_object
+    db.close()
+
+
+class Dessage():
+    def __init__(self,userid,mtitle,mbody):
+        self.__userid=userid
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+    def getuid(self):
+        return self.__userid
+    def setmtitle(self,mtitle):
+        self.__mtitle=mtitle
+    def getmtitle(self):
+        return self.__mtitle
+    def setmbody(self,mbody):
+        self.__mbody=mbody
+    def getmbody(self):
+        return self.__mbody
+#Question
+class CQuestion(Dessage):
+    def __init__(self,UserID,mtitle,mbody):
+        super().__init__(UserID,mtitle,mbody)
+        self.__msgid_Qns=uuid.uuid4().hex
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+        self.__answers_list=[]
+    def setanslist(self,ansid):
+        self.__answers_list.append(ansid)
+    def get_msgid(self):
+        return self.__msgid_Qns
+    def get_ans_list(self):
+        return self.__answers_list
+    #def __str__(self):
+    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_msgid(),self.getuid(),self.getmtitle(),self.getmbody())
+#Response
+class CAnswer(Dessage):
+    def __init__(self,UserID,mtitle,mbody):
+        super().__init__(UserID,mtitle,mbody)
+        mtitle=None
+        self.__mtitle=mtitle
+        self.__mbody=mbody
+        self.__ansid=uuid.uuid4().hex
+        self.__Question=[]
+    def setQuestion(self,Qnsid):
+        self.__Question.append(Qnsid)
+    def getQuestion(self):
+        return self.__Question
+    def get_ansid(self):
+        return self.__ansid
+    #def __str__(self):
+    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_ansid(),self.getuid(),self.getmtitle(),self.getmbody())
+#FAQ Forum Shelve DB
+
+def get_question_by_id(question_id):
+    db = shelve.open('database/forum_database/FAQQ.db','r')
+    if question_id in db:
+        question_obj = db.get(question_id)
+        return question_obj
+    else:
+        print('question does not exist')
+    db.close()
+
+
+def RespondtoQns(Responseid, question_id):
+    db = shelve.open('database/forum_database/FAQQ.db','c')
+    if question_id in db:
+        question_obj = db.get(question_id)
+        question_obj.setanslist(Responseid)
+        db[question_id]=question_obj
+    else:
+        print('question does not exist')
+    db.close()
+
+
+def get_answer_by_id(id):
+    ans_obj_list = []
+    db = shelve.open('database/forum_database/FAQQ.db','r')
+    for i in id:
+        if i in db:
+            ans_obj = db.get(i)
+            ans_obj_list.append(ans_obj)
+
+        else:
+                print('question does not exist')
+
+    db.close()
+    return ans_obj_list
+
+class FAQm():
+    def __init__(self,question,answer):
+        self.__faqid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__faqid
+
+class Account_Issues():
+    def __init__(self,question,answer):
+        self.__AiCid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__AiCid
+class Contact():
+    def __init__(self,question,answer):
+        self.__CoUid=uuid.uuid4().hex
+        self.__question=question
+        self.__answer=answer
+    def setquestion(self,question):
+        self.__question=question
+    def getquestion(self):
+        return self.__question
+    def setanswer(self,answer):
+        self.__answer=answer
+    def getanswer(self):
+        return self.__answer
+    def getid(self):
+        return self.__CoUid
+
+
+#def test_faq_db():
+#    Gold=[]
+#    db = shelve.open('database/forum_database/FAQQ.db','r')
+#    for i in db.values():
+#        if isinstance(i,CQuestion):
+#            Gold.append(i)
+#    for i in Gold:
+#        print (i.getmtitle(),i.getmbody())
+#        print(i.get_msgid())
+#test_faq_db()
+
+
+
+#fr = shelve.open('database/forum_database/FAQQ.db','r')
+#for i in fr:
+#    if isinstance(i,CQuestion):
+#        print(i.getmbody())
+#fr.close()
+
+#friend = shelve.open("database/forum_database/FAQDisplay.db",'r')
+#a=friend.values()
+#for aborginal in a:
+#    print(aborginal.getquestion())
+#friend.close()
+
+
+#def test_faq_db():
+#    db = shelve.open('database/forum_database/FAQQ.db','r')
+#    for i in db.values():
+#        if isinstance(i,CQuestion):
+#           print (i.get_ans_list())
+#        #elif isinstance(i,CAnswer):
+#        else:
+#            continue
+#    db.close()
+#test_faq_db()
 
 
 

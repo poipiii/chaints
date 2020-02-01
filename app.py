@@ -9,7 +9,7 @@ from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
-from datapipeline import *
+
 
 from Forms import Question, Response
 app = Flask(__name__)
@@ -422,11 +422,6 @@ def profile():
     return render_template('profile.html',usersList=usersList, count=len(usersList))
 
 
-
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
 #Order Management
 #adding product to cart
 @app.route('/add_to_cart/<productid>/<int:productqty>')
@@ -469,9 +464,18 @@ def cart():
         # and save empty dict to db so if user open cart without adding items there will be no error
         usercart={}
         db[session.get('user_id')] = usercart
-
     db.close()
-    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart)
+    total_price=0
+    total_discount=0
+    Grand_total=0
+    for i in productincart:
+        price=i.get_product_price()*usercart[i.get_product_id()]
+        discount=i.get_product_discount()*usercart[i.get_product_id()]
+        grand=i.get_discounted_price()*usercart[i.get_product_id()]
+        total_price+=price
+        total_discount+=discount
+        Grand_total+=grand
+    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart,total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
 @app.route('/deletecart/<cartproductid>',methods = ['POST'])
 #take in post request from the route and the product id of the item to be deleted
@@ -493,15 +497,74 @@ def Deliverydetails():
     delivery_form= Delivery_Form(request.form)
     if request.method == "POST" and delivery_form.validate():
         add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
-        return redirect(url_for('Payment'))
+        return redirect(url_for('paymentdetails'))
     return render_template('delivery_details.html',form=delivery_form)
 
-@app.route('/Payment', methods=['GET','POST'])
-def Paymentdetails():
+@app.route('/Paymentdetails', methods=['GET','POST'])
+def paymentdetails():
     payment1_form=Payment_Form(request.form)
-    if request.method =="POST" and Payment_Form.validate():
-        return redirect(url_for('Confirmation'))
+    if request.method == "POST" and payment1_form.validate():
+        payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
+        return redirect(url_for('confirmation'))
     return render_template('Payment.html',form=payment1_form)
+
+
+@app.route('/orderconfirm',methods=['GET'])
+def confirmation():
+    productincart=[]
+    db=shelve.open('database/order_database/cart.db','r')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+        print(usercart)
+        for item in usercart.keys():
+            productincart.append(get_product_by_id(item))
+    db.close()
+    total_price=0
+    total_discount=0
+    Grand_total=0
+    for i in productincart:
+        price=i.get_product_price()*usercart[i.get_product_id()]
+        discount=i.get_product_discount()*usercart[i.get_product_id()]
+        grand=i.get_discounted_price()*usercart[i.get_product_id()]
+        total_price+=price
+        total_discount+=discount
+        Grand_total+=grand
+    db=shelve.open('database/order_database/order.db','c')
+    Neworder = Order(productincart,session.get('name'),Grand_total)
+    db[session.get('user_id')]=Neworder
+    db.close()
+    db=shelve.open('database/user_database/user.db','r')
+    if session.get('user_id') in db:
+        usr=db.get(session.get('user_id'))
+        add = usr.get_user_address()
+        full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
+        print(full_address)
+    separating_orders(session.get('user_id'),productincart,Neworder.get_timestamp_as_datetime(),full_address)
+    db.close()
+    return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
+
+@app.route('/Myorder' ,methods=['GET'])
+def order():
+    productincart=[]
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        userorder=db.get(session.get('user_id'))
+        print(userorder)
+        # for item in userorder.get_cart_list().keys():
+        # productincart.append(get_product_by_id(item))
+        # print(userorder.get_cart_list())
+    db.close()
+    return render_template('MyOrder.html')
+
+@app.route('/SellerOrder')
+def seller_order():
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()!="A":
+        return render_template('Buyer_order_list.html')
+    db.close()
+    return render_template('Seller_order_list.html')
+
 
 @app.route('/SellerDelivery')
 def seller_deliverylist():
@@ -606,11 +669,6 @@ def CarrierUpdate():
         else:
             return render_template('carrier_update.html',form=carrierupdateform)
     return render_template('carrier_update.html',form=carrierupdateform)
-
-
-
-
-
 
 #FAQ Display
 @app.route('/FAQ')

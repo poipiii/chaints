@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<br><br><br><br>
 {% from "includes/_formhelper.html" import render_field %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
 <div class="container-fluid row justify-content-center pt-4">
@@ -25,6 +26,9 @@
  <div class="form-group">
  {{ render_field(form.zip, class="form-control" ,autocomplete="off") }}
  </div>
- <input type="submit" a href=" Payment.html" value="Submit" class="btn btn-primary btn-block"/>
+ <input type="submit"  value="Submit" class="btn btn-primary btn-block"/>
 </form>
+ </article>
+</div>
 {% endblock %}
+

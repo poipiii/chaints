@@ -1,68 +1,43 @@
 {% extends 'base.html'%}
 {% block content %}
-<div class="card">
+<br><br><br><br>
+<div class="card h-100">
 	<article class="card-body">
 		<header class="mb-4">
 			<h2 class="card-title">Order Confirmation</h2>
 		</header>
 			<div class="row">
+				{%for item in usercart.keys()%}
+				{%for i in productincart%}
+				{%if i.get_product_id() == item%}
 				<div class="col-md-6">
 					<figure class="itemside  mb-3">
-						<div class="aside"><img src="bootstrap-ecommerce-html/images/items/1.jpg" class="border img-xs"></div>
+						<div class="aside"><img src="../static/product_images/{{i.get_product_images()[0]}}" class="border img-xs"></div>
 						<figcaption class="info">
-							<p>Name of the product goes here or title </p>
-							<span>2x $290 = Total: $430 </span>
+							<p>{{i.get_product_name()}}</p>
+							<span>{{i.get_discounted_price()*usercart[item]}}</span>
 						</figcaption>
 					</figure>
-				</div> <!-- col.// -->
-				<div class="col-md-6">
-					<figure class="itemside  mb-3">
-						<div class="aside"><img src="bootstrap-ecommerce-html/images/items/2.jpg" class="border img-xs"></div>
-						<figcaption class="info">
-							<p>Name of the product goes here or title </p>
-							<span>2x $290 = Total: $430 </span>
-						</figcaption>
-					</figure>
-				</div> <!-- col.// -->
-				<div class="col-md-6">
-					<figure class="itemside mb-3">
-						<div class="aside"><img src="bootstrap-ecommerce-html/images/items/3.jpg" class="border img-xs"></div>
-						<figcaption class="info">
-							<p>Name of the product goes here or title </p>
-							<span>1x $290 = Total: $290 </span>
-						</figcaption>
-					</figure>
-				</div> <!-- col.// -->
-				<div class="col-md-6">
-					<figure class="itemside  mb-3">
-						<div class="aside"><img src="bootstrap-ecommerce-html/images/items/4.jpg" class="border img-xs"></div>
-						<figcaption class="info">
-							<p>Name of the product goes here or title </p>
-							<span>4x $290 = Total: $430 </span>
-						</figcaption>
-					</figure>
+				{%endif%}
+				{%endfor%}
+				{%endfor%}
 				</div> <!-- col.// -->
 			</div> <!-- row.// -->
 	</article> <!-- card-body.// -->
 	<article class="card-body border-top">
 
 		<dl class="row">
-		  <dt class="col-sm-10">Subtotal: <span class="float-right text-muted">2 items</span></dt>
-		  <dd class="col-sm-2 text-right"><strong>$1,568</strong></dd>
-
-		  <dt class="col-sm-10">Discount: <span class="float-right text-muted">10% offer</span></dt>
-		  <dd class="col-sm-2 text-danger text-right"><strong>$29</strong></dd>
+		  <dt class="col-sm-10">Subtotal: <span class="float-right text-muted"></span></dt>
+		  <dd class="col-sm-2 text-right"><strong>${{Grand_total}}</strong></dd>
 
 		  <dt class="col-sm-10">Delivery charge: <span class="float-right text-muted">Express delivery</span></dt>
-		  <dd class="col-sm-2 text-right"><strong>$120</strong></dd>
-
-		  <dt class="col-sm-10">Tax: <span class="float-right text-muted">5%</span></dt>
-		  <dd class="col-sm-2 text-right text-success"><strong>$7</strong></dd>
+		  <dd class="col-sm-2 text-right"><strong>$5</strong></dd>
 
 		  <dt class="col-sm-10">Total:</dt>
-		  <dd class="col-sm-2 text-right"><strong class="h5 text-dark">$1,650</strong></dd>
+		  <dd class="col-sm-2 text-right"><strong>${{Grand_total+5}}</strong></dd>
 		</dl>
-		<p>Thank you for placing an Order with us. If you have any queries with your order you can call us or go to order status</p>
+		<p>Thank you for placing an order with us.</p>
+		<p>If you have any queries with your order you can call us at 6433 6755 or go to My order.</p>
 	</article> <!-- card-body.// -->
 </div>
-{%end block%}
+{% endblock %}
