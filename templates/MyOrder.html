@@ -18,15 +18,15 @@
 </tr>
 </thead>
 <tbody>
-<!--{%for item in usercart.keys()%}-->
-<!--{%for i in productincart%}-->
-<!--{%if i.get_product_id() == item%}-->
+{%for item in userorders.keys()%}
+{%for i in productinorder%}
+{%if i.get_product_id() == item%}
 <tr>
 	<td>
 		<figure class="itemside align-items-center">
-<!--			<div class="aside"><img src="../static/product_images/{{i.get_product_images()[0]}}" class="img-sm"></div>-->
+			<div class="aside"><img src="../static/product_images/{{i.get_product_images()[0]}}" class="img-sm"></div>
 			<figcaption class="info">
-<!--				<a href="#" class="title text-dark">{{i.get_product_name()}}</a>-->
+				<a href="#" class="title text-dark">{{i.get_product_name()}}</a>
 			</figcaption>
 		</figure>
 	</td>
@@ -35,15 +35,15 @@
 	</td>
 	<td>
 		<div class="price-wrap">
-<!--			<var class="price">{{i.get_discounted_price()*usercart[item]}}</var>-->
+			<var class="price">{{i.get_discounted_price()*userorders[item]}}</var>
 		</div> <!-- price-wrap .// -->
 	</td>
     <td>
-<!--		{{usercart[item]}}-->
+		{{userorders[item]}}
 	</td>
-<!--{%endif%}-->
-<!--{%endfor%}-->
-<!--{%endfor%}-->
+{%endif%}
+{%endfor%}
+{%endfor%}
 </tbody>
 </table>
 </div> <!-- table-responsive.// -->

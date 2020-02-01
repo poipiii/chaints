@@ -494,7 +494,7 @@ def deletecart(cartproductid):
 
 @app.route('/Deliverydetails', methods=['GET','POST']) #address,country,city,state,zip,userid
 def Deliverydetails():
-    delivery_form= Delivery_Form(request.form)
+    delivery_form= DeliveryForm(request.form)
     if request.method == "POST" and delivery_form.validate():
         add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
         return redirect(url_for('paymentdetails'))
@@ -530,7 +530,7 @@ def confirmation():
         total_discount+=discount
         Grand_total+=grand
     db=shelve.open('database/order_database/order.db','c')
-    Neworder = Order(productincart,session.get('name'),Grand_total)
+    Neworder = Order(usercart,session.get('name'),Grand_total)
     db[session.get('user_id')]=Neworder
     db.close()
     db=shelve.open('database/user_database/user.db','r')
@@ -539,22 +539,21 @@ def confirmation():
         add = usr.get_user_address()
         full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
         print(full_address)
-    separating_orders(session.get('user_id'),productincart,Neworder.get_timestamp_as_datetime(),full_address)
+    # separating_orders(session.get('user_id'),productincart,Neworder.get_timestamp_as_datetime(),full_address)
     db.close()
     return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
-@app.route('/Myorder' ,methods=['GET'])
+@app.route('/Myorder')
 def order():
-    productincart=[]
+    #list of all the product objects in customer order 
+    productinorder = []
     db=shelve.open('database/order_database/order.db','c')
     if session.get('user_id')in db:
         userorder=db.get(session.get('user_id'))
-        print(userorder)
-        # for item in userorder.get_cart_list().keys():
-        # productincart.append(get_product_by_id(item))
-        # print(userorder.get_cart_list())
+        for item in userorder.get_cart_list():
+            productinorder.append(get_product_by_id(item))
     db.close()
-    return render_template('MyOrder.html')
+    return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
 
 @app.route('/SellerOrder')
 def seller_order():

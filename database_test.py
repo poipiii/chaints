@@ -34,10 +34,9 @@ def init_all():
     db.close()
     db = shelve.open('database/order_database/order.db','c')
     db.close()
-
-db = shelve.open('database/product_database/product.db','c')
-db.clear()
-db.close()
+    db = shelve.open('database/product_database/product.db','c')
+    db.clear()
+    db.close()
 
 def delete_all_db():
     files = glob.glob('database/user_database/*')
@@ -64,7 +63,6 @@ def delete_all_db():
     for f in files:
         print(f)
         os.remove(f)
-
 
 # for i in range(29):
 #     Add_New_Products('grey shirt',200,'very grey shirt',100,1,['male'],['mango-man-1156-4297221-1.jpg'])
