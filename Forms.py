@@ -45,7 +45,7 @@ max=150), validators.DataRequired()])
 class CreateLoginForm(Form):
  username = StringField('Username', [validators.Length(min=1,
 max=150), validators.DataRequired()])
- password = StringField('Password', [validators.Length(min=1,
+ password = PasswordField('Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  remember= BooleanField('Remember')
 
