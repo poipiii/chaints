@@ -538,9 +538,12 @@ class orders_logger:
         # self.__timestamp = datetime.timestamp(datetime.now())
         self.__timestamp = datetime.timestamp(random.choice(current_week('2020','5')))
         self.__product_id = product_id
+        self.set_ordered_product_name(product_id)
         self.__order_obj = order_obj
     def set_o_profit(self,o_amount,product_id):
         self.__o_profit = float(o_amount) * float(get_product_by_id(product_id).get_product_price())
+    def set_ordered_product_name(self,product_id):
+        self.__ordered_product_name = get_product_by_id(product_id).get_product_name()
     def get_o_amount(self):
         return self.__o_amount
     def get_o_profit(self):
@@ -589,6 +592,13 @@ def product_logging(userid,product_activity,product_id,product_obj):
         user_new_logger.set_product_log_list(new_log)
         db[userid] = user_new_logger
     db.close()
+
+
+def order_log_preprocess(userid,orderobj):
+    user_order = orderobj.get_cart_list()
+    for orders in user_order:
+        order_logging(userid,user_order[orders],orders,orderobj)
+
 
 
 def order_logging(userid,order_amt,product_id,order_obj):
@@ -996,7 +1006,6 @@ class Order:
         self.__totalprice=totalprice
         # self.__sellerID=sellerID
         self.__timestamp = datetime.timestamp(datetime.now())
-
     def set_buyername(self,buyername):
         self.__buyername=buyername
 

@@ -47,17 +47,6 @@ def to_df(ownp):
     df = df.set_index(pd.DatetimeIndex(df['datetime'])).drop('datetime',axis=1)
     return df
 
-
-# def test_func():
-#     df = to_df(ownp)
-#     test = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
-#     test_week = pd.DatetimeIndex(test)
-#     custom_sum = df.groupby(test_week[test_week.searchsorted(df.index)]).sum().to_json(date_format = 'iso')
-#     monthdata = df.profit.resample('M').sum().to_json(date_format = 'iso')
-#     yeardata = df.profit.resample('Y').sum().to_json(date_format = 'iso')
-#     return yeardata
-
-
 def api_data_week(ownp):
     df = to_df(ownp)
     this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
@@ -74,7 +63,34 @@ def api_data_month(ownp):
 def api_data_year(ownp):
     df = to_df(ownp)
     year_data = df.profit.resample('Y').sum().to_json(date_format = 'iso')
-    return year_data   
+    return year_data  
+
+ 
+def api_all_profit(ownp):
+    total_profit = {}
+    df = to_df(ownp)
+    this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
+    week = pd.DatetimeIndex(this_week)
+    week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_dict()
+    total_profit['week'] = sum(week_data['profit'].values())
+    month = total_profit['month'] = df.profit.resample('M').sum().to_dict()
+    for i in month:
+        if i.to_pydatetime().strftime('%m') == datetime.now().strftime('%m'):
+            total_profit['month'] =month[i]
+    total_profit['year']= df.profit.resample('Y').sum().iloc[0]
+
+    return total_profit
+
+# def test_func():
+#     df = to_df(ownp)
+#     test = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
+#     test_week = pd.DatetimeIndex(test)
+#     custom_sum = df.groupby(test_week[test_week.searchsorted(df.index)]).sum().to_json(date_format = 'iso')
+#     monthdata = df.profit.resample('M').sum().to_json(date_format = 'iso')
+#     yeardata = df.profit.resample('Y').sum().to_json(date_format = 'iso')
+#     return yeardata
+
+
 
 # def data_api(owned_products,dtype,date):
 #     all_own_products = get_all_order(owned_products)
@@ -213,10 +229,10 @@ def api_data_year(ownp):
 
 
 # def get_all_users_id():
-#     userlst = ['7ed87ed9c0ba4088b35026d11a4b898b','6fa217cdb4d1446da70cc80732a27ebb']
+#     userlst = ['e633e7da22b44fb5a70ee529679acb80','f4d5bb79756d444eb6ab8db8adb3bd5a']
 #     return userlst
 
 # testdatau = get_all_users_id()
 # for i in range(10):
-#     order_logging(random.choice(testdatau),random.randint(1,20),'b743bcaf8d664bfdbd68aca6c9d39d23','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'15331c30ca594ecdad14393ee515a130','TEST')
 #     order_logging(random.choice(testdatau),random.randint(1,20),'1779fa11dd0b421498431b2a8ec4490c','TEST')
