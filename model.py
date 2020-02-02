@@ -46,7 +46,7 @@ class User_Model:
         self.__user_lastname=user_lastname
 
     def set_owned_products(self):
-        if self.__user_role == 'A':
+        if self.__user_role == 'S':
             self.__owned_products = []
         else:
             self.__owned_products = None

@@ -96,13 +96,16 @@ def details_page():
 
 @app.route("/dashboard")
 def dashboard_home():
-    if session.get('role') == 'A':
-        all_profit = api_all_profit(get_usr_owned_p(session.get('user_id')))
+    if session.get('role') == 'S':
+        ownp= get_usr_owned_p(session.get('user_id'))
+        all_profit = api_all_profit(ownp)
+    else:
+        all_profit = 0
     return render_template('chart.html',all_profit=all_profit)
 
 @app.route("/data/<d_type>")
 def datapipe(d_type):
-    if session.get('role') == 'A':
+    if session.get('role') == 'S':
         ownp = get_usr_owned_p(session.get('user_id'))
         if d_type == 'week':
             chart_data = api_data_week(ownp)

@@ -23,7 +23,10 @@ def get_all_order(productidlist):
                 all_order_data.append(order)
             else:
                 pass
-    return all_order_data
+    if len(all_order_data) > 0:
+        return all_order_data
+    else:
+        return None
 
 
 def current_week(p_year,p_week):
@@ -39,14 +42,16 @@ def current_week(p_year,p_week):
 
 def to_df(ownp):
     orderdata = get_all_order(ownp)
-    df_data = []
-    for i in orderdata:
-        datadict = {'product_id':i.get_product_id(),'profit':i.get_o_profit(),'quantity':i.get_o_amount(),'datetime':i.get_timestamp_as_datetime().strftime("%Y/%m/%d %H:%M:%S")}
-        df_data.append(datadict)
-    df = pd.DataFrame(df_data)
-    df = df.set_index(pd.DatetimeIndex(df['datetime'])).drop('datetime',axis=1)
-    return df
-
+    if orderdata is not None:
+        df_data = []
+        for i in orderdata:
+            datadict = {'product_id':i.get_product_id(),'profit':i.get_o_profit(),'quantity':i.get_o_amount(),'datetime':i.get_timestamp_as_datetime().strftime("%Y/%m/%d %H:%M:%S")}
+            df_data.append(datadict)
+        df = pd.DataFrame(df_data)
+        df = df.set_index(pd.DatetimeIndex(df['datetime'])).drop('datetime',axis=1)
+        return df
+    else:
+        return None
 def api_data_week(ownp):
     df = to_df(ownp)
     this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
@@ -69,17 +74,20 @@ def api_data_year(ownp):
 def api_all_profit(ownp):
     total_profit = {}
     df = to_df(ownp)
-    this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
-    week = pd.DatetimeIndex(this_week)
-    week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_dict()
-    total_profit['week'] = sum(week_data['profit'].values())
-    month = total_profit['month'] = df.profit.resample('M').sum().to_dict()
-    for i in month:
-        if i.to_pydatetime().strftime('%m') == datetime.now().strftime('%m'):
-            total_profit['month'] =month[i]
-    total_profit['year']= df.profit.resample('Y').sum().iloc[0]
+    if df is not None:
+        this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
+        week = pd.DatetimeIndex(this_week)
+        week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_dict()
+        total_profit['week'] = sum(week_data['profit'].values())
+        month = total_profit['month'] = df.profit.resample('M').sum().to_dict()
+        for i in month:
+            if i.to_pydatetime().strftime('%m') == datetime.now().strftime('%m'):
+                total_profit['month'] =month[i]
+        total_profit['year']= df.profit.resample('Y').sum().iloc[0]
 
-    return total_profit
+        return total_profit
+    else:
+        return 0
 
 # def test_func():
 #     df = to_df(ownp)
