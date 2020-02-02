@@ -15,5 +15,7 @@ body{
   background-size: cover;
 }
 
-
+.fa-heart:hover{
+  color: rgb(250, 61, 93) !important;
+}
 /* class="d-flex align-items-center justify-content-center min-vh-100" */

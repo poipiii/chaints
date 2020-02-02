@@ -34,57 +34,37 @@
                 <h2>Order Details</h2>
                 <div>
                     <div>
-                    <h6><span class="title">Order ID:</span> {{ individual_order.get_individual_orderid() }}</h6>
-                    <h6><span class="title">Product:</span> {{ individual_order.get_product_id() }}</h6>
+                    <h6><span class="title">Tracking ID:</span> <span id="copystuff">{{ individual_order.get_individual_orderid() }}</span></h6>
+                    <h6><span class="title">Product:</span> {{ individual_order.get_product_name() }}</h6>
+                    <h6><span class="title">Quantity:</span> {{ individual_order.get_quantity() }}</h6>
                     <h6><span class="title">Seller name:</span> {{ individual_order.get_seller_name() }}</h6>
+                    <h6><span class="title">Order Date:</span> {{ individual_order.get_order_date() }}</h6>
                     <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
                     <h6><span class="title">Delivery Status:</span> {{ individual_order.get_deliverystat() }}</h6>
+                        <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-secondary">Copy ID</a>
                         <div class="productimage">
                                 <img src="../static/product_images/{{individual_order.get_product_image()}}" class="productimage">
                          </div>
+
                     </div>
-                    <h4 class="header" >Delivery Tracking</h4>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                              <thead>
-                                <tr>
-                                    <th>Date</th>
-                                  <th>Status of Item</th>
-                                  <th>Location</th>
-                                    <th>Notes</th>
-
-                              </thead>
-                              <tbody>
-
-                                <tr>
-                                    <td></td>
-                                  <td></td>
-                                  <td></td>
-                                    <td></td>
-
-                                </tr>
-
-                              </tbody>
-                              </table>
-                            </div>
-                    </div>
-
                 </div>
-            </div>
-            <a href="/DeletingDelivery/{{ individual_order.get_individual_orderid() }}" class="btn btn-danger">Cancel and Delete</a>
-            <a href="/SellerDelivery" class="btn btn-warning">Delivery Status</a>
+
     </div>
 </div>
 
 
 {% endblock  %}
-
 {% block script %}
-<script>
-  $(document).ready(function() {
-      $('#dataTable').DataTable();
-    });
-
+    <script>
+function copytoclipboard(element){
+    var $temp=$("<input>");
+    $("body").append($temp);
+    $temp.val($(element).text()).select();
+    document.execCommand("copy");
+    $temp.remove();
+}
 </script>
-{% endblock  %}
+{% endblock %}
+
+
+

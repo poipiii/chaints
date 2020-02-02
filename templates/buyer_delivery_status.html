@@ -9,12 +9,10 @@
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                    <th>Order ID</th>
+                    <th>Tracking ID</th>
                   <th>Product</th>
-                  <th>Quantity</th>
                   <th>Seller Username</th>
                   <th>Order Date</th>
-                  <th>Estimated Delivery Date</th>
                     <th>Delivery Status</th>
                     <th>Edit</th>
                     <th>More Information</th>
@@ -23,15 +21,19 @@
               <tbody>
                 {% for delivery_item in deliverylist %}
                 <tr>
-                    <td>{{ delivery_item.get_individual_orderid() }}</td>
+                  <td><span id="copystuff">{{ delivery_item.get_individual_orderid() }}</span> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-secondary">Copy ID</a></td>
                   <td>{{ delivery_item.get_product_name() }}</td>
-                  <td>{{ delivery_item.get_quantity() }}</td>
                   <td>{{ delivery_item.get_seller_name() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
-                  <td>#</td>
                     <td>{{ delivery_item.get_deliverystat() }}</td>
-                    <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}/{{ delivery_item.get_product_id() }}" class="btn btn-success">Received</a></td>
-                    <td><a href="/BuyerDeliveryDetails/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Order Details</a></td>
+                  {% if delivery_item.get_deliverystat() == "Order Received" or delivery_item.get_deliverystat() == "Cancelled"%}
+
+                    <td><a href="" class="btn btn-danger">Delete</a></td>
+                  {% else %}
+                  <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}/{{ delivery_item.get_product_id() }}" class="btn btn-success">Received</a></td>
+                  {% endif %}
+
+                    <td><a href="/BuyerDeliveryDetails/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Details</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -48,6 +50,15 @@
   $(document).ready(function() {
       $('#dataTable').DataTable();
     });
+
+function copytoclipboard(element){
+    var $temp=$("<input>");
+    $("body").append($temp);
+    $temp.val($(element).text()).select();
+    document.execCommand("copy");
+    $temp.remove();
+}
+
 
 </script>
 {% endblock  %}

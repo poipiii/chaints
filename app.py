@@ -51,7 +51,19 @@ def before_request():
 @app.route("/")
 def landing_page():
     Products = fetch_products()
-    return render_template('home_page.html' ,product_list = Products )
+    womenlist =[]
+    childernlist= []
+    menlist = []
+    for i in Products:
+        if 'female' in i.get_product_catergory():
+            womenlist.append(i)
+        if 'male'in i.get_product_catergory():
+            menlist.append(i)
+
+        if 'child'in i.get_product_catergory():
+            childernlist.append(i)
+    print(menlist)
+    return render_template('home_page.html' ,product_list = Products,women = womenlist,men = menlist,child = childernlist )
 
 
 
@@ -151,13 +163,15 @@ def product_create():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
         for i in product_pics:
+            #TODO 
              filename = secure_filename(i.filename)
              i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
              filenames.append(filename)
+        print(filenames)
         new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
         flash('Product successfully created')
         return redirect(url_for('dashboard_products'))      
-    return render_template('productcreateform.html',form =Product_Form )
+    return render_template('productcreateform.html',form =Product_Form ,ftype = 'create')
 
     
 #route to update product form
@@ -175,6 +189,7 @@ def dashboard_edit_products(productid):
             Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
         else:
             for i in product_pics:
+                #TODO 
                  filename = secure_filename(i.filename)
                  i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
                  filenames.append(filename)
@@ -190,7 +205,22 @@ def dashboard_edit_products(productid):
         Product_Form.product_Discount.data = original_product.get_product_discount()
         Product_Form.product_catergory.data = original_product.get_product_catergory()
         Product_Form.product_images.data = original_product.get_product_images()
-    return render_template('productcreateform.html',form =Product_Form)
+    return render_template('productcreateform.html',form =Product_Form,ftype ='update')
+
+@app.route("/updateqty/<productid>",methods=['POST', 'GET'])
+def updateqty(productid):
+    original_product =  get_product_by_id(productid)
+    updateqty_form = update_Quantity_Form(request.form)
+    if request.method == 'POST'  and updateqty_form.validate():
+        updatequantity(session.get('user_id'),productid,updateqty_form.product_Quantity.data)
+        flash('Product quantity successfully updated')
+        return redirect(url_for('dashboard_products')) 
+
+    else:
+        updateqty_form.product_Quantity.data = original_product.get_product_current_qty()
+    return render_template('updateqtyform.html',form =updateqty_form)
+
+
 
 #take in product id and delete product from shelve  
 @app.route("/delete_products/<productid>",methods=['POST'])
@@ -198,6 +228,8 @@ def delete_products(productid):
     delete_product_by_id(productid,session.get('user_id'))
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
+
+
 
 
 
@@ -483,7 +515,7 @@ def buyer_deliverylist():
     print(deliverylist)
     return render_template('buyer_delivery_status.html',deliverylist=deliverylist)
 
-
+#to get the detailed details of order
 @app.route('/BuyerDeliveryDetails/<orderid>')
 def buyer_deliverydetails(orderid):
     try:
@@ -493,29 +525,16 @@ def buyer_deliverydetails(orderid):
             if i.get_individual_orderid()==orderid:
                 orderobj=i
         db.close()
-        db=shelve.open('database/delivery_database/carrier.db','c')
-        if orderid in db:
-            statuslist=db[orderid]
-            db.close()
-            return render_template('buyer_order_details.html',individual_order=orderobj,statuslist=statuslist)
         return render_template('buyer_order_details2.html',individual_order=orderobj)
     except IOError:
         print("db does not exist")
     except:
         print("an unknown error occurred")
 
-@app.route('/DeletingDelivery/<orderid>')
-def deleting_delivery(orderid):
-    userid=session.get('user_id')
-    cancelling_carrier_side(orderid)
-    db=shelve.open('database/delivery_database/delivery.db', 'c')
-    deliverylist=db[userid]
-    for i in deliverylist:
-        if i.get_individual_orderid()==orderid:
-            deliverylist.remove(i)
-    db[userid]=deliverylist
-    db.close()
-    return redirect(url_for('buyer_deliverylist'))
+#@app.route('/DeletingDelivery/<orderid>')
+#def deleting_delivery(orderid):
+#
+#    return redirect(url_for('buyer_deliverylist'))
 
 
 @app.route('/DeliveryReceived/<orderid>/<productid>')
@@ -525,6 +544,31 @@ def received_delivery(orderid,productid):
     deliverylist=create_buyer_order_list(userid)
     return redirect(url_for('buyer_deliverylist'))
 
+
+@app.route('/AdminvsBSCheck')
+def checking_role():
+    userid=session.get('user_id')
+    userrole=session.get('role')
+    if userrole=="A":
+        return redirect(url_for('CarrierUpdate'))
+    else:
+        return redirect(url_for('Carrierbuyer'))
+
+@app.route('/CarrierBuyer', methods=['GET','POST'])
+def Carrierbuyer():
+    carrierbuyer=CarrierBuyer(request.form)
+    if request.method=='POST' and carrierbuyer.validate():
+        orderid=carrierbuyer.orderid.data
+        ordercheck=checking_id(orderid)
+        if ordercheck==True:
+            db=shelve.open('database/delivery_database/carrier.db','c')
+            statuslist=db[orderid]
+            db.close()
+            return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid)
+        flash('Order ID does not exist. Please type again')
+        return render_template('carrieruser.html',form=carrierbuyer)
+    else:
+        return render_template('carrieruser.html',form=carrierbuyer)
 
 @app.route('/CarrierUpdate', methods=['GET','POST'])
 def CarrierUpdate():
@@ -545,14 +589,67 @@ def CarrierUpdate():
         db.close()
         if checker==True:
             carrierobj_and_db(orderid,updatedate,country,status,deliverynotes,address)
-            return render_template('testing2.html')
+            #return render_template('testing2.html',statuslist=statuslist,orderid=orderid)
+            return redirect(url_for('CarrierUpdateTable',trackingid=orderid))
         else:
             return render_template('carrier_update.html',form=carrierupdateform)
     return render_template('carrier_update.html',form=carrierupdateform)
 
 
 
+@app.route('/RedirectingCarrierUpdate/<trackingid>')
+def CarrierUpdateTable(trackingid):
+    try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        if trackingid in db:
+            statuslist=db[trackingid]
+        db.close()
+        return render_template('testing2.html',statuslist=statuslist,orderid=trackingid)
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error has occurred")
 
+@app.route('/DeletingCarrierUpdate/<updateid>/<trackingid>')
+def deleting_update(updateid,trackingid):
+    try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        updatelist=db[trackingid]
+        for i in updatelist:
+            if i.get_status_id()==updateid:
+                updatelist.remove(i)
+        db[trackingid]=updatelist
+        db.close()
+
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error has occurred")
+    # return render_template('testing2.html',statuslist=updatelist,orderid=trackingid)
+    return redirect(url_for('CarrierUpdateTable', trackingid=trackingid))
+
+@app.route('/EditUpdate/<trackingid>/<statusid>',methods=['GET','POST'])
+def UpdatingStatus(trackingid,statusid):
+    statusupdateform=CarrierUpdateForm(request.form)
+    if statusupdateform=='POST' and statusupdateform.validate():
+        country=statusupdateform.country.data
+        status=statusupdateform.status.data
+        deliverynotes=statusupdateform.deliverynotes.data
+        editing_status(trackingid,status,deliverynotes,country,statusid)
+        return redirect(url_for('CarrierUpdateTable', trackingid=trackingid))
+    else:
+        #try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        listobj=db[trackingid]
+        for i in listobj:
+            if i.get_status_id()==statusid:
+                statusobj=i
+        db.close()
+        return render_template('carriereditstatus.html',statusinfo=statusobj,form=statusupdateform,trackingid=trackingid)
+        #except IOError:
+        #    print("db not found")
+        #except:
+        #    print("an unknown error has occurred")
 
 
 #FAQ Display
@@ -664,7 +761,6 @@ def addFAQueryF():
 def addFAQueryAcI():
     Vier=FAQd(request.form)
     if request.method=="POST" and Vier.validate():
-
         Baker=Account_Issues(Vier.question.data,Vier.answer.data)
         try:
             Four=shelve.open("database/forum_database/FAQDisplay.db","c")
@@ -786,6 +882,12 @@ def deleteForumQns(id):
     
     return redirect(url_for('FAQ'))
 
+# @app.errorhandler(404)
+# def not_found_error(error):
+#     return render_template('404.html'), 404
+# @app.errorhandler(Exception)
+# def internal_error(error):
+#     return render_template('500.html'), 500
 
 if __name__ == "__main__":
     app.run()

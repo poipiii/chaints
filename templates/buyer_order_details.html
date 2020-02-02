@@ -14,7 +14,7 @@
     .orderdetails img{
         border: 1px solid #ddd;
         border-radius: 4px;
-        width: 200px;
+        width: 150px;
         float: right;
         left: 700px;
         position: absolute;
@@ -34,48 +34,26 @@
           <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
             <div class="orderdetails">
                 <h2>Order Details</h2>
-                <div>
+
                     <div>
-                    <h6><span class="title">Order ID:</span> {{ individual_order.get_individual_orderid() }}</h6>
+                        <h6><span class="title">Tracking ID:</span><span id="copystuff">{{ individual_order.get_individual_orderid() }}</span></h6><button onClick="">Copy ID</button>
                     <h6><span class="title">Product:</span> {{ individual_order.get_product_name() }}</h6>
                     <h6><span class="title">Seller name:</span> {{ individual_order.get_seller_name() }}</h6>
                     <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
                     <h6><span class="title">Delivery Status:</span> {{ individual_order.get_deliverystat() }}</h6>
+                        <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a>
                     <div class="productimage">
                                 <img src="../static/product_images/{{individual_order.get_product_image()}}" class="productimage">
                          </div>
                     </div>
-                    <h5 style="font-weight:bold;">Delivery Tracking</h5>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                              <thead>
-                                <tr>
-                                    <th>Date</th>
-                                  <th>Status of Item</th>
-                                  <th>Location</th>
-                                    <th>Notes</th>
 
-                              </thead>
-                              <tbody>
-                                {% for carrier_item in statuslist %}
-                                <tr>
-                                    <td>{{ carrier_item.get_status_date() }}</td>
-                                  <td>{{ carrier_item.get_status() }}</td>
-                                  <td>{{ carrier_item.get_location() }}</td>
-                                    <td>{{ carrier_item.get_delivery_notes() }}</td>
-
-                                </tr>
-                                {% endfor %}
-                              </tbody>
-                              </table>
-                            </div>
                     </div>
 
-                </div>
+
             </div>
-            <a href="/DeletingDelivery/{{ individual_order.get_individual_orderid() }}" class="btn btn-danger">Cancel and Delete</a>
-            <a href="/SellerDelivery" class="btn btn-warning">Delivery Status</a>
+    <div>
+
+
     </div>
 </div>
 
