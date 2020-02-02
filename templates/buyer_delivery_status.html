@@ -21,7 +21,7 @@
               <tbody>
                 {% for delivery_item in deliverylist %}
                 <tr>
-                  <td><span id="copystuff">{{ delivery_item.get_individual_orderid() }}</span> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-secondary">Copy ID</a></td>
+                  <td>{{ delivery_item.get_individual_orderid() }}</td>
                   <td>{{ delivery_item.get_product_name() }}</td>
                   <td>{{ delivery_item.get_seller_name() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
