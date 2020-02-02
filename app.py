@@ -7,10 +7,9 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
+from datapipeline import *
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
-from datapipeline import *
-
 from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
@@ -91,30 +90,40 @@ def sorted_catergory_page(catergory_type):
             sorted_list.append(i)
     return render_template('productcatergory.html',product_list = sorted_list)
 
-
-
 @app.route("/details")
 def details_page():
     return render_template('productdetails.html')
 
-
-
-
 @app.route("/dashboard")
 def dashboard_home():
-    return render_template('chart.html')
+    if session.get('role') == 'S':
+        ownp= get_usr_owned_p(session.get('user_id'))
+        all_profit = api_all_profit(ownp)
+    else:
+        all_profit = 0
+    return render_template('chart.html',all_profit=all_profit)
 
-# @app.route("/data")
-# def datapipe():
-#     pdata = test_func()
-#     profit = pdata[0]
-#     dtime = pdata[1]
-    
-#     return jsonify({"profit":profit},{"datetime":dtime})
+@app.route("/data/<d_type>")
+def datapipe(d_type):
+    if session.get('role') == 'S':
+        ownp = get_usr_owned_p(session.get('user_id'))
+        if d_type == 'week':
+            chart_data = api_data_week(ownp)
+            return chart_data
+        elif d_type == 'month':
+            chart_data = api_data_month(ownp)
+            return chart_data
+        elif d_type == 'year':
+            chart_data = api_data_year(ownp)
+            return chart_data
+        else:
+             return None
+    else:
+        return None
 
 # @app.route("/apitest")
 # def datatest():
-#     ownp = ['d97db4c0ab7a4e75935fd6bb7a8e8f51','7ee8e6589fa24898af240be7ff546f14','ba2f9310e9e64230890298ffe4f20401']
+#     ownp = ['a9ee20758e2647f69d3bbf92066f3d31']
 #     if request.args.get('type') == 'ALL':
 #         apidata = api_get_all(ownp,request.args.get('datetype'),request.args.get('date'))
 #         if apidata is not None:
@@ -126,7 +135,7 @@ def dashboard_home():
 #             return jsonify({"profit":profit},{"datetime":dtime})
 #         else:
 #             return jsonify({"profit":None},{"datetime":None})
-#
+
 #     else:
 #         return jsonify({"profit":None},{"datetime":None})
 
@@ -229,9 +238,16 @@ def delete_products(productid):
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
-
-
-
+@app.route("/review",methods = ['POST','GET'])
+def review():
+    Review_form = review_form(request.form)
+    if request.method == 'POST'  and Review_form.validate():
+        print(int(Review_form.rating.data))
+        add_review(session.get('user_id'),session.get('name'),'a9ee20758e2647f69d3bbf92066f3d31',int(Review_form.rating.data),Review_form.review_text.data)
+        return redirect(url_for('landing_page'))
+    return render_template('review_form.html',form = Review_form)
+ 
+ 
 
 #User Management
 #sign up user
@@ -342,6 +358,7 @@ def loginUser():
                         session['user_id']=user.get_user_id()
                         session['name']=user.get_user_fullname()
                         session['role']=user.get_user_role()
+                        session['profile_picture']=user.get_user_profile_picture()
                         db.close()
                         try:
                             if request.form['remember']:
@@ -398,25 +415,39 @@ def deleteUser(id):
 
 
 #adding  product to cart 
+@app.route('/profile')
+def profile():
+    db = shelve.open('database/user_database/user.db', 'r')
+    usersList = []
+    for user in db:
+        user=db[user]
+        usersList.append(user)
+    db.close()
+
+    return render_template('profile.html',usersList=usersList, count=len(usersList))
+
+
+#Order Management
+#adding product to cart
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
-    #take in productid and product quantity from route 
+    #take in productid and product quantity from route
     db= shelve.open('database/order_database/cart.db','c')
-    #check if logged in user is in cart db 
+    #check if logged in user is in cart db
     if session.get('user_id')in db:
         # if user record exist fetch it from cart db and put it in varible usercart
         #the record will be a dict
         usercart=db.get(session.get('user_id'))
     else:
-        #if user record does not exist usercart is a empty dict 
+        #if user record does not exist usercart is a empty dict
         usercart={}
-    #if productid in usercart dict add on to the quantity 
+    #if productid in usercart dict add on to the quantity
     if productid in usercart.keys():
         usercart[productid] += productqty
     else:
-        #if does not exist add it to the usercart dict with product id as key and quantity as value 
+        #if does not exist add it to the usercart dict with product id as key and quantity as value
         usercart[productid] = productqty
-    #save the record to the cart db with current logged in user id as key and usercart dict as value 
+    #save the record to the cart db with current logged in user id as key and usercart dict as value
     db[session.get('user_id')] = usercart
     db.close()
     return redirect(url_for('landing_page'))
@@ -424,6 +455,11 @@ def Add_to_cart(productid,productqty):
 @app.route('/cart')
 def cart():
     #initalise a empty list for product objects in varible productincart
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()=="S":
+        return redirect(url_for('landing_page'))
+    db.close()
     productincart = []
     db=shelve.open('database/order_database/cart.db','c')
     # if user record exist fetch it from cart db and put it in varible usercart
@@ -435,48 +471,126 @@ def cart():
             productincart.append(get_product_by_id(item))
     else:
         #if user record does not exist , usercart is initalise as a empty dict
-        # and save empty dict to db so if user open cart without adding items there will be no error  
+        # and save empty dict to db so if user open cart without adding items there will be no error
         usercart={}
         db[session.get('user_id')] = usercart
-
     db.close()
-    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart)
-
+    total_price=0
+    total_discount=0
+    Grand_total=0
+    for i in productincart:
+        price=i.get_product_price()*usercart[i.get_product_id()]
+        discount=i.get_product_discount()*usercart[i.get_product_id()]
+        grand=i.get_discounted_price()*usercart[i.get_product_id()]
+        total_price+=price
+        total_discount+=discount
+        Grand_total+=grand
+    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart,total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
 @app.route('/deletecart/<cartproductid>',methods = ['POST'])
-#take in post request from the route and the product id of the item to be deleted 
+#take in post request from the route and the product id of the item to be deleted
 def deletecart(cartproductid):
     db = shelve.open('database/order_database/cart.db','w')
     # if user record exist fetch it from cart db and put it in varible usercart
     if session.get('user_id') in db:
         usercart = db.get(session.get('user_id'))
-        #delete the product from the usercart dict using pop and passing in the key of the product to be deleted 
+        #delete the product from the usercart dict using pop and passing in the key of the product to be deleted
         usercart.pop(cartproductid)
-        #save the upadted dict to the cart db 
+        #save the upadted dict to the cart db
         db[session.get('user_id')] = usercart
     else:
         raise 'user does not have a cart created'
     return redirect(url_for('cart'))
 
-
-
-
-
-
-
-@app.route('/Deliverydetails',methods=['GET','POST'])
+@app.route('/Deliverydetails', methods=['GET','POST']) #address,country,city,state,zip,userid
 def Deliverydetails():
-    DeliveryForm= DeliveryForm(request.form)
-    if request.method=="POST" and DeliveryForm.validate():
-        return render_template('Payment.html',form=DeliveryForm)
-    else:
-        return redirect(url_for('Deliverydetails'))
+    delivery_form= DeliveryForm(request.form)
+    if request.method == "POST" and delivery_form.validate():
+        add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
+        return redirect(url_for('paymentdetails'))
+    return render_template('delivery_details.html',form=delivery_form)
+
+@app.route('/Paymentdetails', methods=['GET','POST'])
+def paymentdetails():
+    payment1_form=Payment_Form(request.form)
+    if request.method == "POST" and payment1_form.validate():
+        payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
+        return redirect(url_for('confirmation'))
+    return render_template('Payment.html',form=payment1_form)
 
 
+@app.route('/orderconfirm',methods=['GET'])
+def confirmation():
+    productincart=[]
+    db=shelve.open('database/order_database/cart.db','r')
+    if session.get('user_id')in db:
+        usercart=db.get(session.get('user_id'))
+        print(usercart)
+        for item in usercart.keys():
+            productincart.append(get_product_by_id(item))
+    db.close()
+    total_price=0
+    total_discount=0
+    Grand_total=0
+    for i in productincart:
+        price=i.get_product_price()*usercart[i.get_product_id()]
+        discount=i.get_product_discount()*usercart[i.get_product_id()]
+        grand=i.get_discounted_price()*usercart[i.get_product_id()]
+        total_price+=price
+        total_discount+=discount
+        Grand_total+=grand
+    db=shelve.open('database/order_database/order.db','c')
+    Neworder = Order(usercart,session.get('name'),Grand_total)
+    db[session.get('user_id')]=Neworder
+    db.close()
+    db=shelve.open('database/user_database/user.db','r')
+    if session.get('user_id') in db:
+        usr=db.get(session.get('user_id'))
+        add = usr.get_user_address()
+        full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
+        print(full_address)
+    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
+    db.close()
+    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
+    order_log_preprocess(session.get('user_id'),Neworder)
+    return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
+@app.route('/Myorder')
+def order():
+    #list of all the product objects in customer order 
+    productinorder = []
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()!="B":
+        return redirect(url_for('seller_order'))
+    db.close()
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        userorder=db.get(session.get('user_id'))
+        for item in userorder.get_cart_list():
+            productinorder.append(get_product_by_id(item))
+            db.close()
+            return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+    return render_template('MyOrder.html')
 
-
-#Delivery Management
+@app.route('/SellerOrder')
+def seller_order():
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()!="S":
+        return redirect(url_for('order'))
+    db.close()
+    productinorder = []
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        userorder=db.get(session.get('user_id'))
+        print(session.get('user_id'))
+        for item in userorder.get_cart_list():
+            productinorder.append(get_product_by_id(item))
+            print(item)
+            db.close()
+            return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+    return render_template('Seller_order_list.html')
 
 @app.route('/SellerDelivery')
 def seller_deliverylist():
@@ -487,7 +601,7 @@ def seller_deliverylist():
     db.close()
     delivery_list=create_seller_order_list(session.get('user_id'))
     return render_template('seller_delivery_status.html',delivery_list=delivery_list)
-#add in additional codes to read data from database :(
+
 
 @app.route('/SellerDeliveryUpdate/<orderid>',methods=['POST','GET'])
 def delivery_status_update(orderid):
@@ -883,7 +997,7 @@ def deleteForumQns(id):
     return redirect(url_for('FAQ'))
 
 # @app.errorhandler(404)
-# def not_found_error(error):
+# def not_found_error(error):  
 #     return render_template('404.html'), 404
 # @app.errorhandler(Exception)
 # def internal_error(error):
