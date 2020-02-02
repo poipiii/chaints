@@ -805,7 +805,14 @@ def separating_orders(customerid,userorders,orderdate,address): #reminder: ADDRE
         somelist.append(indiproduct)
     try:
         db = shelve.open('database/delivery_database/delivery.db','c')
-        db[customerid]=somelist
+        if customerid in db:
+            biglist=db[customerid]
+            biglist.append(somelist)
+            db[customerid]=biglist
+        else:
+            biglist=[]
+            biglist.append(somelist)
+            db[customerid]=biglist
         #db.clear()
         db.close()
     except IOError:
@@ -833,8 +840,9 @@ def status_update(product_id,buyerid,status):
         db=shelve.open('database/delivery_database/delivery.db','c')
         a=db[buyerid]
         for i in a:
-            if i.get_product_id()==product_id:
-                i.set_delivery_status(status)
+            for k in i:
+                if k.get_product_id()==product_id:
+                    k.set_delivery_status(status)
         db[buyerid]=a
 
         db.close()
@@ -843,14 +851,16 @@ def status_update(product_id,buyerid,status):
     except:
         raise Exception("an error has occurred")
 
+
 #to get the necessary stuff in order to pass to status_update function
 def passing_app_to_update(orderid,status):
     try:
         db=shelve.open('database/delivery_database/delivery.db','c')
         for i in db:
             for n in db[i]:
-                if n.get_individual_orderid()==orderid:
-                    status_update(n.get_product_id(),n.get_buyer_id(),status)
+                for k in n:
+                    if k.get_individual_orderid()==orderid:
+                        status_update(k.get_product_id(),k.get_buyer_id(),status)
         db.close()
     except IOError:
         raise Exception("db does not exist")
@@ -865,7 +875,8 @@ def create_buyer_order_list(buyerid):
         buyerorderlist=[]
         if buyerid in db:
             for i in db[buyerid]:
-                buyerorderlist.append(i)
+                for n in i:
+                    buyerorderlist.append(n)
         db.close()
     except IOError:
         raise Exception("db does not exist")
@@ -894,11 +905,12 @@ def create_seller_order_list(sellerid):
         db=shelve.open('database/delivery_database/delivery.db','r')
         seller_delivery_list=[]
         productidlist=obtaining_seller_product_id(sellerid)
-        for i in productidlist: #running through product key list
-            for n in db: #running through db, getting value from key n
-                for j in db[n]: #running through list of obj (value of db[n])
-                    if i==j.get_product_id():
-                        seller_delivery_list.append(j)
+        for i in productidlist:        #running through product key list
+            for n in db:           #running through db, getting value from key n
+                for j in db[n]:   #running through list of obj (value of db[n])
+                    for k in j:
+                        if i==k.get_product_id():
+                            seller_delivery_list.append(k)
         db.close()
         #db=shelve.open('database/delivery_seller_database/seller_del.db','c')
         #db[sellerid]=seller_delivery_list
@@ -910,22 +922,22 @@ def create_seller_order_list(sellerid):
     return seller_delivery_list
 
 #to delete delivery object from delivery db and
-def cancelling_carrier_side(orderid):
-    try:
-        statusobj=carrier_delivery("-","-","Delivery Cancelled","Cancelled by buyer","-")
-        db=shelve.open('database/delivery_database/carrier.db','c')
-        if orderid in db:
-            statuslist=db[orderid]
-        else:
-            statuslist=[]
-        statuslist.append(statusobj)
-        db[orderid]=statuslist
-        db.close()
-
-    except IOError:
-        raise Exception('db does not exist')
-    except:
-        raise Exception('an unknown error has occurred')
+#def cancelling_carrier_side(orderid):
+#    try:
+#        statusobj=carrier_delivery("-","-","Delivery Cancelled","Cancelled by buyer","-")
+#        db=shelve.open('database/delivery_database/carrier.db','c')
+#        if orderid in db:
+#            statuslist=db[orderid]
+#        else:
+#            statuslist=[]
+#        statuslist.append(statusobj)
+#        db[orderid]=statuslist
+#        db.close()
+#
+#    except IOError:
+#        raise Exception('db does not exist')
+#    except:
+#        raise Exception('an unknown error has occurred')
 
 #to find the order to track
 def checking_id(orderid):
@@ -976,19 +988,20 @@ def print_db_orders():
     count=0
     for i in db:
         #print("customer id: %s"%i)
-        count+=1
-        for n in db[i]:
-            print("customer id: %s"%n.get_buyer_id())
-            print("Customer name: %s"%n.get_buyer_name())
-            print("Seller id: %s"%n.get_seller_id())
-            print("Seller username: %s"%n.get_seller_name())
-            print("Product id: %s"%n.get_product_id())
-            print("Product Name: %s"%n.get_product_name())
-            print("Quantity: %d"%n.get_quantity())
-            print("Address: %s"%n.get_address())
-            print("Order date: %s"%n.get_order_date())
-            print("Order id: %s"%n.get_individual_orderid())
-            print("Delivery status: %s"%n.get_deliverystat())
+        for k in db[i]:
+            count+=1
+            for n in k:
+                print("customer id: %s"%n.get_buyer_id())
+                print("Customer name: %s"%n.get_buyer_name())
+                print("Seller id: %s"%n.get_seller_id())
+                print("Seller username: %s"%n.get_seller_name())
+                print("Product id: %s"%n.get_product_id())
+                print("Product Name: %s"%n.get_product_name())
+                print("Quantity: %d"%n.get_quantity())
+                print("Address: %s"%n.get_address())
+                print("Order date: %s"%n.get_order_date())
+                print("Order id: %s"%n.get_individual_orderid())
+                print("Delivery status: %s"%n.get_deliverystat())
         print("============")
     print(count)
     print("===========")
@@ -1021,6 +1034,7 @@ def print_list_buyer(buyerid):
         print("Order date: %s"%i.get_order_date())
         print("Delivery status: %s"%i.get_deliverystat())
     #db.close()
+
 
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")

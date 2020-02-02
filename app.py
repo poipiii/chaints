@@ -549,7 +549,6 @@ def confirmation():
         add = usr.get_user_address()
         full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
         print(full_address)
-    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     db.close()
     separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     order_log_preprocess(session.get('user_id'),Neworder)
@@ -592,11 +591,14 @@ def seller_order():
             return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
     return render_template('Seller_order_list.html')
 
+
+
+#delivery management
 @app.route('/SellerDelivery')
 def seller_deliverylist():
     userid=session.get('user_id')
     db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()!="A":
+    if db[userid].get_user_role()!="S":
         return redirect(url_for('buyer_deliverylist'))
     db.close()
     delivery_list=create_seller_order_list(session.get('user_id'))
@@ -606,17 +608,12 @@ def seller_deliverylist():
 @app.route('/SellerDeliveryUpdate/<orderid>',methods=['POST','GET'])
 def delivery_status_update(orderid):
     updatedstatusform= NewStatus(request.form)
-    try:
-        db=shelve.open('database/delivery_database/delivery.db', 'c')
-        sellerorderlist=create_seller_order_list(session.get('user_id'))
-        for i in sellerorderlist:
-            if i.get_individual_orderid()==orderid:
-                orderobj=i
-        db.close()
-    except IOError:
-        print("ERROR db no exist")
-    except:
-        print("Some unknown error happened i guess")
+    #db=shelve.open('database/delivery_database/delivery.db', 'c')
+    sellerorderlist=create_seller_order_list(session.get('user_id'))
+    for i in sellerorderlist:
+        if i.get_individual_orderid()==orderid:
+            orderobj=i
+    #db.close()
     if request.method=='POST' and updatedstatusform.validate():
         passing_app_to_update(orderid,updatedstatusform.deliverystatus.data)
         return redirect(url_for('seller_deliverylist'))
@@ -645,17 +642,18 @@ def buyer_deliverydetails(orderid):
     except:
         print("an unknown error occurred")
 
-#@app.route('/DeletingDelivery/<orderid>')
-#def deleting_delivery(orderid):
-#
-#    return redirect(url_for('buyer_deliverylist'))
+#app.route('/DeletingDelivery/<orderid>')
+#ef deleting_delivery(orderid):
+
+#   return redirect(url_for('buyer_deliverylist'))
 
 
-@app.route('/DeliveryReceived/<orderid>/<productid>')
-def received_delivery(orderid,productid):
+@app.route('/DeliveryReceived/<trackingid>/<productid>')
+def received_delivery(trackingid,productid):
     userid=session.get('user_id')
     status_update(productid,userid,"Order Received")
     deliverylist=create_buyer_order_list(userid)
+
     return redirect(url_for('buyer_deliverylist'))
 
 
@@ -697,9 +695,10 @@ def CarrierUpdate():
         checker=False
         for i in db:
             for n in db[i]:
-                if n.get_individual_orderid()==orderid:
-                    checker=True
-                    address=n.get_address()
+                for j in n:
+                    if j.get_individual_orderid()==orderid:
+                        checker=True
+                        address=j.get_address()
         db.close()
         if checker==True:
             carrierobj_and_db(orderid,updatedate,country,status,deliverynotes,address)
@@ -745,7 +744,7 @@ def deleting_update(updateid,trackingid):
 @app.route('/EditUpdate/<trackingid>/<statusid>',methods=['GET','POST'])
 def UpdatingStatus(trackingid,statusid):
     statusupdateform=CarrierUpdateForm(request.form)
-    if statusupdateform=='POST' and statusupdateform.validate():
+    if request.method=='POST' and statusupdateform.validate():
         country=statusupdateform.country.data
         status=statusupdateform.status.data
         deliverynotes=statusupdateform.deliverynotes.data
