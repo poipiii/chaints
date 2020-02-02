@@ -30,7 +30,7 @@
 <tr>
 	<td>
 		<figure class="itemside align-items-center">
-			<div class="aside"><img src="bootstrap-ecommerce-html/images/items/1.jpg" class="img-sm"></div>
+			<div class="aside"><img src="../static/product_images/{{i.get_product_images()[0]}}" class="img-sm"></div>
 			<figcaption class="info">
 				<a href="#" class="title text-dark">{{i.get_product_name()}}</a>
 			</figcaption>
@@ -39,22 +39,19 @@
 	<td>
 		<select class="form-control">
 			<option>{{usercart[item]}}</option>
-			<!-- <option>2</option>
-			<option>3</option>
-			<option>4</option> -->
 		</select>
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">{{i.get_discounted_price()}}</var>
-			<!-- <small class="text-muted"> $315.20 </small> -->
+			<var class="price">{{i.get_product_price()}}</var>
+			<small class="text-muted">$10 </small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right d-none d-md-block">
 	<a data-original-title="Save to Wishlist" title="" href="" class="btn btn-light" data-toggle="tooltip"> <i class="fa fa-heart"></i></a>
-	<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
+		<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
 		<input type="submit" value="Remove" class="btn btn-warning">
-	</form>
+		</form>
 	</td>
 </tr>
 {%endif%}
@@ -89,36 +86,28 @@
 </form>
 </div> <!-- card-body.// -->
 </div> <!-- card.// -->
-
 <div class="card">
 <div class="card-body">
+
 		<dl class="dlist-align">
 		  <dt>Total price:</dt>
-		  <dd class="text-right">$69.97</dd>
+		  <dd class="text-right">{{total_price}}</dd>
 		</dl>
 		<dl class="dlist-align">
 		  <dt>Discount:</dt>
-		  <dd class="text-right text-danger">- $10.00</dd>
+		  <dd class="text-right text-danger">{{total_discount}}</dd>
 		</dl>
 		<dl class="dlist-align">
 		  <dt>Total:</dt>
-		  <dd class="text-right text-dark b"><strong>$59.97</strong></dd>
+		  <dd class="text-right text-dark b"><strong></strong>{{Grand_total}}</dd>
 		</dl>
+
 		<hr>
-		<p class="text-center mb-3">
-			<img src="bootstrap-ecommerce-html/images/misc/payments.png" height="26">
-		</p>
-		<a href="#" class="btn btn-primary btn-block"> Make Purchase </a>
-		<a href="#" class="btn btn-light btn-block">Continue Shopping</a>
+		<a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase
+		</a>
+		<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
 </div> <!-- card-body.// -->
 </div> <!-- card.// -->
 	</aside> <!-- col.// -->
 </div> <!-- row.// -->
-	</output>
-	<a href="#" class="showcode" data-html="code_shopping_cart_1">show code</a>
-<!-- ============================ COMPONENT CART END .// ================================= -->
-
-
-</aside></div> <!-- container.// -->
-</div>
 {% endblock %}

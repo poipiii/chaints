@@ -9,11 +9,9 @@
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                    <th>Order ID</th>
-                  <th>Customer name</th>
+                  <th>Customer ID</th>
                   <th>Product</th>
                   <th>Quantity</th>
-                  <th>Address</th>
                   <th>Order Date</th>
                   <th>Estimated Delivery Date</th>
                     <th>Delivery Status</th>
@@ -21,19 +19,13 @@
                 </tr>
               </thead>
               <tbody>
-                {% for delivery_item in delivery_list %}
+               <!-- {% for delivery_item in delivery_list %} -->
                 <tr>
-                    <td>{{ delivery_item.get_individual_orderid() }}</td>
-                  <td>{{ delivery_item.get_buyer_name() }}</td>
-                  <td>{{ delivery_item.get_product_name() }}</td>
-                  <td>{{ delivery_item.get_quantity() }}</td>
-                  <td>{{ delivery_item.get_address() }}</td>
-                  <td>{{ delivery_item.get_order_date() }}</td>
                   <td>#</td>
                     <td>{{ delivery_item.get_deliverystat() }}</td>
                     <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Edit Status</a></td>
                 </tr>
-                {% endfor %}
+                <!--{% endfor %}-->
               </tbody>
               </table>
             </div>

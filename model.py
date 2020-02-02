@@ -1,7 +1,8 @@
 import uuid #used for product id in product_model
 import shelve
-from datetime import datetime
+from datetime import datetime,timedelta
 from passlib.hash import pbkdf2_sha256
+import random
 #user account details
 #user model - email,username,password,orders,payment,address
 #orders - item,price,quantity, order id
@@ -45,7 +46,7 @@ class User_Model:
         self.__user_lastname=user_lastname
 
     def set_owned_products(self):
-        if self.__user_role == 'A':
+        if self.__user_role == 'S':
             self.__owned_products = []
         else:
             self.__owned_products = None
@@ -120,6 +121,16 @@ def update_usr_owned_p(userid,productid):
         pass
     db.close()
 
+def get_usr_owned_p(userid):
+    db = shelve.open('database/user_database/user.db','r')
+    if userid in db:
+        user = db.get(userid)
+        ownp = user.get_owned_products()
+    else:
+        pass
+    return ownp
+    db.close()
+
 def get_user(userid):
     db = shelve.open('database/user_database/user.db','r')
     if userid in db.keys():
@@ -165,6 +176,7 @@ class Product_Model:
         self.__product_discount = product_discount
         self.__product_images = product_images
         self.__product_catergory = product_catergory
+        self.__product_reviews = []
 
     #Product_Model Mutator
     def set_product_id(self):
@@ -192,7 +204,8 @@ class Product_Model:
 
     def set_product_catergory(self,product_catergory):
         self.__product_catergory = product_catergory
-
+    def set_product_reviews(self,reviews):
+        self.__product_reviews.append(reviews)
     #Product_Model Accessor
     def get_seller_id(self):
         return self.__seller_id
@@ -225,6 +238,8 @@ class Product_Model:
     def get_discounted_price(self):
         discounted_price = round(self.get_product_price() - self.get_product_discount(),2) 
         return discounted_price
+    def get_product_reviews(self):
+        return self.__product_reviews
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
@@ -250,9 +265,6 @@ def Add_New_Products(user_id,product_name,product_current_qty,product_desc,produ
 
 
     db.close()
-
-
-
 
 #grab all products in product db and return it
 def fetch_products():
@@ -390,7 +402,15 @@ def delete_all_user_product(product_id_list,user_id):
     db.close()
 
 
-
+def add_review(userid,username,productid,rating,review_txt):
+    review_dict = {'userid':userid,'username':username,'rating':rating,'review_txt':review_txt}
+    db = shelve.open('database/product_database/product.db','w')
+    if productid in db:
+        product = db.get(productid)
+        product.set_product_reviews(review_dict)
+        db[productid] = product
+    print(review_dict)
+    db.close()
 
 
 
@@ -499,15 +519,31 @@ class product_logger:
     def __str__(self):
         return 'activity: {} ,userid: {}, user_obj {},timestamp {},datetime {}'.format(self.get_p_activity(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
+
+def current_week(p_year,p_week):
+    mon = datetime.strptime(f'{p_year}-W{int(p_week )- 1}-1', "%Y-W%W-%w").date()
+    mon = datetime.combine(mon,datetime.min.time())
+    tues = datetime.combine(mon+timedelta(days=1),datetime.min.time())
+    wed = datetime.combine(mon+timedelta(days=2),datetime.min.time()) 
+    thurs = datetime.combine(mon+timedelta(days=3),datetime.min.time())
+    fri =  datetime.combine(mon+timedelta(days=4),datetime.min.time())
+    sat = datetime.combine(mon+timedelta(days=5),datetime.min.time())
+    sun = datetime.combine(mon+timedelta(days=6),datetime.min.time())
+    return [mon,tues,wed,thurs,fri,sat,sun]
+
 class orders_logger:
     def __init__(self,o_amount,product_id,order_obj):
         self.__o_amount = o_amount
         self.set_o_profit(o_amount,product_id)
-        self.__timestamp = datetime.timestamp(datetime.now())
+        # self.__timestamp = datetime.timestamp(datetime.now())
+        self.__timestamp = datetime.timestamp(random.choice(current_week('2020','5')))
         self.__product_id = product_id
+        self.set_ordered_product_name(product_id)
         self.__order_obj = order_obj
     def set_o_profit(self,o_amount,product_id):
         self.__o_profit = float(o_amount) * float(get_product_by_id(product_id).get_product_price())
+    def set_ordered_product_name(self,product_id):
+        self.__ordered_product_name = get_product_by_id(product_id).get_product_name()
     def get_o_amount(self):
         return self.__o_amount
     def get_o_profit(self):
@@ -556,6 +592,13 @@ def product_logging(userid,product_activity,product_id,product_obj):
         user_new_logger.set_product_log_list(new_log)
         db[userid] = user_new_logger
     db.close()
+
+
+def order_log_preprocess(userid,orderobj):
+    user_order = orderobj.get_cart_list()
+    for orders in user_order:
+        order_logging(userid,user_order[orders],orders,orderobj)
+
 
 
 def order_logging(userid,order_amt,product_id,order_obj):
@@ -956,21 +999,21 @@ def print_list_buyer(buyerid):
 ##o3=separating_orders('123abd',o3dict,'12/11/2012','777 greenwood ave')
 
 class Order:
-    def __init__(self,cart_list,sellerID,buyername,totalprice):
+    def __init__(self,cart_list,buyername,totalprice):
         self.__orderID=uuid.uuid4().hex
         self.__cart_list=cart_list
         self.__buyername=buyername
         self.__totalprice=totalprice
-        self.__sellerID=sellerID
-
+        # self.__sellerID=sellerID
+        self.__timestamp = datetime.timestamp(datetime.now())
     def set_buyername(self,buyername):
         self.__buyername=buyername
 
     def set_totalprice(self,totalprice):
         self.__totalprice=totalprice
 
-    def set_sellerID(self,sellerID):
-        self.__sellerID=sellerID
+    # def set_sellerID(self,sellerID):
+    #     self.__sellerID=sellerID
 
     def get_orderId(self):
         return self.__orderID
@@ -981,8 +1024,90 @@ class Order:
     def get_totalprice(self):
         return self.__totalprice
 
-    def get_sellerID(self):
-        return self.__sellerID
+    def get_cart_list(self):
+        return self.__cart_list
+
+    # def get_sellerID(self):
+    #     return self.__sellerID
+
+    def get_timestamp(self):
+        return self.__timestamp
+
+    def get_timestamp_as_datetime(self):
+        return datetime.fromtimestamp(self.__timestamp)
+
+class confirm_order():
+    def __init__(self,cardholder,cardno,expiry,cvc):
+        self.__cardholder=cardholder
+        self.__cardno=cardno
+        self.__expiry=expiry
+        self.__cvc=cvc
+        self.__cartdict={}
+
+    def set__cardholder(self,cardholder):
+        self.__cardholder=cardholder
+
+    def set__cardno(self,cardno):
+        self.__cardno=cardno
+
+    def set__expiry(self,expiry):
+        self.__expiry=expiry
+
+    def set__cvc(self,cvc):
+        self.__cvc=cvc
+
+    def set_cartdict(self,cartdict):
+        self.__cartdict=cartdict
+
+    def get_cardholder(self):
+        return self.__cardholder
+
+    def get_cardno(self):
+        return self.__cardno
+
+    def get_expiry(self):
+        return self.__expiry
+
+    def get_cvc(self):
+        return self.__cvc
+
+    def get_cartdict(self):
+        return self.__cartdict
+
+def delivery_info(DeliveryInfo):
+    db=shelve.open('database/user_database/user.db','c')
+    if session.get('user_id') in db:
+        info=db.get(session.get('user_id'))
+            #Infodict={}
+            #Infodict["DeliveryInfo"]=info.get_deliveryinfo()
+        db[session.get('user_id')]=info.get_user_address()
+    db.close()
+
+def add_delivery_info(address,country,city,state,zip,userid):
+    add={}
+    add["address"]=address
+    add["country"]=country
+    add["city"]=city
+    add["state"]=state
+    add["zip"]=zip
+    db=shelve.open('database/user_database/user.db','c')
+    if userid in db:
+        a=db[userid]
+        a.set_user_address(add)
+        db[userid]=a
+    else:
+        db[userid]=add
+    db.close()
+
+def payment_confirmation(cardholder,cardno,expiry,cvc,userid):
+    db=shelve.open('database/order_database/cart.db','c')# open the cart
+    if userid in db:
+        retrieve=db[userid]
+    db.close()
+    db=shelve.open('database/order_database/order.db','c')
+    order_object=confirm_order(cardholder,cardno,expiry,cvc)
+    db[userid]=order_object
+    db.close()
 
 
 
@@ -990,20 +1115,6 @@ class Order:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-#FAQ Forum
 class Dessage():
     def __init__(self,userid,mtitle,mbody):
         self.__userid=userid
@@ -1060,7 +1171,7 @@ def get_question_by_id(question_id):
     db = shelve.open('database/forum_database/FAQQ.db','r')
     if question_id in db:
         question_obj = db.get(question_id)
-        return question_obj 
+        return question_obj
     else:
         print('question does not exist')
     db.close()
@@ -1087,7 +1198,7 @@ def get_answer_by_id(id):
 
         else:
                 print('question does not exist')
-        
+
     db.close()
     return ans_obj_list
 class FAQQuestions():
@@ -1153,3 +1264,15 @@ class Contact(FAQQuestions):
 #            continue
 #    db.close()
 #test_faq_db()
+
+
+
+
+
+
+
+
+
+
+
+

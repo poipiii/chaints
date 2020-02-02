@@ -90,10 +90,11 @@
 	
 	<div class="rating-wrap my-3">
 		<ul class="rating-stars">
-			<li style="width:80%" class="stars-active"> 
+			<li style="width:100%" class="stars-active"> 
 				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
 				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-				<i class="fa fa-star"></i> 
+				<i class="fa fa-star"></i>
+
 			</li>
 			<li>
 				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
@@ -171,6 +172,40 @@
 <!-- ============================ COMPONENT 1 END .// ================================= -->
 </div>
 </section>
+<section>
+ <div class="container">
+	 <header class="section-heading">
+		 <h3 class="section-title">Reviews</h3>
+	 </header>
+	{% for reviews in product.get_product_reviews() %}	
+	<div class="card mt-3">
+		<div class="card-body">
+		<h5 class="card-title">{{reviews['username']}}</h5>
+
+		  <div class="rating-wrap my-3">
+			<ul class="rating-stars">
+				<li style="width:100%" class="stars-active">
+					{% for star in range(reviews['rating']) %}
+					<i class="fa fa-star"></i> 
+					{% endfor %}
+				</li>
+				<li>
+					<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+					<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
+					<i class="fa fa-star"></i> 
+				</li>
+			</ul>
+			
+		</div>
+		  <p class="card-text">{{reviews['review_txt']}}</p>
+		</div>
+	</div>
+	{% endfor %}
+	
+ </div>
+</section>
+<hr>
+
 
 {% endblock  %}
 {% block script %}
