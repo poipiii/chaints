@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "dashboard_base.html" %}
 {% block content %}
 <br><br><br><br>
 <h1>My Orders</h1>
@@ -17,9 +17,9 @@
 </tr>
 </thead>
 <tbody>
-{%for item in userorders.keys()%}
-{%for i in productinorder%}
-{%if i.get_product_id() == item%}
+{%for item in userorders%}
+	{%for i in productinorder%}
+		{%if i.get_product_id() == item%}
 <tr>
 	<td>
 		<figure class="itemside align-items-center">
@@ -40,8 +40,8 @@
     <td>
 		{{userorders[item]}}
 	</td>
-{%endif%}
-{%endfor%}
+		{%endif%}
+	{%endfor%}
 {%endfor%}
 </tbody>
 </table>

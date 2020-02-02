@@ -559,31 +559,38 @@ def confirmation():
 def order():
     #list of all the product objects in customer order 
     productinorder = []
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()!="B":
+        return redirect(url_for('seller_order'))
+    db.close()
     db=shelve.open('database/order_database/order.db','c')
     if session.get('user_id')in db:
         userorder=db.get(session.get('user_id'))
         for item in userorder.get_cart_list():
             productinorder.append(get_product_by_id(item))
-    db.close()
-    return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+            db.close()
+            return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+    return render_template('MyOrder.html')
 
 @app.route('/SellerOrder')
 def seller_order():
     userid=session.get('user_id')
     db=shelve.open('database/user_database/user.db','r')
     if db[userid].get_user_role()!="S":
-        return render_template('Buyer_order_list.html')
+        return redirect(url_for('order'))
     db.close()
     productinorder = []
     db=shelve.open('database/order_database/order.db','c')
     if session.get('user_id')in db:
         userorder=db.get(session.get('user_id'))
-    print(session.get('user_id'))
-    for item in userorder.get_cart_list():
+        print(session.get('user_id'))
+        for item in userorder.get_cart_list():
             productinorder.append(get_product_by_id(item))
             print(item)
-    db.close()
-    return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+            db.close()
+            return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+    return render_template('Seller_order_list.html')
 
 @app.route('/SellerDelivery')
 def seller_deliverylist():

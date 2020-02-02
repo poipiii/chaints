@@ -34,7 +34,11 @@
           <a href="#" class="navbar-brand dropdown icontext mr-4 dropdown-toggle" data-toggle="dropdown"> <img class="icon icon-xs rounded-circle" src={{session['profile_picture']}}><div class="text">{{ session['name'] }}</div></a>
           <div class="dropdown-menu dropdown-menu-right">
             <a class="dropdown-item" href="/profile">Profile</a>
+              {% if session['role'] == 'B' %}
             <a class="dropdown-item" href="/Myorder">My Orders</a>
+              {% elif session['role'] == 'S' %}
+              <a class="dropdown-item" href="/SellerOrder">Seller Orders</a>
+              {% endif %}
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="/dashboard">Dashboard</a>
             <a class="dropdown-item" href="/logout">Log Out</a>

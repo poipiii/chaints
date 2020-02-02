@@ -6,9 +6,8 @@
              background-color:#f1845d;
         }
         {% elif session['role'] ==  'B' %}
-        .navbar-custom {
-             background-color:##4e73df
-             ;
+		.navbar-custom {
+             background-color:#FBC578;
         }
         {% elif session['role'] ==  'S' %}
 		.navbar-custom {
@@ -62,7 +61,11 @@
     </li>
 
     <li class="nav-item">
-      <a class="nav-link" href="/SellerOrder">
+        {% if session['role'] == 'B' %}
+            <a class="nav-link" href="/Myorder">
+              {% elif session['role'] == 'S' %}
+              <a class="nav-link" href="/SellerOrder">
+              {% endif %}
         <i class="fas fa-clipboard-list"></i>
         <span>Orders</span></a>
     </li>
