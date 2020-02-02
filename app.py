@@ -526,7 +526,7 @@ def confirmation():
     if session.get('user_id')in db:
         usercart=db.get(session.get('user_id'))
         print(usercart)
-        for item in usercart.keys():
+        for item in usercart:
             productincart.append(get_product_by_id(item))
     db.close()
     total_price=0
