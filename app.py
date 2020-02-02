@@ -9,7 +9,6 @@ from passlib.hash import pbkdf2_sha256
 from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
-from datapipeline import *
 from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
