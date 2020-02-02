@@ -9,49 +9,41 @@
 
      	<div class="form-group">
 			<img src="{{session['profile_picture']}}" class="img-xs rounded-circle border" width="100"></div>
-	 </form>
-    </div>
-	     </div>
+			<div class="col form-group">
+			<label></label>
+			<p>{% if session['role'] ==  'A' %}
+				Role: Admin
+				{% elif session['role'] ==  'B' %}
+				Role: Buyer
+				{% elif session['role'] ==  'S' %}
+				Role: Seller
+				{% endif %}</p>
+			</div>
+
 	<div class="form-row">
 			<div class="col form-group">
 				<label>Email</label>
-			  	<input type="text" class="form-control" value="{{ user.get_user_email() }}">
+			  	<input type="text" class="form-control" value="{{ user.get_user_email() }}" readonly>
 			</div>
 	</div>
 	<div class="form-row">
 			<div class="col form-group">
 				<label>Username</label>
-			  	<input type="text" class="form-control" value="{{ user.get_username() }}">
-			</div>
-			<div class="col form-group">
-			<label></label>
-			<p>Role: {{user.get_user_role()}}</p>
+			  	<input type="text" class="form-control" value="{{ user.get_username() }}" readonly>
 			</div>
 	</div>
         <div class="form-row">
 			<div class="col form-group">
 				<label>First Name</label>
-			  	<input type="text" class="form-control" value="{{ user.get_user_firstname() }}">
+			  	<input type="text" class="form-control" value="{{ user.get_user_firstname() }}" readonly>
 			</div> <!-- form-group end.// -->
 			<div class="col form-group">
 				<label>Last Name</label>
-			  	<input type="text" class="form-control" value="{{ user.get_user_lastname() }}">
+			  	<input type="text" class="form-control" value="{{ user.get_user_lastname() }}" readonly>
 			</div> <!-- form-group end.// -->
 		</div> <!-- form-row.// -->
 
 
-		<div class="form-row">
-			<div class="form-group col-md-6">
-			  <label>Zip</label>
-			  <input type="text" class="form-control" value="123009">
-			</div> <!-- form-group end.// -->
-			<div class="form-group col-md-6">
-			  <label>Phone</label>
-			  <input type="text" class="form-control" value="+123456789">
-			</div> <!-- form-group end.// -->
-		</div> <!-- form-row.// -->
-
-		<button class="btn btn-primary btn-block">Send</button>
       </form>
       </div> <!-- card-body.// -->
     </div> <!-- card .// -->
