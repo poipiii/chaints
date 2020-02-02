@@ -7,6 +7,7 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
+from datapipeline import *
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from Forms import Question, Response
