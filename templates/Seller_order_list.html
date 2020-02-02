@@ -19,21 +19,18 @@
                 </tr>
               </thead>
               <tbody>
-              {%for item in usercart.keys()%}
-              {%for i in productincart%}
+              {%for item in userorders.keys()%}
+              {%for i in productinorder%}
               {%if i.get_product_id() == item%}
                 <tr>
                   <td></td>
                   <td>{{i.get_product_name()}}</td>
                   <td></td>
-                  <td>{{usercart[item]}}</td>
+                  <td>{{userorders[item]}}</td>
                   <td></td>
-                  <td>{{i.get_discounted_price()*usercart[item]}}</td>
-                    <td><a href="#" class="btn btn-warning">Edit Status</a></td>
+                  <td>{{i.get_discounted_price()*userorders[item]}}</td>
+                    <td><a href="/" class="btn btn-warning">Edit Status</a></td>
                 </tr>
-                {%endif%}
-                {%endfor%}
-                {%endfor%}
               </tbody>
               </table>
             </div>

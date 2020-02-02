@@ -70,8 +70,8 @@ class DeliveryForm(Form):
 class Payment_Form(Form):
     cardholder= StringField('Cardholder name',[validators.length(min=1,max=150),validators.DataRequired()])
     cardno= StringField('Card Number',[validators.length(min=1,max=150),validators.DataRequired()])
-    expiry=StringField('Date Of Expiry',[validators.length(min=1,max=150),validators.DataRequired()])
-    cvc= StringField('CVC',[validators.length(min=1,max=150),validators.DataRequired()])
+    expiry=StringField('Date Of Expiry',[validators.length(min=1,max=4),validators.DataRequired()])
+    cvc= StringField('CVC',[validators.length(min=1,max=3),validators.DataRequired()])
 class GetEmailForm(Form):
  email = StringField('Email', [validators.Length(min=1,
 max=150), validators.DataRequired()])
@@ -83,7 +83,8 @@ max=150), validators.DataRequired(),EqualTo('confirm', message='Passwords must m
 max=150), validators.DataRequired()])
 
 
-
+class Paymentstatus(Form):
+    status=SelectField('Status',[validators.Optional()],choices=[('Pending','Pending'),('Paid','Paid')],default='')
 
 class NewStatus(Form):
     deliverystatus=SelectField('Status',[validators.Optional()],choices=[('Pending','Pending'),('Order Processing','Order Processing'),('Order Dispatched','Order Dispatched'),('Order Returned','Order Returned')],default='')

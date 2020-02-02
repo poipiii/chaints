@@ -34,7 +34,7 @@
           <a href="#" class="navbar-brand dropdown icontext mr-4 dropdown-toggle" data-toggle="dropdown"> <img class="icon icon-xs rounded-circle" src={{session['profile_picture']}}><div class="text">{{ session['name'] }}</div></a>
           <div class="dropdown-menu dropdown-menu-right">
             <a class="dropdown-item" href="/profile">Profile</a>
-            <a class="dropdown-item" href="#">My Orders</a>
+            <a class="dropdown-item" href="/Myorder">My Orders</a>
             <a class="dropdown-item" href="#">Settings</a>
             <a class="dropdown-item" href="/dashboard">Dashboard</a>
             <a class="dropdown-item" href="/logout">Log Out</a>
@@ -53,7 +53,7 @@
       <form class="form-inline" >
         <input class="form-control mr-sm-2 " type="search" placeholder="Search" aria-label="Search">
         <button class="btn" type="submit"><i class="material-icons">search</i></button>
-          <button class="btn"> <a href="/add_to_cart"><i class="material-icons">shopping_cart</i></a></button>
+          <a class="btn"> <a href="/cart"><i class="material-icons">shopping_cart</i></a></a>
       </form>
 
     </div>

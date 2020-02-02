@@ -450,6 +450,11 @@ def Add_to_cart(productid,productqty):
 @app.route('/cart')
 def cart():
     #initalise a empty list for product objects in varible productincart
+    userid=session.get('user_id')
+    db=shelve.open('database/user_database/user.db','r')
+    if db[userid].get_user_role()=="S":
+        return redirect(url_for('landing_page'))
+    db.close()
     productincart = []
     db=shelve.open('database/order_database/cart.db','c')
     # if user record exist fetch it from cart db and put it in varible usercart
@@ -539,7 +544,7 @@ def confirmation():
         add = usr.get_user_address()
         full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
         print(full_address)
-    # separating_orders(session.get('user_id'),productincart,Neworder.get_timestamp_as_datetime(),full_address)
+    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     db.close()
     return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
@@ -559,11 +564,19 @@ def order():
 def seller_order():
     userid=session.get('user_id')
     db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()!="A":
+    if db[userid].get_user_role()!="S":
         return render_template('Buyer_order_list.html')
     db.close()
-    return render_template('Seller_order_list.html')
-
+    productinorder = []
+    db=shelve.open('database/order_database/order.db','c')
+    if session.get('user_id')in db:
+        userorder=db.get(session.get('user_id'))
+    print(session.get('user_id'))
+    for item in userorder.get_cart_list():
+            productinorder.append(get_product_by_id(item))
+            print(item)
+    db.close()
+    return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
 
 @app.route('/SellerDelivery')
 def seller_deliverylist():
