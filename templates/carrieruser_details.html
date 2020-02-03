@@ -20,7 +20,6 @@
 
 </style>
 <br><br><br>
-<div>
 <div class="card-header py-3">
           <h6 class="m-0 font-weight-bold text-primary">Delivery Tracking</h6>
         </div>
@@ -39,8 +38,6 @@
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                    <th>Action</th>
-                    <th>Test</th>
                     <th>Date</th>
                     <th>Location</th>
                     <th>Delivery Status</th>
@@ -49,22 +46,18 @@
                 </tr>
               </thead>
               <tbody>
-                {% for status in statuslist %}
+                <!-----{% for status in statuslist %}--->
                 <tr>
-                    <td> <a href="/DeletingCarrierUpdate/{{ status.get_status_id() }}/{{ orderid }}" class="btn btn-danger">Delete</a> <a href="/EditUpdate/{{ orderid }}/{{ status.get_status_id() }}" class="btn btn-warning">Edit</a></td>
-                    <td>{{ status.get_status_id() }}</td>
                     <td>{{ status.get_status_date() }}</td>
                     <td>{{ status.get_location() }}</td>
                     <td>{{ status.get_status() }} </td>
                     <td>{{ status.get_delivery_notes() }}</td>
 
-
                 </tr>
-                {% endfor %}
+                <!----{% endfor %}--->
               </tbody>
               </table>
             </div>
-    <a href="/CarrierUpdate" class="btn btn-success">Back</a>
-    </div>
+    <a href="/CarrierBuyer" class="btn btn-success">Back</a>
     </div>
 {% endblock %}

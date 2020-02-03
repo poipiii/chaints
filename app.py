@@ -14,6 +14,7 @@ from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
+app.config["PROFILE_IMAGE_UPLOAD"] = "static/profile_pics"
 app.config.update(
 	DEBUG=True,
 	#EMAIL SETTINGS
@@ -99,9 +100,12 @@ def dashboard_home():
     if session.get('role') == 'S':
         ownp= get_usr_owned_p(session.get('user_id'))
         all_profit = api_all_profit(ownp)
+        orderlist=create_seller_order_list(session.get('user_id'))
+        pending_order=pending_order_check(orderlist)
     else:
         all_profit = 0
-    return render_template('chart.html',all_profit=all_profit)
+        pending_order=0
+    return render_template('chart.html',all_profit=all_profit,pending_order=pending_order)
 
 @app.route("/data/<d_type>")
 def datapipe(d_type):
@@ -337,6 +341,20 @@ def create_newpassword(token):
         return redirect(url_for("loginUser"))
     return render_template('create_newpassword.html', form=getPasswordForm)
 
+@app.route('/create_newpassword_profile/<id>',methods=['GET','POST'])
+def create_newpassword_profile(id):
+    getPasswordForm=PasswordReset(request.form)
+    if request.method == 'POST' and getPasswordForm.validate():
+        userid=id
+        db = shelve.open('database/user_database/user.db', 'w')
+        user=db[userid]
+        pw=request.form['password']
+        user.set_user_pw(pw)
+        db[userid]=user
+        db.close()
+        flash('Your password has changed successfully')
+        return redirect(url_for("profile"))
+    return render_template('create_newpassword.html', form=getPasswordForm)
 
 
 #login user, session['logged_in']==True here
@@ -405,6 +423,45 @@ def updateUser(id):
         updateUserForm.role.data = user.get_user_role()
         db.close()
         return render_template('updateUser.html',form=updateUserForm)
+
+
+@app.route('/updateprofile/<id>', methods=['GET', 'POST'])
+def updateprofile(id):
+    updateprofileForm = CreateProfileUpdateForm(request.form)
+    if request.method == 'POST' and updateprofileForm.validate():
+        profile_pic = CreateProfileUpdateForm(request.files)
+        db = shelve.open("database/user_database/user.db", "w")
+        user = db[id]
+        user.set_user_email(updateprofileForm.email.data)
+        user.set_username(updateprofileForm.username.data)
+        user.set_user_firstname(updateprofileForm.firstname.data)
+        user.set_user_lastname(updateprofileForm.lastname.data)
+        profile_pic = profile_pic.profile_picture.data
+        if profile_pic:
+            filename = secure_filename(profile_pic.filename)
+            profile_pic.save(os.path.join(app.config["PROFILE_IMAGE_UPLOAD"],secure_filename(profile_pic.filename)))
+            if user.get_user_profile_picture()!="Michelle_-_No_Costume_Live2D_Model.png":
+                old_profile_pic=(os.path.join(app.config['PROFILE_IMAGE_UPLOAD'],user.get_user_profile_picture()))
+                if os.path.exists(old_profile_pic)==True:
+                    os.remove(old_profile_pic)
+            user.set_user_profile_picture(filename)
+
+
+        db[id]=user
+        session['profile_picture']=user.get_user_profile_picture()
+        db.close()
+        return redirect(url_for("profile"))
+    else:
+        db = shelve.open('database/user_database/user.db', 'r')
+        user = db[id]
+        updateprofileForm.email.data = user.get_user_email()
+        updateprofileForm.username.data = user.get_username()
+        updateprofileForm.firstname.data = user.get_user_firstname()
+        updateprofileForm.lastname.data = user.get_user_lastname()
+        updateprofileForm.profile_picture.data = user.get_user_profile_picture()
+        db.close()
+        return render_template('updateprofile.html',form=updateprofileForm)
+
 
 @app.route('/deleteUser/<id>', methods=['POST'])
 def deleteUser(id):
@@ -526,7 +583,7 @@ def confirmation():
     if session.get('user_id')in db:
         usercart=db.get(session.get('user_id'))
         print(usercart)
-        for item in usercart.keys():
+        for item in usercart:
             productincart.append(get_product_by_id(item))
     db.close()
     total_price=0
@@ -549,7 +606,6 @@ def confirmation():
         add = usr.get_user_address()
         full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
         print(full_address)
-    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     db.close()
     separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     order_log_preprocess(session.get('user_id'),Neworder)
@@ -592,11 +648,14 @@ def seller_order():
             return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
     return render_template('Seller_order_list.html')
 
+
+
+#delivery management
 @app.route('/SellerDelivery')
 def seller_deliverylist():
     userid=session.get('user_id')
     db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()!="A":
+    if db[userid].get_user_role()!="S":
         return redirect(url_for('buyer_deliverylist'))
     db.close()
     delivery_list=create_seller_order_list(session.get('user_id'))
@@ -606,17 +665,12 @@ def seller_deliverylist():
 @app.route('/SellerDeliveryUpdate/<orderid>',methods=['POST','GET'])
 def delivery_status_update(orderid):
     updatedstatusform= NewStatus(request.form)
-    try:
-        db=shelve.open('database/delivery_database/delivery.db', 'c')
-        sellerorderlist=create_seller_order_list(session.get('user_id'))
-        for i in sellerorderlist:
-            if i.get_individual_orderid()==orderid:
-                orderobj=i
-        db.close()
-    except IOError:
-        print("ERROR db no exist")
-    except:
-        print("Some unknown error happened i guess")
+    #db=shelve.open('database/delivery_database/delivery.db', 'c')
+    sellerorderlist=create_seller_order_list(session.get('user_id'))
+    for i in sellerorderlist:
+        if i.get_individual_orderid()==orderid:
+            orderobj=i
+    #db.close()
     if request.method=='POST' and updatedstatusform.validate():
         passing_app_to_update(orderid,updatedstatusform.deliverystatus.data)
         return redirect(url_for('seller_deliverylist'))
@@ -629,7 +683,7 @@ def buyer_deliverylist():
     print(deliverylist)
     return render_template('buyer_delivery_status.html',deliverylist=deliverylist)
 
-
+#to get the detailed details of order
 @app.route('/BuyerDeliveryDetails/<orderid>')
 def buyer_deliverydetails(orderid):
     try:
@@ -639,38 +693,69 @@ def buyer_deliverydetails(orderid):
             if i.get_individual_orderid()==orderid:
                 orderobj=i
         db.close()
-        db=shelve.open('database/delivery_database/carrier.db','c')
-        if orderid in db:
-            statuslist=db[orderid]
-            db.close()
-            return render_template('buyer_order_details.html',individual_order=orderobj,statuslist=statuslist)
         return render_template('buyer_order_details2.html',individual_order=orderobj)
     except IOError:
         print("db does not exist")
     except:
         print("an unknown error occurred")
 
-@app.route('/DeletingDelivery/<orderid>')
-def deleting_delivery(orderid):
-    userid=session.get('user_id')
-    cancelling_carrier_side(orderid)
-    db=shelve.open('database/delivery_database/delivery.db', 'c')
-    deliverylist=db[userid]
-    for i in deliverylist:
-        if i.get_individual_orderid()==orderid:
-            deliverylist.remove(i)
-    db[userid]=deliverylist
-    db.close()
+@app.route('/DeletingDelivery/<orderid>/<userid>')
+def deleting_delivery(orderid,userid):
+    #deleting_delivery(userid,orderid)
+    try:
+       db=shelve.open('database/delivery_database/delivery.db','r')
+       biglist=db[userid]
+       for i in biglist:
+           for n in i:
+               if n.get_individual_orderid()==orderid:
+                   i.remove(n)
+       db[userid]=biglist
+       db.close()
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error occurred")
     return redirect(url_for('buyer_deliverylist'))
 
 
-@app.route('/DeliveryReceived/<orderid>/<productid>')
-def received_delivery(orderid,productid):
+@app.route('/DeliveryReceived/<trackingid>/<productid>')
+def received_delivery(trackingid,productid):
     userid=session.get('user_id')
-    status_update(productid,userid,"Order Received")
+    status_update(trackingid,userid,"Order Received (Pending)")
     deliverylist=create_buyer_order_list(userid)
+
     return redirect(url_for('buyer_deliverylist'))
 
+@app.route('/SellerDeliveryReceived/<trackingid>/<buyerid>')
+def seller_acknowledge(trackingid,buyerid):
+    status_update(trackingid,buyerid,"Order Received (Acknowleged)")
+    return redirect(url_for('seller_deliverylist'))
+
+@app.route('/AdminvsBSCheck')
+def checking_role():
+    userid=session.get('user_id')
+    userrole=session.get('role')
+    if userrole=="A":
+        return redirect(url_for('CarrierUpdate'))
+    else:
+        return redirect(url_for('Carrierbuyer'))
+
+@app.route('/CarrierBuyer', methods=['GET','POST'])
+def Carrierbuyer():
+    carrierbuyer=CarrierBuyer(request.form)
+    if request.method=='POST' and carrierbuyer.validate():
+        orderid=carrierbuyer.orderid.data
+        ordercheck=checking_id(orderid)
+        if ordercheck==True:
+            db=shelve.open('database/delivery_database/carrier.db','c')
+            statuslist=db[orderid]
+            db.close()
+            dobj=delivery_object(orderid)
+            return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid,deliverObj=dobj)
+        flash('Order ID does not exist. Please type again')
+        return render_template('carrieruser.html',form=carrierbuyer)
+    else:
+        return render_template('carrieruser.html',form=carrierbuyer)
 
 @app.route('/CarrierUpdate', methods=['GET','POST'])
 def CarrierUpdate():
@@ -685,16 +770,77 @@ def CarrierUpdate():
         checker=False
         for i in db:
             for n in db[i]:
-                if n.get_individual_orderid()==orderid:
-                    checker=True
-                    address=n.get_address()
+                for j in n:
+                    if j.get_individual_orderid()==orderid:
+                        checker=True
+                        address=j.get_address()
         db.close()
         if checker==True:
             carrierobj_and_db(orderid,updatedate,country,status,deliverynotes,address)
-            return render_template('testing2.html')
+            #return render_template('testing2.html',statuslist=statuslist,orderid=orderid)
+            return redirect(url_for('CarrierUpdateTable',trackingid=orderid))
         else:
+            flash("Woops, Tracking ID has not been added yet.")
             return render_template('carrier_update.html',form=carrierupdateform)
     return render_template('carrier_update.html',form=carrierupdateform)
+
+
+
+@app.route('/RedirectingCarrierUpdate/<trackingid>')
+def CarrierUpdateTable(trackingid):
+    #try:
+    db=shelve.open('database/delivery_database/carrier.db','c')
+    if trackingid in db:
+        statuslist=db[trackingid]
+    db.close()
+    dobj=delivery_object(trackingid)
+    return render_template('testing2.html',statuslist=statuslist,orderid=trackingid,deliverObj=dobj)
+    #except IOError:
+        #print("db not found")
+    #except:
+        #print("an unknown error has occurred")
+
+@app.route('/DeletingCarrierUpdate/<updateid>/<trackingid>')
+def deleting_update(updateid,trackingid):
+    try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        updatelist=db[trackingid]
+        for i in updatelist:
+            if i.get_status_id()==updateid:
+                updatelist.remove(i)
+        db[trackingid]=updatelist
+        db.close()
+
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error has occurred")
+    # return render_template('testing2.html',statuslist=updatelist,orderid=trackingid)
+    return redirect(url_for('CarrierUpdateTable', trackingid=trackingid))
+
+@app.route('/EditUpdate/<trackingid>/<statusid>',methods=['GET','POST'])
+def UpdatingStatus(trackingid,statusid):
+    statusupdateform=CarrierUpdateForm(request.form)
+    if request.method=='POST' and statusupdateform.validate():
+        country=statusupdateform.country.data
+        status=statusupdateform.status.data
+        deliverynotes=statusupdateform.deliverynotes.data
+        editing_status(trackingid,status,deliverynotes,country,statusid)
+        return redirect(url_for('CarrierUpdateTable', trackingid=trackingid))
+    else:
+        #try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        listobj=db[trackingid]
+        for i in listobj:
+            if i.get_status_id()==statusid:
+                statusobj=i
+        db.close()
+        return render_template('carriereditstatus.html',statusinfo=statusobj,form=statusupdateform,trackingid=trackingid)
+        #except IOError:
+        #    print("db not found")
+        #except:
+        #    print("an unknown error has occurred")
+
 
 #FAQ Display
 @app.route('/FAQ')

@@ -22,6 +22,9 @@ def dump_all():
     db = shelve.open('database/forum_database/FAQQ.db','c')
     db.clear()
     db.close()
+    db = shelve.open('database/delivery_database/carrier.db','c')
+    db.clear()
+    db.close()
 
 def init_all():
     db = shelve.open('database/logs_database/logs.db','c')

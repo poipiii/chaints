@@ -25,51 +25,57 @@
         <i class="fas fa-fw fa-tachometer-alt"></i>
         <span>Profile</span></a>
     </li>
-    <!-- Nav Item - Dashboard -->
-    <li class="nav-item">
-      <a class="nav-link" href="/dashboard">
-        <i class="fas fa-fw fa-tachometer-alt"></i>
-        <span>Dashboard</span></a>
-    </li>
-     <!-- Nav Item - User list only for admin -->
-    {% if session['role'] == 'A' %}
+       {% if session['role'] == 'A' %}
       <li class="nav-item">
       <a class="nav-link" href="/retrieveUsers">
         <i class="fas fa-fw fa-list"></i>
         <span>User List</span></a>
     </li>
     {% endif %}
-    <!-- Nav Item - Analytics -->
+    <!-- Nav Item - Dashboard -->
+    {% if session['role'] == 'A' or session['role'] == 'S' %}
     <li class="nav-item">
-      <a class="nav-link" href="">
-        <i class="fas fa-fw fa-chart-area"></i>
-        <span>Analytics</span></a>
+      <a class="nav-link" href="/dashboard">
+        <i class="fas fa-fw fa-tachometer-alt"></i>
+        <span>Dashboard</span></a>
     </li>
-    {% if session['role'] != 'A' %}
-    <!-- Nav Item - products -->
-    <li class="nav-item">
-           <a class="nav-link" href="/manage_products">
-             <i class="fas fa-fw fa-shopping-bag"></i>
-             <span>Products</span></a>
-     </li>
 
-    <!-- Nav Item - Logs -->
-    <li class="nav-item">
+        <li class="nav-item">
       <a class="nav-link" href="/product_logs">
         <i class="fas fa-fw fa-table"></i>
         <span>Logs</span></a>
     </li>
 
+    {% endif %}
+     <!-- Nav Item - User list only for admin -->
+
+    <!-- Nav Item - Analytics -->
+
+
+    {% if session['role'] != 'A' %}
+    <!-- Nav Item - products -->
+
+    <!-- Nav Item - Logs -->
+
     <li class="nav-item">
         {% if session['role'] == 'B' %}
-            <a class="nav-link" href="/Myorder">
-              {% elif session['role'] == 'S' %}
-              <a class="nav-link" href="/SellerOrder">
-              {% endif %}
+              <li class="nav-item">
+              <a class="nav-link" href="/Myorder">
         <i class="fas fa-clipboard-list"></i>
-        <span>Orders</span></a>
-    </li>
-
+            <span>Orders</span></a>
+             </li>
+              {% elif session['role'] == 'S' %}
+                    <li class="nav-item">
+           <a class="nav-link" href="/manage_products">
+             <i class="fas fa-fw fa-shopping-bag"></i>
+             <span>Products</span></a>
+     </li>
+<li class="nav-item">
+              <a class="nav-link" href="/Myorder">
+        <i class="fas fa-clipboard-list"></i>
+            <span>Orders</span></a>
+             </li>
+{% endif %}
     <!--Nav Item - Delivery List -->
     <li class="nav-item">
       <a class="nav-link" href="/SellerDelivery">
