@@ -23,32 +23,32 @@
 </tr>
 </thead>
 <tbody>
-{%for item in userorders%}
-	{%for i in productinorder%}
-		{%if i.get_product_id() == item%}
+{% for userorders in orders  %}
+{%for item in userorders.keys()%}
 <tr>
 	<td>
 		<figure class="itemside align-items-center">
-			<div class="aside"><img src="../static/product_images/{{i.get_product_images()[0]}}" class="img-sm"></div>
+			<div class="aside"><img src="../static/product_images/{{productinorder[item].get_product_images()[0]}}" class="img-sm"></div>
 			<figcaption class="info">
-				<a href="#" class="title text-dark">{{i.get_product_name()}}</a>
+				<a href="#" class="title text-dark">{{productinorder[item].get_product_name()}}</a>
 			</figcaption>
 		</figure>
 	</td>
 	<td>
-		 {{i.get_seller_id()}}
+		{{productinorder[item].get_seller_id()}}
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">{{(i.get_discounted_price()*userorders[item])+5}}</var>
+			<var class="price">{{productinorder[item].get_discounted_price()*userorders[item]}}</var>
 		</div> <!-- price-wrap .// -->
 	</td>
     <td>
 		{{userorders[item]}}
 	</td>
-		{%endif%}
-	{%endfor%}
+
 {%endfor%}
+{% endfor %}
+
 </tbody>
 </table>
 </div> <!-- table-responsive.// -->

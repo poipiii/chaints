@@ -1,8 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
 {% with messages = get_flashed_messages() %}
-{%endwith%}
+  {% if messages %}
+    {% for message in messages %}
+      <div id='message' class="alert alert-primary alert-dismissible fade show" role="alert">
+       {{message}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 <style>
+#message{
+margin-top:4rem !important;
+}
   .navbar {
     transition: all 0.4s;
 }
@@ -160,14 +174,14 @@ nav{
           <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
           <div class="rating-wrap mt-1">
             <ul class="rating-stars">
-              <li style="width:80%" class="stars-active"> 
+              <li style="width:100%" class="stars-active"> 
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
               </li>
               <li>
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
               </li>
             </ul>
-            <span class="label-rating text-muted"> 34 reviews</span>
+            <span class="label-rating text-muted"> {{product.get_reviews_count()}} reviews</span>
           </div>
           <div class="price-wrap mt-3">
             {% if product.get_product_discount() <= 0 %}
@@ -216,14 +230,14 @@ nav{
           <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
           <div class="rating-wrap mt-1">
             <ul class="rating-stars">
-              <li style="width:80%" class="stars-active"> 
+              <li style="width:100%" class="stars-active"> 
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
               </li>
               <li>
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
               </li>
             </ul>
-            <span class="label-rating text-muted"> 34 reviews</span>
+            <span class="label-rating text-muted"> {{product.get_reviews_count()}} reviews</span>
           </div>
           <div class="price-wrap mt-3">
             {% if product.get_product_discount() <= 0 %}
@@ -272,14 +286,14 @@ nav{
           <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
           <div class="rating-wrap mt-1">
             <ul class="rating-stars">
-              <li style="width:80%" class="stars-active"> 
+              <li style="width:100%" class="stars-active"> 
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
               </li>
               <li>
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
               </li>
             </ul>
-            <span class="label-rating text-muted"> 34 reviews</span>
+            <span class="label-rating text-muted"> {{product.get_reviews_count()}} reviews</span>
           </div>
           <div class="price-wrap mt-3">
             {% if product.get_product_discount() <= 0 %}
@@ -327,14 +341,15 @@ nav{
           <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
           <div class="rating-wrap mt-1">
             <ul class="rating-stars">
-              <li style="width:80%" class="stars-active"> 
-                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+              <li style="width:100%" class="stars-active"> 
+                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
+
               </li>
               <li>
                 <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
               </li>
             </ul>
-            <span class="label-rating text-muted"> 34 reviews</span>
+            <span class="label-rating text-muted"> {{product.get_reviews_count()}} reviews</span>
           </div>
           <div class="price-wrap mt-3">
             {% if product.get_product_discount() <= 0 %}
@@ -380,7 +395,8 @@ nav{
       /////////////////  items slider. /plugins/owlcarousel/
       if ($('.slider-banner-owl').length > 0) { // check if element exists
           $('.slider-banner-owl').owlCarousel({
-              loop:true,
+              loop:false,
+              rewind: true,
               margin:0,
               items: 1,
               dots: false,
@@ -392,7 +408,8 @@ nav{
       /////////////////  items slider. /plugins/owlslider/
       if ($('.slider-items-owl').length > 0) { // check if element exists
           $('.slider-items-owl').owlCarousel({
-              loop:true,
+              loop:false,
+              rewind: true,
               margin:10,
               nav:true,
               navText: ["<i class='fa fa-chevron-left'></i>", "<i class='fa fa-chevron-right'></i>"],
@@ -414,9 +431,10 @@ nav{
       if ($('.slider-custom-owl').length > 0) { // check if element exists
           var slider_custom_owl = $('.slider-custom-owl');
           slider_custom_owl.owlCarousel({
-              loop: true,
+              loop: false,
+              rewind: true,
               margin:15,
-              items: 2,
+              items: 1,
               nav: false,
           });
   

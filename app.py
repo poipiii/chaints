@@ -7,12 +7,14 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
+from datapipeline import *
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
+app.config["PROFILE_IMAGE_UPLOAD"] = "static/profile_pics"
 app.config.update(
 	DEBUG=True,
 	#EMAIL SETTINGS
@@ -26,6 +28,9 @@ s= URLSafeTimedSerializer(app.secret_key)
 mail = Mail(app)
 @app.before_request
 def before_request():
+    if session.get('forced_logout')==True:
+        return redirect(url_for('logout'))
+
     if session.get('logged_in') == True:
         if session.get('remember')==True:
             pass
@@ -36,7 +41,7 @@ def before_request():
             delta = now - last_active
             if delta.seconds > 1800:
                 session['last_active'] = now
-                session['forced_logout']= True
+                session['forced_logout']=True
         except:
             pass
 
@@ -98,9 +103,12 @@ def dashboard_home():
     if session.get('role') == 'S':
         ownp= get_usr_owned_p(session.get('user_id'))
         all_profit = api_all_profit(ownp)
+        orderlist=create_seller_order_list(session.get('user_id'))
+        pending_order=pending_order_check(orderlist)
     else:
         all_profit = 0
-    return render_template('chart.html',all_profit=all_profit)
+        pending_order=0
+    return render_template('chart.html',all_profit=all_profit,pending_order=pending_order)
 
 @app.route("/data/<d_type>")
 def datapipe(d_type):
@@ -237,13 +245,13 @@ def delete_products(productid):
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
-@app.route("/review",methods = ['POST','GET'])
-def review():
+@app.route("/review/<productid>",methods = ['POST','GET'])
+def review(productid):
     Review_form = review_form(request.form)
     if request.method == 'POST'  and Review_form.validate():
         print(int(Review_form.rating.data))
-        add_review(session.get('user_id'),session.get('name'),'a9ee20758e2647f69d3bbf92066f3d31',int(Review_form.rating.data),Review_form.review_text.data)
-        return redirect(url_for('landing_page'))
+        add_review(session.get('user_id'),session.get('name'),productid,int(Review_form.rating.data),Review_form.review_text.data)
+        return redirect(url_for('buyer_deliverylist'))
     return render_template('review_form.html',form = Review_form)
  
  
@@ -336,6 +344,20 @@ def create_newpassword(token):
         return redirect(url_for("loginUser"))
     return render_template('create_newpassword.html', form=getPasswordForm)
 
+@app.route('/create_newpassword_profile/<id>',methods=['GET','POST'])
+def create_newpassword_profile(id):
+    getPasswordForm=PasswordReset(request.form)
+    if request.method == 'POST' and getPasswordForm.validate():
+        userid=id
+        db = shelve.open('database/user_database/user.db', 'w')
+        user=db[userid]
+        pw=request.form['password']
+        user.set_user_pw(pw)
+        db[userid]=user
+        db.close()
+        flash('Your password has changed successfully')
+        return redirect(url_for("profile"))
+    return render_template('create_newpassword.html', form=getPasswordForm)
 
 
 #login user, session['logged_in']==True here
@@ -405,6 +427,45 @@ def updateUser(id):
         db.close()
         return render_template('updateUser.html',form=updateUserForm)
 
+
+@app.route('/updateprofile/<id>', methods=['GET', 'POST'])
+def updateprofile(id):
+    updateprofileForm = CreateProfileUpdateForm(request.form)
+    if request.method == 'POST' and updateprofileForm.validate():
+        profile_pic = CreateProfileUpdateForm(request.files)
+        db = shelve.open("database/user_database/user.db", "w")
+        user = db[id]
+        user.set_user_email(updateprofileForm.email.data)
+        user.set_username(updateprofileForm.username.data)
+        user.set_user_firstname(updateprofileForm.firstname.data)
+        user.set_user_lastname(updateprofileForm.lastname.data)
+        profile_pic = profile_pic.profile_picture.data
+        if profile_pic:
+            filename = secure_filename(profile_pic.filename)
+            profile_pic.save(os.path.join(app.config["PROFILE_IMAGE_UPLOAD"],secure_filename(profile_pic.filename)))
+            if user.get_user_profile_picture()!="Michelle_-_No_Costume_Live2D_Model.png":
+                old_profile_pic=(os.path.join(app.config['PROFILE_IMAGE_UPLOAD'],user.get_user_profile_picture()))
+                if os.path.exists(old_profile_pic)==True:
+                    os.remove(old_profile_pic)
+            user.set_user_profile_picture(filename)
+
+
+        db[id]=user
+        session['profile_picture']=user.get_user_profile_picture()
+        db.close()
+        return redirect(url_for("profile"))
+    else:
+        db = shelve.open('database/user_database/user.db', 'r')
+        user = db[id]
+        updateprofileForm.email.data = user.get_user_email()
+        updateprofileForm.username.data = user.get_username()
+        updateprofileForm.firstname.data = user.get_user_firstname()
+        updateprofileForm.lastname.data = user.get_user_lastname()
+        updateprofileForm.profile_picture.data = user.get_user_profile_picture()
+        db.close()
+        return render_template('updateprofile.html',form=updateprofileForm)
+
+
 @app.route('/deleteUser/<id>', methods=['POST'])
 def deleteUser(id):
  db = shelve.open('database/user_database/user.db', 'w')
@@ -430,62 +491,66 @@ def profile():
 #adding product to cart
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
-    #take in productid and product quantity from route
-    db= shelve.open('database/order_database/cart.db','c')
-    #check if logged in user is in cart db
-    if session.get('user_id')in db:
-        # if user record exist fetch it from cart db and put it in varible usercart
-        #the record will be a dict
-        usercart=db.get(session.get('user_id'))
+    if session.get('logged_in') == True:
+        #take in productid and product quantity from route
+        db= shelve.open('database/order_database/cart.db','c')
+        #check if logged in user is in cart db
+        if session.get('user_id')in db:
+            # if user record exist fetch it from cart db and put it in varible usercart
+            #the record will be a dict
+            usercart=db.get(session.get('user_id'))
+        else:
+            #if user record does not exist usercart is a empty dict
+            usercart={}
+        #if productid in usercart dict add on to the quantity
+        if productid in usercart.keys():
+            usercart[productid] += productqty
+        else:
+            #if does not exist add it to the usercart dict with product id as key and quantity as value
+            usercart[productid] = productqty
+        #save the record to the cart db with current logged in user id as key and usercart dict as value
+        db[session.get('user_id')] = usercart
+        db.close()
+        return redirect(url_for('landing_page'))
     else:
-        #if user record does not exist usercart is a empty dict
-        usercart={}
-    #if productid in usercart dict add on to the quantity
-    if productid in usercart.keys():
-        usercart[productid] += productqty
-    else:
-        #if does not exist add it to the usercart dict with product id as key and quantity as value
-        usercart[productid] = productqty
-    #save the record to the cart db with current logged in user id as key and usercart dict as value
-    db[session.get('user_id')] = usercart
-    db.close()
-    return redirect(url_for('landing_page'))
-
+        return redirect(url_for('loginUser'))
 @app.route('/cart')
 def cart():
-    #initalise a empty list for product objects in varible productincart
-    userid=session.get('user_id')
-    db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()=="S":
-        return redirect(url_for('landing_page'))
-    db.close()
-    productincart = []
-    db=shelve.open('database/order_database/cart.db','c')
-    # if user record exist fetch it from cart db and put it in varible usercart
-    if session.get('user_id')in db:
-        usercart=db.get(session.get('user_id'))
-        print(usercart)
-        #retrive product object from product db using the product id stored in usercart dict
-        for item in usercart.keys():
-            productincart.append(get_product_by_id(item))
+    if session.get('logged_in') == True:
+        #initalise a empty list for product objects in varible productincart
+        userid=session.get('user_id')
+        db=shelve.open('database/user_database/user.db','r')
+        if db[userid].get_user_role()=="S":
+            return redirect(url_for('landing_page'))
+        db.close()
+        productincart = []
+        db=shelve.open('database/order_database/cart.db','c')
+        # if user record exist fetch it from cart db and put it in varible usercart
+        if session.get('user_id')in db:
+            usercart=db.get(session.get('user_id'))
+            print(usercart)
+            #retrive product object from product db using the product id stored in usercart dict
+            for item in usercart.keys():
+                productincart.append(get_product_by_id(item))
+        else:
+            #if user record does not exist , usercart is initalise as a empty dict
+            # and save empty dict to db so if user open cart without adding items there will be no error
+            usercart={}
+            db[session.get('user_id')] = usercart
+        db.close()
+        total_price=0
+        total_discount=0
+        Grand_total=0
+        for i in productincart:
+            price=i.get_product_price()*usercart[i.get_product_id()]
+            discount=i.get_product_discount()*usercart[i.get_product_id()]
+            grand=i.get_discounted_price()*usercart[i.get_product_id()]
+            total_price+=price
+            total_discount+=discount
+            Grand_total+=grand
+        return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart,total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
     else:
-        #if user record does not exist , usercart is initalise as a empty dict
-        # and save empty dict to db so if user open cart without adding items there will be no error
-        usercart={}
-        db[session.get('user_id')] = usercart
-    db.close()
-    total_price=0
-    total_discount=0
-    Grand_total=0
-    for i in productincart:
-        price=i.get_product_price()*usercart[i.get_product_id()]
-        discount=i.get_product_discount()*usercart[i.get_product_id()]
-        grand=i.get_discounted_price()*usercart[i.get_product_id()]
-        total_price+=price
-        total_discount+=discount
-        Grand_total+=grand
-    return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart,total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
-
+        return redirect(url_for('loginUser'))
 @app.route('/deletecart/<cartproductid>',methods = ['POST'])
 #take in post request from the route and the product id of the item to be deleted
 def deletecart(cartproductid):
@@ -547,7 +612,7 @@ def confirmation():
     if session.get('user_id')in db:
         usercart=db.get(session.get('user_id'))
         print(usercart)
-        for item in usercart.keys():
+        for item in usercart:
             productincart.append(get_product_by_id(item))
     db.close()
     total_price=0
@@ -561,8 +626,8 @@ def confirmation():
         total_discount+=discount
         Grand_total+=grand
     db=shelve.open('database/order_database/order.db','c')
-    Neworder = Order(usercart,session.get('name'),Grand_total)
-    db[session.get('user_id')]=Neworder
+    Neworder = Order(session.get('user_id'),usercart,session.get('name'),Grand_total)
+    db[Neworder.get_orderId()]=Neworder
     db.close()
     db=shelve.open('database/user_database/user.db','r')
     if session.get('user_id') in db:
@@ -583,22 +648,24 @@ def confirmation():
 @app.route('/Myorder')
 def order():
     #list of all the product objects in customer order 
-    productinorder = []
-    userid=session.get('user_id')
-    db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()!="B":
-        return redirect(url_for('seller_order'))
-    db.close()
+    productinorder = {}
+    userorder_list = []
     db=shelve.open('database/order_database/order.db','c')
-    if session.get('user_id')in db:
-        userorder=db.get(session.get('user_id'))
-        for item in userorder.get_cart_list():
-            productinorder.append(get_product_by_id(item))
-    db.close()
+    userorder = get_buyer_orders(session.get('user_id'))
+    for order in userorder:
+        userorder_list.append(order.get_cart_list())
+        for item in order.get_cart_list():
+            product_obj = get_product_by_id(item)
+            if product_obj.get_product_id() not in productinorder:
+                productinorder[product_obj.get_product_id()] = product_obj
+                
 
-    return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
-    return render_template('MyOrder.html')
-
+    # if session.get('user_id')in db:
+    #     userorder=db.get(session.get('user_id'))
+    #     for item in userorder.get_cart_list():
+    #         productinorder.append(get_product_by_id(item))
+    # db.close()
+    return render_template('MyOrder.html',orders = userorder_list,productinorder=productinorder)
 
 @app.route('/SellerOrder')
 def seller_order():
@@ -618,11 +685,13 @@ def seller_order():
     return render_template('Seller_order_list.html')
 
 
+
+#delivery management
 @app.route('/SellerDelivery')
 def seller_deliverylist():
     userid=session.get('user_id')
     db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()!="A":
+    if db[userid].get_user_role()!="S":
         return redirect(url_for('buyer_deliverylist'))
     db.close()
     delivery_list=create_seller_order_list(session.get('user_id'))
@@ -632,17 +701,12 @@ def seller_deliverylist():
 @app.route('/SellerDeliveryUpdate/<orderid>',methods=['POST','GET'])
 def delivery_status_update(orderid):
     updatedstatusform= NewStatus(request.form)
-    try:
-        db=shelve.open('database/delivery_database/delivery.db', 'c')
-        sellerorderlist=create_seller_order_list(session.get('user_id'))
-        for i in sellerorderlist:
-            if i.get_individual_orderid()==orderid:
-                orderobj=i
-        db.close()
-    except IOError:
-        print("ERROR db no exist")
-    except:
-        print("Some unknown error happened i guess")
+    #db=shelve.open('database/delivery_database/delivery.db', 'c')
+    sellerorderlist=create_seller_order_list(session.get('user_id'))
+    for i in sellerorderlist:
+        if i.get_individual_orderid()==orderid:
+            orderobj=i
+    #db.close()
     if request.method=='POST' and updatedstatusform.validate():
         passing_app_to_update(orderid,updatedstatusform.deliverystatus.data)
         return redirect(url_for('seller_deliverylist'))
@@ -655,7 +719,7 @@ def buyer_deliverylist():
     print(deliverylist)
     return render_template('buyer_delivery_status.html',deliverylist=deliverylist)
 
-
+#to get the detailed details of order
 @app.route('/BuyerDeliveryDetails/<orderid>')
 def buyer_deliverydetails(orderid):
     try:
@@ -665,38 +729,69 @@ def buyer_deliverydetails(orderid):
             if i.get_individual_orderid()==orderid:
                 orderobj=i
         db.close()
-        db=shelve.open('database/delivery_database/carrier.db','c')
-        if orderid in db:
-            statuslist=db[orderid]
-            db.close()
-            return render_template('buyer_order_details.html',individual_order=orderobj,statuslist=statuslist)
         return render_template('buyer_order_details2.html',individual_order=orderobj)
     except IOError:
         print("db does not exist")
     except:
         print("an unknown error occurred")
 
-@app.route('/DeletingDelivery/<orderid>')
-def deleting_delivery(orderid):
-    userid=session.get('user_id')
-    cancelling_carrier_side(orderid)
-    db=shelve.open('database/delivery_database/delivery.db', 'c')
-    deliverylist=db[userid]
-    for i in deliverylist:
-        if i.get_individual_orderid()==orderid:
-            deliverylist.remove(i)
-    db[userid]=deliverylist
-    db.close()
+@app.route('/DeletingDelivery/<orderid>/<userid>')
+def deleting_delivery(orderid,userid):
+    #deleting_delivery(userid,orderid)
+    try:
+       db=shelve.open('database/delivery_database/delivery.db','r')
+       biglist=db[userid]
+       for i in biglist:
+           for n in i:
+               if n.get_individual_orderid()==orderid:
+                   i.remove(n)
+       db[userid]=biglist
+       db.close()
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error occurred")
     return redirect(url_for('buyer_deliverylist'))
 
 
-@app.route('/DeliveryReceived/<orderid>/<productid>')
-def received_delivery(orderid,productid):
+@app.route('/DeliveryReceived/<trackingid>/<productid>')
+def received_delivery(trackingid,productid):
     userid=session.get('user_id')
-    status_update(productid,userid,"Order Received")
+    status_update(trackingid,userid,"Order Received (Pending)")
     deliverylist=create_buyer_order_list(userid)
-    return redirect(url_for('buyer_deliverylist'))
 
+    return redirect(url_for('review',productid=productid))
+
+@app.route('/SellerDeliveryReceived/<trackingid>/<buyerid>')
+def seller_acknowledge(trackingid,buyerid):
+    status_update(trackingid,buyerid,"Order Received (Acknowleged)")
+    return redirect(url_for('seller_deliverylist'))
+
+@app.route('/AdminvsBSCheck')
+def checking_role():
+    userid=session.get('user_id')
+    userrole=session.get('role')
+    if userrole=="A":
+        return redirect(url_for('CarrierUpdate'))
+    else:
+        return redirect(url_for('Carrierbuyer'))
+
+@app.route('/CarrierBuyer', methods=['GET','POST'])
+def Carrierbuyer():
+    carrierbuyer=CarrierBuyer(request.form)
+    if request.method=='POST' and carrierbuyer.validate():
+        orderid=carrierbuyer.orderid.data
+        ordercheck=checking_id(orderid)
+        if ordercheck==True:
+            db=shelve.open('database/delivery_database/carrier.db','c')
+            statuslist=db[orderid]
+            db.close()
+            dobj=delivery_object(orderid)
+            return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid,deliverObj=dobj)
+        flash('Order ID does not exist. Please type again')
+        return render_template('carrieruser.html',form=carrierbuyer)
+    else:
+        return render_template('carrieruser.html',form=carrierbuyer)
 
 @app.route('/CarrierUpdate', methods=['GET','POST'])
 def CarrierUpdate():
@@ -711,20 +806,95 @@ def CarrierUpdate():
         checker=False
         for i in db:
             for n in db[i]:
-                if n.get_individual_orderid()==orderid:
-                    checker=True
-                    address=n.get_address()
+                for j in n:
+                    if j.get_individual_orderid()==orderid:
+                        checker=True
+                        address=j.get_address()
         db.close()
         if checker==True:
             carrierobj_and_db(orderid,updatedate,country,status,deliverynotes,address)
-            return render_template('testing2.html')
+            #return render_template('testing2.html',statuslist=statuslist,orderid=orderid)
+            return redirect(url_for('CarrierUpdateTable',trackingid=orderid))
         else:
+            flash("Woops, Tracking ID has not been added yet.")
             return render_template('carrier_update.html',form=carrierupdateform)
     return render_template('carrier_update.html',form=carrierupdateform)
+
+
+
+@app.route('/RedirectingCarrierUpdate/<trackingid>')
+def CarrierUpdateTable(trackingid):
+    #try:
+    db=shelve.open('database/delivery_database/carrier.db','c')
+    if trackingid in db:
+        statuslist=db[trackingid]
+    db.close()
+    dobj=delivery_object(trackingid)
+    return render_template('testing2.html',statuslist=statuslist,orderid=trackingid,deliverObj=dobj)
+    #except IOError:
+        #print("db not found")
+    #except:
+        #print("an unknown error has occurred")
+
+@app.route('/DeletingCarrierUpdate/<updateid>/<trackingid>')
+def deleting_update(updateid,trackingid):
+    try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        updatelist=db[trackingid]
+        for i in updatelist:
+            if i.get_status_id()==updateid:
+                updatelist.remove(i)
+        db[trackingid]=updatelist
+        db.close()
+
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error has occurred")
+    # return render_template('testing2.html',statuslist=updatelist,orderid=trackingid)
+    return redirect(url_for('CarrierUpdateTable', trackingid=trackingid))
+
+@app.route('/EditUpdate/<trackingid>/<statusid>',methods=['GET','POST'])
+def UpdatingStatus(trackingid,statusid):
+    statusupdateform=CarrierUpdateForm(request.form)
+    if request.method=='POST' and statusupdateform.validate():
+        country=statusupdateform.country.data
+        status=statusupdateform.status.data
+        deliverynotes=statusupdateform.deliverynotes.data
+        editing_status(trackingid,status,deliverynotes,country,statusid)
+        return redirect(url_for('CarrierUpdateTable', trackingid=trackingid))
+    else:
+        #try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        listobj=db[trackingid]
+        for i in listobj:
+            if i.get_status_id()==statusid:
+                statusobj=i
+        db.close()
+        return render_template('carriereditstatus.html',statusinfo=statusobj,form=statusupdateform,trackingid=trackingid)
+        #except IOError:
+        #    print("db not found")
+        #except:
+        #    print("an unknown error has occurred")
+
 
 #FAQ Display
 @app.route('/FAQ')
 def FAQ():
+    #user for rx forum
+    user=shelve.open('database/user_database/user.db')
+    users={}
+    for i in user.values():
+        users[i.get_user_id()]=i.get_user_fullname()
+    user.close()
+
+
+    role="NU"
+    if session.get('logged_in')== True:
+        if session.get('role')=='A':
+            role="A" 
+        else:
+            role="U"   
     Gold=[]
     FaQ=[]
     AcI=[]
@@ -751,8 +921,8 @@ def FAQ():
                 CoI.append(i)
         Zwei.close()
     except:
-        print("A Database not found")
-    return render_template('FAQ.html', Gold=Gold, FaQ=FaQ , AcI=AcI,CoI=CoI)
+        print("The Second Database has not been found")
+    return render_template('FAQ.html', Gold=Gold, FaQ=FaQ , AcI=AcI,CoI=CoI,role=role,users=users)
 
 
 #Forum Question
@@ -762,34 +932,52 @@ def createQns():
     if request.method=="POST" and createquestion.validate():
         new_question = CQuestion(session.get('user_id'),createquestion.mtitle.data,createquestion.mbody.data)
         try:
-            db=shelve.open('database/forum_database/FAQQ.db','c')
+            db=shelve.open('database/forum_database/FAQQ.db','c') 
             db[new_question.get_msgid()] = new_question
         except IOError:
             print("Database failed to open")
         db.close()
         return redirect(url_for('FAQ'))
     return render_template('createQns.html',form=createquestion)
+
 #Forum Answer
 @app.route('/Respond/<id>',methods=["GET","POST"])
 def Respond(id):
-    Reply=Response(request.form)
-    if request.method=="POST" and Reply.validate():
-        Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
-        try:
-            dennis=shelve.open('database/forum_database/FAQQ.db','c')
-            dennis[Respondents.get_ansid()]=Respondents
-        except:
-            print("Something screwed up")
-        dennis.close()
-        RespondtoQns(Respondents.get_ansid(),id)
-        return redirect(url_for('displayQns',id=id))
-    return render_template('Response.html',form=Reply)
+    if session.get('logged_in')==True:
+        Reply=Response(request.form)
+        if request.method=="POST" and Reply.validate():
+            Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
+            try:
+                dennis=shelve.open('database/forum_database/FAQQ.db','c')
+                dennis[Respondents.get_ansid()]=Respondents
+            except:
+                print("Something screwed up")
+            dennis.close()
+            RespondtoQns(Respondents.get_ansid(),id)
+            return redirect(url_for('displayQns',id=id))
+        return render_template('Response.html',form=Reply)
+    else:
+        return redirect(url_for('loginUser'))
 
 @app.route('/displayQns/<id>')
 def displayQns(id):
+    #user for rx forum
+    user=shelve.open('database/user_database/user.db','r')
+    users={}
+    for i in user.values():
+        users[i.get_user_id()]=[i.get_user_fullname(), i.get_user_profile_picture()]
+    user.close()
+
+    role="NU"
+    uid=session.get('user_id')
+    if session.get('logged_in')== True:
+        if session.get('role')=='A':
+            role="A" 
+        else:
+            role="U"   
     question = get_question_by_id(id)
     AnswerList=get_answer_by_id(question.get_ans_list())
-    return render_template('displayQns.html',question = question, AnswerList=AnswerList)
+    return render_template('displayQns.html',question = question, AnswerList=AnswerList, role=role, uid=uid,users=users)
 
 #update Qns in Forum
 @app.route('/updateQns/<id>',methods=["GET","POST"])
@@ -811,6 +999,7 @@ def updateQns(id):
         updateQns.mbody.data=Qns.getmbody()
         return render_template('updateqns.html',form=updateQns)
 
+#Frequently Asked Questions
 @app.route('/addFAQueryFaQ',methods=["GET","POST"])
 def addFAQueryF():
     Drei=FAQd(request.form)
@@ -826,7 +1015,7 @@ def addFAQueryF():
         Three.close()
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Drei)
-
+#Account Issues
 @app.route('/addFAQueryAcI',methods=["GET","POST"])
 def addFAQueryAcI():
     Vier=FAQd(request.form)
@@ -841,7 +1030,7 @@ def addFAQueryAcI():
         Four.close()
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Vier)
-
+#Contact Us
 @app.route('/addFAQueryCoI',methods=["GET","POST"])
 def addFAQueryCoI():
     Fuenf=FAQd(request.form)
@@ -851,107 +1040,137 @@ def addFAQueryCoI():
         try:
             Five=shelve.open("database/forum_database/FAQDisplay.db","c")
             Five[Charlie.getid()] = Charlie
-            
         except IOError:
             print("ooopsie")
         Five.close()
+        faq_logging(session.get('user_id'),'Contact Us','CREATE',Charlie.getid(),Charlie)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Fuenf)
 
-#update Qns in Forum
+#update Qns in FAQ only seen by admin
 @app.route('/updateFAQueryF/<id>',methods=["GET","POST"])
 def updateFAQueryF(id):
-    updateFAQueryF=FAQd(request.form)
-    if request.method =='POST' and updateFAQueryF.validate():
-        db=shelve.open('database/forum_database/FAQDisplay.db','w')
-        Fa= db.get(id)
-        Fa.setquestion(updateFAQueryF.question.data)
-        Fa.setanswer(updateFAQueryF.answer.data)
+    if session.get('logged_in') and session.get('role')=="A":
+        updateFAQueryF=FAQd(request.form)
+        updateFAQueryF=FAQd(request.form)
+        if request.method =='POST' and updateFAQueryF.validate():
+            db=shelve.open('database/forum_database/FAQDisplay.db','w')
+            Fa= db.get(id)
+            Fa.setquestion(updateFAQueryF.question.data)
+            Fa.setanswer(updateFAQueryF.answer.data)
 
-        db[id]= Fa
-        db.close()
+            db[id]= Fa
+            db.close()
         
-        return redirect(url_for('FAQ'))
-        
-    else:
-        db= shelve.open('database/forum_database/FAQDisplay.db','r')
-        Qns= db.get(id)
-        db.close()
-        
-        updateFAQueryF.question.data= Qns.getquestion()
-        updateFAQueryF.answer.data=Qns.getanswer()
-        return render_template('faqopening2.html',form=updateFAQueryF)
+            faq_logging(session.get('user_id'),'frequently asked questions','EDIT',Fa.getid(),Fa)
+            return redirect(url_for('FAQ'))
 
-#update Qns in Forum
+        else:
+            db= shelve.open('database/forum_database/FAQDisplay.db','r')
+            Qns= db.get(id)
+            db.close()
+
+            updateFAQueryF.question.data= Qns.getquestion()
+            updateFAQueryF.answer.data=Qns.getanswer()
+            return render_template('faqopening2.html',form=updateFAQueryF)
+
+#update Qns in FAQ only see button
 @app.route('/updateFAQueryA/<id>',methods=["GET","POST"])
 def updateFAQueryA(id):
-    updateFAQueryA=FAQd(request.form)
-    if request.method =='POST' and updateFAQueryA.validate():
-        db=shelve.open('database/forum_database/FAQDisplay.db','w')
-        Fa= db.get(id)
-        Fa.setquestion(updateFAQueryA.question.data)
-        Fa.setanswer(updateFAQueryA.answer.data)
+    if session.get('logged_in')==True and session.get('role')=="A":
+        updateFAQueryA=FAQd(request.form)
+        if request.method =='POST' and updateFAQueryA.validate():
+            db=shelve.open('database/forum_database/FAQDisplay.db','w')
+            Fa= db.get(id)
+            Fa.setquestion(updateFAQueryA.question.data)
+            Fa.setanswer(updateFAQueryA.answer.data)
 
-        db[id]= Fa
-        db.close()
-        
-        return redirect(url_for('FAQ'))
-        
-    else:
-        db= shelve.open('database/forum_database/FAQDisplay.db','r')
-        Qns= db.get(id)
-        db.close()
-        
-        updateFAQueryA.question.data= Qns.getquestion()
-        updateFAQueryA.answer.data=Qns.getanswer()
-        return render_template('faqopening2.html',form=updateFAQueryA)
+            db[id]= Fa
+            db.close()
+            faq_logging(session.get('user_id'),'Account Issues','EDIT',Fa.getid(),Fa)
+            return redirect(url_for('FAQ'))
+
+        else:
+            db= shelve.open('database/forum_database/FAQDisplay.db','r')
+            Qns= db.get(id)
+            db.close()
+
+            updateFAQueryA.question.data= Qns.getquestion()
+            updateFAQueryA.answer.data=Qns.getanswer()
+            return render_template('faqopening2.html',form=updateFAQueryA)
 
 #update Qns in Forum
 @app.route('/updateFAQueryC/<id>',methods=["GET","POST"])
 def updateFAQueryC(id):
-    updateFAQueryC=FAQd(request.form)
-    if request.method =='POST' and updateFAQueryC.validate():
-        db=shelve.open('database/forum_database/FAQDisplay.db','w')
-        Fa= db.get(id)
-        Fa.setquestion(updateFAQueryC.question.data)
-        Fa.setanswer(updateFAQueryC.answer.data)
+    if session.get('logged_in')==True and session.get('role')=="A":
+        updateFAQueryC=FAQd(request.form)
+        if request.method =='POST' and updateFAQueryC.validate():
+            db=shelve.open('database/forum_database/FAQDisplay.db','w')
+            Fa= db.get(id)
+            Fa.setquestion(updateFAQueryC.question.data)
+            Fa.setanswer(updateFAQueryC.answer.data)
 
-        db[id]= Fa
-        db.close()
-        
-        return redirect(url_for('FAQ'))
-        
-    else:
-        db= shelve.open('database/forum_database/FAQDisplay.db','r')
-        Qns= db.get(id)
-        db.close()
-        
-        updateFAQueryC.question.data= Qns.getquestion()
-        updateFAQueryC.answer.data=Qns.getanswer()
-        return render_template('faqopening2.html',form=updateFAQueryC)
 
+            db[id]= Fa
+            db.close()
+            faq_logging(session.get('user_id'),'Contact Us','EDIT',Fa.getid(),Fa)
+            return redirect(url_for('FAQ'))
+
+        else:
+            db= shelve.open('database/forum_database/FAQDisplay.db','r')
+            Qns= db.get(id)
+            db.close()
+
+            updateFAQueryC.question.data= Qns.getquestion()
+            updateFAQueryC.answer.data=Qns.getanswer()
+            return render_template('faqopening2.html',form=updateFAQueryC)
+#Delete FAQ Qns
 @app.route('/deleteQns/<id>')
 def deleteQns(id):
-    Ace=shelve.open('database/forum_database/FAQDisplay.db','w')
-    Ace.pop(id)
-    Ace.close()
-    
-    return redirect(url_for('FAQ'))
-
-
+    if session.get('logged_in')==True and session.get('role')=="A":
+        Ace=shelve.open('database/forum_database/FAQDisplay.db','w')
+        deleted_faq = Ace.pop(id)
+        Ace.close()
+        if isinstance(deleted_faq,FAQm):
+            faq_type= "frequently asked questions"
+        elif isinstance(deleted_faq,Account_Issues):
+            faq_type="account issues"
+        else:
+            faq_type="contact us"
+        faq_logging(session.get('user_id'),faq_type,'DELETE',deleted_faq.getid(),deleted_faq)
+        return redirect(url_for('FAQ'))
+#Delete Forum Qns
 @app.route('/deleteForumQns/<id>')
 def deleteForumQns(id):
-    Ace=shelve.open('database/forum_database/FAQQ.db','w')
-    ri= Ace[id]
-    
-    for i in ri.get_ans_list():
-        Ace.pop(i)
+    if session.get('logged_in')==True:
+        Ace=shelve.open('database/forum_database/FAQQ.db','w')
+        ri= Ace[id]
 
-    Ace.pop(id)
-    Ace.close()
+        for i in ri.get_ans_list():
+            Ace.pop(i)
+
+        Ace.pop(id)
+        Ace.close()
     
     return redirect(url_for('FAQ'))
-
+#Show FAQ Log
+#@app.route('/FAQLOG')
+#def FAQLOG():
+#    logsget=[]
+#    if session.get('logged_in')==True and session.get('role')=="A":
+#        db=shelve.open("database/logs_database/logs.db",'r')
+#        udb=shelve.open("database/user_database/user.db",'r')
+#        for i in udb:
+#            userid=udb[i.get_user_id()]
+#            logs=db[userid]
+#        for x in logs:
+#            logsget.append(x.get_faq_log_list())
+#
+#        udb.close()
+#        db.close()
+#        return render_template('displayfaqlogs.html',log=logsget)        
+#    else:
+#        return redirect(url_for('FAQ'))
 # @app.errorhandler(404)
 # def not_found_error(error):  
 #     return render_template('404.html'), 404

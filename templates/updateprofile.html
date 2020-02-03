@@ -1,0 +1,39 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+{% from "includes/_formhelper.html" import render_field %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
+  <a href="/profile" class="btn btn-primary">Back</a>
+<div class="container-fluid row justify-content-center pt-4">
+
+ <article class="card-body border col-sm-4">
+     <img src="../static/profile_pics/{{session['profile_picture']}}" class="img-xs rounded-circle border" width="100">
+<h1 class="display-4 mt-n1">Update</h1>
+<form method="POST" enctype="multipart/form-data" action="">
+ <div class="form-group">
+{{ form.email.label(class="form-control-label")}}
+  {{form.email(class="form-control")}}
+ </div>
+ <div class="form-group">
+{{ form.username.label(class="form-control-label")}}
+    {{form.username(class="form-control")}}
+ </div>
+ <div class="form-group">
+{{ form.firstname.label(class="form-control-label")}}
+    {{form.firstname(class="form-control")}}
+ </div>
+  <div class="form-group">
+{{ form.lastname.label(class="form-control-label")}}
+    {{form.lastname(class="form-control")}}
+ </div>
+<div class="form-group">
+ {{form.profile_picture.label(class="form-control-label")}}
+ {{ form.profile_picture(class="form-control-file") }}
+
+ </div>
+
+<input type="submit" value="Submit" class="btn btn-primary"> <a class="float-right" href="/create_newpassword_profile/{{session['user_id']}}">Reset Password</a>
+</form>
+  </article>
+</div>
+{% endblock %}
+
