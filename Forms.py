@@ -3,6 +3,7 @@ from wtforms.validators import EqualTo, DataRequired, Email
 from wtforms.fields.html5 import DateField
 
 
+
 class Create_Product_Form(Form):
     product_name = StringField('Product Name',validators=[validators.InputRequired()]) 
     product_Description = TextAreaField('Product Description',validators=[validators.InputRequired()]) 

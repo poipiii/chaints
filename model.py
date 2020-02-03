@@ -446,12 +446,15 @@ class Logger:
         self.__user_log_list = []
         self.__order_log_list = []
         self.__delivery_log_list = []
+        self.__faq_log_list=[]
     def set_user_log_list(self,log_obj):
         self.__user_log_list.append(log_obj)
     def set_product_log_list(self,log_obj):
         self.__product_log_list.append(log_obj)
     def set_order_log_list(self,log_obj):
         self.__order_log_list.append(log_obj)
+    def set_faq_log_list(self,log_obj):
+        self.__faq_log_list.append(log_obj) 
     def get_log_user_id(self):
         return self.__log_user_id
     def get_user_log_list(self):
@@ -460,7 +463,8 @@ class Logger:
         return self.__product_log_list
     def get_order_log_list(self):
         return self.__order_log_list
-
+    def get_faq_log_list(self):
+        return self.__faq_log_list
 
 class user_logger:
     def __init__(self,u_activity,user_id,user_obj):
@@ -559,7 +563,34 @@ class orders_logger:
     def __str__(self):
         return 'order amt: {},order profit{},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_o_amount(),self.get_o_profit(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
-
+class faq_logger:
+    def __init__(self,faq_type,faq_activity,faq_id,faq_object):
+        self.__faq_type = faq_type
+        self.set_faq_activty(faq_activity)
+        self.__timestamp = datetime.timestamp(datetime.now())
+        self.__faq_id = faq_id
+        self.__faq_object = faq_object
+    def set_faq_activty(self,faq_activity):
+        if faq_activity == 'CREATE':
+            self.__faq_activity = 'Created a faq entry'
+        elif faq_activity == 'DELETE':
+            self.__faq_activity = 'Deleted a faq entry'
+        elif faq_activity == 'EDIT':
+            self.__faq_activity = 'Edited a faq entry'
+    def get_faq_id(self):
+        return self.__faq_id
+    def get_faq_activity(self):
+        return self.__faq_activity
+    def get_faq_type(self):
+        return self.__faq_type
+    def get_faq_object(self):
+        return self.__faq_object
+    def get_timestamp(self):
+        return self.__timestamp
+    def get_timestamp_as_datetime(self):
+        return datetime.fromtimestamp(self.__timestamp)
+    def __str__(self):
+        return 'faq_type: {},faq_activity: {},faq_id: {}, faq_object {},timestamp {},datetime {}'.format(self.get_faq_type(),self.get_faq_activity(),self.get_faq_id(),self.get_faq_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
 
 
 
@@ -590,6 +621,20 @@ def product_logging(userid,product_activity,product_id,product_obj):
         user_new_logger = Logger(userid)
         new_log = product_logger(product_activity,product_id,product_obj)
         user_new_logger.set_product_log_list(new_log)
+        db[userid] = user_new_logger
+    db.close()
+
+def faq_logging(userid,faq_type,faq_activity,faq_id,faq_object):
+    db = shelve.open('database/logs_database/logs.db','c')
+    if userid in db:
+        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object)
+        faq_log = db.get(userid)
+        faq_log.set_faq_log_list(new_log)
+        db[userid] = faq_log
+    else:
+        user_new_logger = Logger(userid)
+        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object)
+        user_new_logger.set_faq_log_list(new_log)
         db[userid] = user_new_logger
     db.close()
 
@@ -835,13 +880,13 @@ def obtaining_buyer_object(customerid):
 
 
 #edit delivery status
-def status_update(product_id,buyerid,status):
+def status_update(trackingid,buyerid,status):
     try:
         db=shelve.open('database/delivery_database/delivery.db','c')
         a=db[buyerid]
         for i in a:
             for k in i:
-                if k.get_product_id()==product_id:
+                if k.get_individual_orderid()==trackingid:
                     k.set_delivery_status(status)
         db[buyerid]=a
 
@@ -860,7 +905,7 @@ def passing_app_to_update(orderid,status):
             for n in db[i]:
                 for k in n:
                     if k.get_individual_orderid()==orderid:
-                        status_update(k.get_product_id(),k.get_buyer_id(),status)
+                        status_update(k.get_individual_orderid(),k.get_buyer_id(),status)
         db.close()
     except IOError:
         raise Exception("db does not exist")
@@ -883,6 +928,14 @@ def create_buyer_order_list(buyerid):
     except:
         raise Exception("an error has occurred")
     return buyerorderlist
+
+#to check seller for count
+def pending_order_check(orderlist):
+    count=0
+    for i in orderlist:
+        if i.get_deliverystat()=="Pending" or i.get_deliverystat()=="Order Processing":
+            count+=1
+    return count
 
 #to get products of seller
 def obtaining_seller_product_id(sellerid):
@@ -921,23 +974,21 @@ def create_seller_order_list(sellerid):
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
 
-#to delete delivery object from delivery db and
-#def cancelling_carrier_side(orderid):
-#    try:
-#        statusobj=carrier_delivery("-","-","Delivery Cancelled","Cancelled by buyer","-")
-#        db=shelve.open('database/delivery_database/carrier.db','c')
-#        if orderid in db:
-#            statuslist=db[orderid]
-#        else:
-#            statuslist=[]
-#        statuslist.append(statusobj)
-#        db[orderid]=statuslist
-#        db.close()
-#
-#    except IOError:
-#        raise Exception('db does not exist')
-#    except:
-#        raise Exception('an unknown error has occurred')
+#to obtain specific delivery object
+def delivery_object(trackingid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        for i in db:
+            for j in db[i]:
+                for n in j:
+                    if n.get_individual_orderid()==trackingid:
+                        deliveryobj=n
+        db.close()
+        return deliveryobj
+    except IOError:
+        raise Exception('Db does not exist')
+    except:
+        raise Exception('an unknown error has occurred')
 
 #to find the order to track
 def checking_id(orderid):
@@ -955,10 +1006,15 @@ def checking_id(orderid):
 
 
 #cancelling order
-def deleting_delivery(userid):
+def deleting_delivery(userid,orderid):
     try:
         db=shelve.open('database/delivery_database/delivery.db','r')
-        del db[userid]
+        biglist=db[userid]
+        for i in biglist:
+            for n in i:
+                if n.get_individual_orderid()==orderid:
+                    i.remove(n)
+        db[userid]=biglist
         db.close()
     except IOError:
         raise Exception('db does not exist')
@@ -1193,8 +1249,6 @@ class CQuestion(Dessage):
     def __init__(self,UserID,mtitle,mbody):
         super().__init__(UserID,mtitle,mbody)
         self.__msgid_Qns=uuid.uuid4().hex
-        self.__mtitle=mtitle
-        self.__mbody=mbody
         self.__answers_list=[]
     def setanslist(self,ansid):
         self.__answers_list.append(ansid)
@@ -1202,15 +1256,11 @@ class CQuestion(Dessage):
         return self.__msgid_Qns
     def get_ans_list(self):
         return self.__answers_list
-    #def __str__(self):
-    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_msgid(),self.getuid(),self.getmtitle(),self.getmbody())
 #Response
 class CAnswer(Dessage):
     def __init__(self,UserID,mtitle,mbody):
         super().__init__(UserID,mtitle,mbody)
-        mtitle=None
-        self.__mtitle=mtitle
-        self.__mbody=mbody
+        mtitle=None        
         self.__ansid=uuid.uuid4().hex
         self.__Question=[]
     def setQuestion(self,Qnsid):
@@ -1219,8 +1269,6 @@ class CAnswer(Dessage):
         return self.__Question
     def get_ansid(self):
         return self.__ansid
-    #def __str__(self):
-    #    return 'msgid:{},userid:{},mitle:{},mbody:{}'.format(self.get_ansid(),self.getuid(),self.getmtitle(),self.getmbody())
 #FAQ Forum Shelve DB
 
 def get_question_by_id(question_id):
@@ -1257,8 +1305,7 @@ def get_answer_by_id(id):
 
     db.close()
     return ans_obj_list
-
-class FAQm():
+class FAQQuestions():
     def __init__(self,question,answer):
         self.__faqid=uuid.uuid4().hex
         self.__question=question
@@ -1273,38 +1320,35 @@ class FAQm():
         return self.__answer
     def getid(self):
         return self.__faqid
-
-class Account_Issues():
+        
+class FAQm(FAQQuestions):
+    def __init__(self,question, answer):
+        super().__init__(question,answer)
+        
+class Account_Issues(FAQQuestions):
     def __init__(self,question,answer):
-        self.__AiCid=uuid.uuid4().hex
-        self.__question=question
-        self.__answer=answer
-    def setquestion(self,question):
-        self.__question=question
-    def getquestion(self):
-        return self.__question
-    def setanswer(self,answer):
-        self.__answer=answer
-    def getanswer(self):
-        return self.__answer
-    def getid(self):
-        return self.__AiCid
-class Contact():
+        super().__init__(question,answer)
+class Contact(FAQQuestions):
     def __init__(self,question,answer):
-        self.__CoUid=uuid.uuid4().hex
-        self.__question=question
-        self.__answer=answer
-    def setquestion(self,question):
-        self.__question=question
-    def getquestion(self):
-        return self.__question
-    def setanswer(self,answer):
-        self.__answer=answer
-    def getanswer(self):
-        return self.__answer
-    def getid(self):
-        return self.__CoUid
+        super().__init__(question,answer)
 
+
+
+
+#FAQ log display
+# def retrive_all_faq_logs():
+#     retrived_logs = []
+#     faq_logs = []
+#     db = shelve.open('database/logs_database/logs.db','r')
+#     for user in db:
+#         retrived_logs.append(db.get(user))
+#     for user_logs in retrived_logs:
+#         for faq_log in user_logs.get_faq_log_list():
+#             faq_logs.append(faq_log)
+#         db.close()
+#     for i in faq_logs:
+#         print(i)
+# retrive_all_faq_logs()
 
 #def test_faq_db():
 #    Gold=[]

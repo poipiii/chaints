@@ -1,13 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .orderinfo img{
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 150px;
+        float: right;
+        left: 950px;
+        position: absolute;
+        bottom:10px;
+        top:150px;
+    }
+    .orderinfo{
+    postion:relative;
+    }
+    .titleword{
+    font-weight:bold;!important
+    }
+
+</style>
+<br><br><br>
 <div>
 <div class="card-header py-3">
           <h6 class="m-0 font-weight-bold text-primary">Delivery Tracking</h6>
         </div>
 <div class="card-body">
+    <div class="orderinfo">
+    <h3>Tracking ID: # {{ orderid }}</h3>
+        <p><span class="titleword">Address:</span>{{ deliverObj.get_address() }} </p>
+        <p><span class="titleword">Products:</span> {{ deliverObj.get_product_name() }}</p>
+        <p><span class="titleword">Buyer:</span> {{ deliverObj.get_buyer_name() }}</p>
+        <p><span class="titleword">Seller:</span> {{ deliverObj.get_seller_name() }}</p>
+    <div class="productimage">
+        <img src="../static/product_images/{{deliverObj.get_product_image()}}" class="productimage">
+    </div>
+        </div>
           <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <h3>Tracking ID: # {{ orderid }}</h3>
               <thead>
                 <tr>
                     <th>Action</th>
