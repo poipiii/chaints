@@ -14,6 +14,7 @@ from Forms import Question, Response
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
+app.config["PROFILE_IMAGE_UPLOAD"] = "static/profile_pics"
 app.config.update(
 	DEBUG=True,
 	#EMAIL SETTINGS
@@ -340,6 +341,20 @@ def create_newpassword(token):
         return redirect(url_for("loginUser"))
     return render_template('create_newpassword.html', form=getPasswordForm)
 
+@app.route('/create_newpassword_profile/<id>',methods=['GET','POST'])
+def create_newpassword_profile(id):
+    getPasswordForm=PasswordReset(request.form)
+    if request.method == 'POST' and getPasswordForm.validate():
+        userid=id
+        db = shelve.open('database/user_database/user.db', 'w')
+        user=db[userid]
+        pw=request.form['password']
+        user.set_user_pw(pw)
+        db[userid]=user
+        db.close()
+        flash('Your password has changed successfully')
+        return redirect(url_for("profile"))
+    return render_template('create_newpassword.html', form=getPasswordForm)
 
 
 #login user, session['logged_in']==True here
@@ -408,6 +423,38 @@ def updateUser(id):
         updateUserForm.role.data = user.get_user_role()
         db.close()
         return render_template('updateUser.html',form=updateUserForm)
+
+
+@app.route('/updateprofile/<id>', methods=['GET', 'POST'])
+def updateprofile(id):
+    updateprofileForm = CreateProfileUpdateForm()
+    if updateprofileForm.validate_on_submit():
+        db = shelve.open("database/user_database/user.db", "w")
+        user = db[id]
+        user.set_user_email(updateprofileForm.email.data)
+        user.set_username(updateprofileForm.username.data)
+        user.set_user_firstname(updateprofileForm.firstname.data)
+        user.set_user_lastname(updateprofileForm.lastname.data)
+        profile_pic = updateprofileForm.profile_picture.data
+        if profile_pic:
+            filename = secure_filename(profile_pic.filename)
+            profile_pic.save(os.path.join(app.config["PROFILE_IMAGE_UPLOAD"],secure_filename(profile_pic.filename)))
+            user.set_user_profile_picture(filename)
+        db[id]=user
+        session['profile_picture']=user.get_user_profile_picture()
+        db.close()
+        return redirect(url_for("profile"))
+    else:
+        db = shelve.open('database/user_database/user.db', 'r')
+        user = db[id]
+        updateprofileForm.email.data = user.get_user_email()
+        updateprofileForm.username.data = user.get_username()
+        updateprofileForm.firstname.data = user.get_user_firstname()
+        updateprofileForm.lastname.data = user.get_user_lastname()
+        updateprofileForm.profile_picture.data = user.get_user_profile_picture()
+        db.close()
+        return render_template('updateprofile.html',form=updateprofileForm)
+
 
 @app.route('/deleteUser/<id>', methods=['POST'])
 def deleteUser(id):
@@ -529,7 +576,7 @@ def confirmation():
     if session.get('user_id')in db:
         usercart=db.get(session.get('user_id'))
         print(usercart)
-        for item in usercart.keys():
+        for item in usercart:
             productincart.append(get_product_by_id(item))
     db.close()
     total_price=0
