@@ -1,8 +1,7 @@
 from wtforms import Form, SubmitField,StringField, RadioField, SelectField, TextAreaField, IntegerField, validators,SelectMultipleField, MultipleFileField, validators, PasswordField, BooleanField,FloatField
 from wtforms.validators import EqualTo, DataRequired, Email
 from wtforms.fields.html5 import DateField
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
+
 
 
 class Create_Product_Form(Form):
