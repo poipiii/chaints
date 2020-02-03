@@ -240,6 +240,17 @@ class Product_Model:
         return discounted_price
     def get_product_reviews(self):
         return self.__product_reviews
+    def get_reviews_count(self):
+        return len(self.get_product_reviews())
+    def get_average_reviews(self):
+        score = 0
+        no_of_reviews = len(self.get_product_reviews())
+        for review in self.get_product_reviews():
+            score += review['rating']
+        avg_score = score / no_of_reviews
+
+        return round(avg_score)
+        
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
@@ -524,23 +535,22 @@ class product_logger:
         return 'activity: {} ,userid: {}, user_obj {},timestamp {},datetime {}'.format(self.get_p_activity(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
 
-def current_week(p_year,p_week):
-    mon = datetime.strptime(f'{p_year}-W{int(p_week )- 1}-1', "%Y-W%W-%w").date()
-    mon = datetime.combine(mon,datetime.min.time())
-    tues = datetime.combine(mon+timedelta(days=1),datetime.min.time())
-    wed = datetime.combine(mon+timedelta(days=2),datetime.min.time()) 
-    thurs = datetime.combine(mon+timedelta(days=3),datetime.min.time())
-    fri =  datetime.combine(mon+timedelta(days=4),datetime.min.time())
-    sat = datetime.combine(mon+timedelta(days=5),datetime.min.time())
-    sun = datetime.combine(mon+timedelta(days=6),datetime.min.time())
-    return [mon,tues,wed,thurs,fri,sat,sun]
+# def current_week(p_year,p_week):
+#     mon = datetime.strptime(f'{p_year}-W{int(p_week )- 1}-1', "%Y-W%W-%w").date()
+#     mon = datetime.combine(mon,datetime.min.time())
+#     tues = datetime.combine(mon+timedelta(days=1),datetime.min.time())
+#     wed = datetime.combine(mon+timedelta(days=2),datetime.min.time()) 
+#     thurs = datetime.combine(mon+timedelta(days=3),datetime.min.time())
+#     fri =  datetime.combine(mon+timedelta(days=4),datetime.min.time())
+#     sat = datetime.combine(mon+timedelta(days=5),datetime.min.time())
+#     sun = datetime.combine(mon+timedelta(days=6),datetime.min.time())
+#     return [mon,tues,wed,thurs,fri,sat,sun]
 
 class orders_logger:
     def __init__(self,o_amount,product_id,order_obj):
         self.__o_amount = o_amount
         self.set_o_profit(o_amount,product_id)
-        # self.__timestamp = datetime.timestamp(datetime.now())
-        self.__timestamp = datetime.timestamp(random.choice(current_week('2020','5')))
+        self.__timestamp = datetime.timestamp(datetime.now())
         self.__product_id = product_id
         self.set_ordered_product_name(product_id)
         self.__order_obj = order_obj
@@ -1113,7 +1123,8 @@ def print_list_buyer(buyerid):
 ##o3=separating_orders('123abd',o3dict,'12/11/2012','777 greenwood ave')
 
 class Order:
-    def __init__(self,cart_list,buyername,totalprice):
+    def __init__(self,buyer_user_id,cart_list,buyername,totalprice):
+        self.__buyer_user_id = buyer_user_id
         self.__orderID=uuid.uuid4().hex
         self.__cart_list=cart_list
         self.__buyername=buyername
@@ -1131,7 +1142,8 @@ class Order:
 
     def get_orderId(self):
         return self.__orderID
-
+    def get_buyer_user_id(self):
+        return self.__buyer_user_id
     def get_buyername(self):
         return self.__buyername
 
@@ -1149,6 +1161,16 @@ class Order:
 
     def get_timestamp_as_datetime(self):
         return datetime.fromtimestamp(self.__timestamp)
+
+def get_buyer_orders(user_id):
+    buyers_orders = []
+    db = shelve.open('database/order_database/order.db','r')
+    for orders in db.values():
+        print(orders)
+        if orders.get_buyer_user_id() == user_id:
+            buyers_orders.append(orders)
+    return buyers_orders
+
 
 class confirm_order():
     def __init__(self,cardholder,cardno,expiry,cvc):
@@ -1187,6 +1209,11 @@ class confirm_order():
 
     def get_cartdict(self):
         return self.__cartdict
+
+
+
+
+
 
 def delivery_info(DeliveryInfo):
     db=shelve.open('database/user_database/user.db','c')

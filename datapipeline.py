@@ -79,12 +79,14 @@ def api_all_profit(ownp):
         week = pd.DatetimeIndex(this_week)
         week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_dict()
         total_profit['week'] = sum(week_data['profit'].values())
-        month = total_profit['month'] = df.profit.resample('M').sum().to_dict()
+        month =  df.profit.resample('M').sum().to_dict()
+        print(month)
         for i in month:
             if i.to_pydatetime().strftime('%m') == datetime.now().strftime('%m'):
+                print(i)
                 total_profit['month'] =month[i]
+                print(month[i])
         total_profit['year']= df.profit.resample('Y').sum().iloc[0]
-
         return total_profit
     else:
         return 0
