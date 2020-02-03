@@ -1,8 +1,6 @@
-from wtforms import Form, SubmitField,StringField, RadioField, SelectField, TextAreaField, IntegerField, validators,SelectMultipleField, MultipleFileField, validators, PasswordField, BooleanField,FloatField
+from wtforms import Form, FileField,StringField, RadioField, SelectField, TextAreaField, IntegerField, validators,SelectMultipleField, MultipleFileField, validators, PasswordField, BooleanField,FloatField
 from wtforms.validators import EqualTo, DataRequired, Email
 from wtforms.fields.html5 import DateField
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
 
 
 class Create_Product_Form(Form):
@@ -62,14 +60,17 @@ max=150), validators.DataRequired()])
  role = RadioField('Role', choices=[('B', 'Buyer'),
 ('S','Seller')], default='B')
 
-class CreateProfileUpdateForm(FlaskForm):
-    email= StringField('Email',validators=[DataRequired(),Email()])
-    username=StringField('Username',validators=[DataRequired()])
-    firstname=StringField('First Name',validators=[DataRequired()])
-    lastname=StringField('Last Name',validators=[DataRequired()])
-    profile_picture=FileField('Update Profile Picture', validators=[FileAllowed(['jpg','png'])])
-    submit=SubmitField("Submit")
 
+class CreateProfileUpdateForm(Form):
+    email = StringField('Email', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+    username = StringField('Username', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+    firstname = StringField('First name', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+    lastname = StringField('Last name', [validators.Length(min=1,
+max=150), validators.DataRequired()])
+    profile_picture = FileField('Update Profile Picture')
 
 class DeliveryForm(Form):
     address= StringField('Address', [validators.length(min=1,max=150),validators.DataRequired()])

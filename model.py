@@ -20,7 +20,7 @@ class User_Model:
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
         self.__user_address={}
-        self.__user_profile_picture='http://s3.amazonaws.com/37assets/svn/765-default-avatar.png'
+        self.__user_profile_picture='Michelle_-_No_Costume_Live2D_Model.png'
 
 
     #User_Model Mutator

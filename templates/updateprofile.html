@@ -9,7 +9,6 @@
      <img src="../static/profile_pics/{{session['profile_picture']}}" class="img-xs rounded-circle border" width="100">
 <h1 class="display-4 mt-n1">Update</h1>
 <form method="POST" enctype="multipart/form-data" action="">
- {{ form.csrf_token }}
  <div class="form-group">
 {{ form.email.label(class="form-control-label")}}
   {{form.email(class="form-control")}}
@@ -27,12 +26,12 @@
     {{form.lastname(class="form-control")}}
  </div>
 <div class="form-group">
- {{form.profile_picture.label()}}
+ {{form.profile_picture.label(class="form-control-label")}}
  {{ form.profile_picture(class="form-control-file") }}
 
  </div>
 
-{{form.submit(class="btn btn-outline-info")}}   <a class="float-right" href="/create_newpassword_profile/{{session['user_id']}}">Reset Password</a>
+<input type="submit" value="Submit" class="btn btn-primary"> <a class="float-right" href="/create_newpassword_profile/{{session['user_id']}}">Reset Password</a>
 </form>
   </article>
 </div>
