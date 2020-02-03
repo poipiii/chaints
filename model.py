@@ -835,13 +835,13 @@ def obtaining_buyer_object(customerid):
 
 
 #edit delivery status
-def status_update(product_id,buyerid,status):
+def status_update(trackingid,buyerid,status):
     try:
         db=shelve.open('database/delivery_database/delivery.db','c')
         a=db[buyerid]
         for i in a:
             for k in i:
-                if k.get_product_id()==product_id:
+                if k.get_individual_orderid()==trackingid:
                     k.set_delivery_status(status)
         db[buyerid]=a
 
@@ -860,7 +860,7 @@ def passing_app_to_update(orderid,status):
             for n in db[i]:
                 for k in n:
                     if k.get_individual_orderid()==orderid:
-                        status_update(k.get_product_id(),k.get_buyer_id(),status)
+                        status_update(k.get_individual_orderid(),k.get_buyer_id(),status)
         db.close()
     except IOError:
         raise Exception("db does not exist")
@@ -883,6 +883,14 @@ def create_buyer_order_list(buyerid):
     except:
         raise Exception("an error has occurred")
     return buyerorderlist
+
+#to check seller for count
+def pending_order_check(orderlist):
+    count=0
+    for i in orderlist:
+        if i.get_deliverystat()=="Pending" or i.get_deliverystat()=="Order Processing":
+            count+=1
+    return count
 
 #to get products of seller
 def obtaining_seller_product_id(sellerid):
@@ -921,23 +929,21 @@ def create_seller_order_list(sellerid):
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
 
-#to delete delivery object from delivery db and
-#def cancelling_carrier_side(orderid):
-#    try:
-#        statusobj=carrier_delivery("-","-","Delivery Cancelled","Cancelled by buyer","-")
-#        db=shelve.open('database/delivery_database/carrier.db','c')
-#        if orderid in db:
-#            statuslist=db[orderid]
-#        else:
-#            statuslist=[]
-#        statuslist.append(statusobj)
-#        db[orderid]=statuslist
-#        db.close()
-#
-#    except IOError:
-#        raise Exception('db does not exist')
-#    except:
-#        raise Exception('an unknown error has occurred')
+#to obtain specific delivery object
+def delivery_object(trackingid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        for i in db:
+            for j in db[i]:
+                for n in j:
+                    if n.get_individual_orderid()==trackingid:
+                        deliveryobj=n
+        db.close()
+        return deliveryobj
+    except IOError:
+        raise Exception('Db does not exist')
+    except:
+        raise Exception('an unknown error has occurred')
 
 #to find the order to track
 def checking_id(orderid):
@@ -955,10 +961,15 @@ def checking_id(orderid):
 
 
 #cancelling order
-def deleting_delivery(userid):
+def deleting_delivery(userid,orderid):
     try:
         db=shelve.open('database/delivery_database/delivery.db','r')
-        del db[userid]
+        biglist=db[userid]
+        for i in biglist:
+            for n in i:
+                if n.get_individual_orderid()==orderid:
+                    i.remove(n)
+        db[userid]=biglist
         db.close()
     except IOError:
         raise Exception('db does not exist')

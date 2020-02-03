@@ -40,7 +40,7 @@
                     <h6><span class="title">Seller name:</span> {{ individual_order.get_seller_name() }}</h6>
                     <h6><span class="title">Order Date:</span> {{ individual_order.get_order_date() }}</h6>
                     <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
-                    <h6><span class="title">Delivery Status:</span> {{ individual_order.get_deliverystat() }}</h6>
+                    <h6><span class="title">Seller Status:</span> {{ individual_order.get_deliverystat() }}</h6>
                         <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-secondary">Copy ID</a>
                         <div class="productimage">
                                 <img src="../static/product_images/{{individual_order.get_product_image()}}" class="productimage">

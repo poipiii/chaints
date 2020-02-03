@@ -5,11 +5,11 @@
   <meta charset="utf-8" >
   <meta http-equiv="refresh" content="300" >
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="../static/bootstrap/css/modiy_bootstrap.css">
+  <link rel="stylesheet" href="{{url_for('static',filename = 'bootstrap/css/modiy_bootstrap.css')}}">
   <link href="https://fonts.googleapis.com/css?family=Rubik&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../static/bootstrap/css/ui.css">
-  <link rel="stylesheet" href="../static/bootstrap/css/responsive.css">
-  <link rel="stylesheet" href="../static/css/home.css">
+  <link rel="stylesheet" href="{{url_for('static',filename = 'bootstrap/css/ui.css')}}">
+  <link rel="stylesheet" href="{{url_for('static',filename = 'bootstrap/css/responsive.css')}}">
+  <link rel="stylesheet" href="{{url_for('static',filename = 'css/home.css')}}">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -41,11 +41,11 @@
 
 
 
-<script src="../static/bootstrap/jquery/jquery.min.js"></script>
+<script src="{{url_for('static', filename = 'bootstrap/jquery/jquery.min.js')}}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="../static/bootstrap/js/bootstrap.min.js"></script>
-<script src="../static/bootstrap/js/script.js"></script>
-<script src="../static/bootstrap-select-1.13.9/bootstrap-select-1.13.9/dist/js/bootstrap-select.min.js"></script>
+<script src="{{ url_for('static', filename = 'bootstrap/js/bootstrap.min.js')}}"></script>
+<script src="{{ url_for('static', filename = 'bootstrap/js/script.js')}}"></script>
+<script src="{{ url_for('static', filename = 'bootstrap-select-1.13.9/bootstrap-select-1.13.9/dist/js/bootstrap-select.min.js')}}"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
 <script>

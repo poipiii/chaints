@@ -99,9 +99,12 @@ def dashboard_home():
     if session.get('role') == 'S':
         ownp= get_usr_owned_p(session.get('user_id'))
         all_profit = api_all_profit(ownp)
+        orderlist=create_seller_order_list(session.get('user_id'))
+        pending_order=pending_order_check(orderlist)
     else:
         all_profit = 0
-    return render_template('chart.html',all_profit=all_profit)
+        pending_order=0
+    return render_template('chart.html',all_profit=all_profit,pending_order=pending_order)
 
 @app.route("/data/<d_type>")
 def datapipe(d_type):
@@ -642,20 +645,37 @@ def buyer_deliverydetails(orderid):
     except:
         print("an unknown error occurred")
 
-#app.route('/DeletingDelivery/<orderid>')
-#ef deleting_delivery(orderid):
-
-#   return redirect(url_for('buyer_deliverylist'))
+@app.route('/DeletingDelivery/<orderid>/<userid>')
+def deleting_delivery(orderid,userid):
+    #deleting_delivery(userid,orderid)
+    try:
+       db=shelve.open('database/delivery_database/delivery.db','r')
+       biglist=db[userid]
+       for i in biglist:
+           for n in i:
+               if n.get_individual_orderid()==orderid:
+                   i.remove(n)
+       db[userid]=biglist
+       db.close()
+    except IOError:
+        print("db not found")
+    except:
+        print("an unknown error occurred")
+    return redirect(url_for('buyer_deliverylist'))
 
 
 @app.route('/DeliveryReceived/<trackingid>/<productid>')
 def received_delivery(trackingid,productid):
     userid=session.get('user_id')
-    status_update(productid,userid,"Order Received")
+    status_update(trackingid,userid,"Order Received (Pending)")
     deliverylist=create_buyer_order_list(userid)
 
     return redirect(url_for('buyer_deliverylist'))
 
+@app.route('/SellerDeliveryReceived/<trackingid>/<buyerid>')
+def seller_acknowledge(trackingid,buyerid):
+    status_update(trackingid,buyerid,"Order Received (Acknowleged)")
+    return redirect(url_for('seller_deliverylist'))
 
 @app.route('/AdminvsBSCheck')
 def checking_role():
@@ -676,7 +696,8 @@ def Carrierbuyer():
             db=shelve.open('database/delivery_database/carrier.db','c')
             statuslist=db[orderid]
             db.close()
-            return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid)
+            dobj=delivery_object(orderid)
+            return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid,deliverObj=dobj)
         flash('Order ID does not exist. Please type again')
         return render_template('carrieruser.html',form=carrierbuyer)
     else:
@@ -705,6 +726,7 @@ def CarrierUpdate():
             #return render_template('testing2.html',statuslist=statuslist,orderid=orderid)
             return redirect(url_for('CarrierUpdateTable',trackingid=orderid))
         else:
+            flash("Woops, Tracking ID has not been added yet.")
             return render_template('carrier_update.html',form=carrierupdateform)
     return render_template('carrier_update.html',form=carrierupdateform)
 
@@ -712,16 +734,17 @@ def CarrierUpdate():
 
 @app.route('/RedirectingCarrierUpdate/<trackingid>')
 def CarrierUpdateTable(trackingid):
-    try:
-        db=shelve.open('database/delivery_database/carrier.db','c')
-        if trackingid in db:
-            statuslist=db[trackingid]
-        db.close()
-        return render_template('testing2.html',statuslist=statuslist,orderid=trackingid)
-    except IOError:
-        print("db not found")
-    except:
-        print("an unknown error has occurred")
+    #try:
+    db=shelve.open('database/delivery_database/carrier.db','c')
+    if trackingid in db:
+        statuslist=db[trackingid]
+    db.close()
+    dobj=delivery_object(trackingid)
+    return render_template('testing2.html',statuslist=statuslist,orderid=trackingid,deliverObj=dobj)
+    #except IOError:
+        #print("db not found")
+    #except:
+        #print("an unknown error has occurred")
 
 @app.route('/DeletingCarrierUpdate/<updateid>/<trackingid>')
 def deleting_update(updateid,trackingid):

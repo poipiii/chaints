@@ -26,9 +26,8 @@
                   <td>{{ delivery_item.get_seller_name() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
                     <td>{{ delivery_item.get_deliverystat() }}</td>
-                  {% if delivery_item.get_deliverystat() == "Order Received" or delivery_item.get_deliverystat() == "Cancelled"%}
-
-                    <td><a href="" class="btn btn-danger">Delete</a></td>
+                  {% if delivery_item.get_deliverystat() == "Order Received (Acknowleged)" or delivery_item.get_deliverystat() == "Cancelled"%}
+                    <td><a href="/DeletingDelivery/{{ delivery_item.get_individual_orderid() }}/{{ delivery_item.get_buyer_id() }}" class="btn btn-danger">Delete</a></td>
                   {% else %}
                   <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}/{{ delivery_item.get_product_id() }}" class="btn btn-success">Received</a></td>
                   {% endif %}
