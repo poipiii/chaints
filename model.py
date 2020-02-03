@@ -1109,11 +1109,12 @@ def payment_confirmation(cardholder,cardno,expiry,cvc,userid):
     db[userid]=order_object
     db.close()
 
-
-
-
-
-
+def Updateqty(qty,userid,productid):
+    db=shelve.open('database/order_database/cart.db','r')
+    s=db.get(userid)
+    s[productid]=qty
+    db[userid]=s
+    db.close()
 
 class Dessage():
     def __init__(self,userid,mtitle,mbody):

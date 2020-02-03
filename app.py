@@ -489,32 +489,54 @@ def cart():
 @app.route('/deletecart/<cartproductid>',methods = ['POST'])
 #take in post request from the route and the product id of the item to be deleted
 def deletecart(cartproductid):
-    db = shelve.open('database/order_database/cart.db','w')
-    # if user record exist fetch it from cart db and put it in varible usercart
-    if session.get('user_id') in db:
-        usercart = db.get(session.get('user_id'))
-        #delete the product from the usercart dict using pop and passing in the key of the product to be deleted
-        usercart.pop(cartproductid)
-        #save the upadted dict to the cart db
-        db[session.get('user_id')] = usercart
-    else:
-        raise 'user does not have a cart created'
+    try:
+        db = shelve.open('database/order_database/cart.db','w')
+        # if user record exist fetch it from cart db and put it in varible usercart
+        if session.get('user_id') in db:
+            usercart = db.get(session.get('user_id'))
+            #delete the product from the usercart dict using pop and passing in the key of the product to be deleted
+            usercart.pop(cartproductid)
+            #save the upadted dict to the cart db
+            db[session.get('user_id')] = usercart
+        else:
+            raise 'user does not have a cart created'
+        db.close()
+    except IOError:
+        print("db file not found")
+    except:
+        print("Unknown error")
     return redirect(url_for('cart'))
+
+@app.route('/Updatecart/<cartproductid>',methods=['POST','GET'])
+def Updatecart(cartproductid):
+    updateForm=updateorderForm(request.form)
+    if request.method=="POST" and updateForm.validate():
+        Updateqty(updateForm.orderqty.data,session.get('user_id'),cartproductid)
+        return redirect(url_for('cart'))
+    return render_template('Updateorderqty.html',form=updateForm)
+
 
 @app.route('/Deliverydetails', methods=['GET','POST']) #address,country,city,state,zip,userid
 def Deliverydetails():
     delivery_form= DeliveryForm(request.form)
     if request.method == "POST" and delivery_form.validate():
-        add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
-        return redirect(url_for('paymentdetails'))
+        if delivery_form.city.data.isalpha() and delivery_form.state.data.isalpha():
+            add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
+            return redirect(url_for('paymentdetails'))
+        else:
+            return render_template('delivery_details.html',form=delivery_form)
     return render_template('delivery_details.html',form=delivery_form)
+
 
 @app.route('/Paymentdetails', methods=['GET','POST'])
 def paymentdetails():
     payment1_form=Payment_Form(request.form)
     if request.method == "POST" and payment1_form.validate():
-        payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
-        return redirect(url_for('confirmation'))
+        if payment1_form.cardholder.data.isalpha():
+            payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
+            return redirect(url_for('confirmation'))
+        else:
+            return render_template('Payment.html',form=payment1_form)
     return render_template('Payment.html',form=payment1_form)
 
 
@@ -546,13 +568,17 @@ def confirmation():
     if session.get('user_id') in db:
         usr=db.get(session.get('user_id'))
         add = usr.get_user_address()
-        full_address=add["address"]+" "+ add["country"]+ " "+ add["city"]+" "+ add["state"]+" "+ add["zip"]
+        full_address=add["address"]+ " " + add["country"]+ " "+ add["city"]+ " "+ add["state"]+" "+ add["zip"]
         print(full_address)
-    separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     db.close()
+    db=shelve.open('database/order_database/cart.db')
+    db.pop(session.get('user_id'))
+    db.close()
+    # Pass to the delivery management
     separating_orders(session.get('user_id'),usercart,Neworder.get_timestamp_as_datetime(),full_address)
     order_log_preprocess(session.get('user_id'),Neworder)
     return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
+
 
 @app.route('/Myorder')
 def order():
@@ -568,9 +594,11 @@ def order():
         userorder=db.get(session.get('user_id'))
         for item in userorder.get_cart_list():
             productinorder.append(get_product_by_id(item))
-            db.close()
-            return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
+    db.close()
+
+    return render_template('MyOrder.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
     return render_template('MyOrder.html')
+
 
 @app.route('/SellerOrder')
 def seller_order():
@@ -583,13 +611,12 @@ def seller_order():
     db=shelve.open('database/order_database/order.db','c')
     if session.get('user_id')in db:
         userorder=db.get(session.get('user_id'))
-        print(session.get('user_id'))
         for item in userorder.get_cart_list():
             productinorder.append(get_product_by_id(item))
-            print(item)
             db.close()
             return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
     return render_template('Seller_order_list.html')
+
 
 @app.route('/SellerDelivery')
 def seller_deliverylist():

@@ -1,6 +1,12 @@
 {% extends "dashboard_base.html" %}
 {% block content %}
 <br><br><br><br>
+<style>
+	.aside img{
+	length:150px;
+	width:100px;
+	}
+</style>
 <h1>My Orders</h1>
 <div class="row">
 	<aside class="col-lg-9">
@@ -34,7 +40,7 @@
 	</td>
 	<td>
 		<div class="price-wrap">
-			<var class="price">{{i.get_discounted_price()*userorders[item]}}</var>
+			<var class="price">{{(i.get_discounted_price()*userorders[item])+5}}</var>
 		</div> <!-- price-wrap .// -->
 	</td>
     <td>
