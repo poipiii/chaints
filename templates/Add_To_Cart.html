@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<br><br><br><br>
 <div class="container">
 <h1 class="doc-title">Shopping cart</h1>
 
@@ -44,13 +45,15 @@
 	<td>
 		<div class="price-wrap">
 			<var class="price">{{i.get_product_price()}}</var>
-			<small class="text-muted">$10 </small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right d-none d-md-block">
 	<a data-original-title="Save to Wishlist" title="" href="" class="btn btn-light" data-toggle="tooltip"> <i class="fa fa-heart"></i></a>
 		<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
 		<input type="submit" value="Remove" class="btn btn-warning">
+		</form>
+		<form action="{{url_for('Updatecart',cartproductid = item)}}" method="POST">
+		<input type="submit" value="Update" class="btn btn-outline-success">
 		</form>
 	</td>
 </tr>
@@ -71,21 +74,7 @@
 	</aside> <!-- col.// -->
 	<aside class="col-lg-3">
 
-<div class="card mb-3">
-<div class="card-body">
-<form>
-	<div class="form-group">
-		<label>Have coupon?</label>
-		<div class="input-group">
-			<input type="text" class="form-control" name="" placeholder="Coupon code">
-			<span class="input-group-append">
-				<button class="btn btn-primary">Apply</button>
-			</span>
-		</div>
-	</div>
-</form>
-</div> <!-- card-body.// -->
-</div> <!-- card.// -->
+
 <div class="card">
 <div class="card-body">
 
@@ -101,10 +90,9 @@
 		  <dt>Total:</dt>
 		  <dd class="text-right text-dark b"><strong></strong>{{Grand_total}}</dd>
 		</dl>
-
-		<hr>
 		<a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase
 		</a>
+
 		<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
 </div> <!-- card-body.// -->
 </div> <!-- card.// -->
