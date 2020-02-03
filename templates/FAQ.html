@@ -93,7 +93,7 @@
             <!--contact us-->
             <div class="tab-pane" id="tab3" role="tabpanel" aria-labelledby="contact">
                 <div class="accordion" id="tabno3">
-                    {% for c in CoU %}
+                    {% for c in CoI %}
                         <div class="card">
                             <div class="card-header" id="tabno3-heading-{{ c.getid() }}">
                                 <h5>
@@ -118,7 +118,7 @@
                 </div>
                 {% if role=="A"%}
                 <div>
-                    <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryCoU'">Add</button>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryCoI'">Add</button>
                 </div>
                 {% endif %}
             </div>
