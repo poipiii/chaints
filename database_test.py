@@ -72,19 +72,18 @@ def delete_all_db():
 
 # date = datetime.datetime.now()
 
-# db = shelve.open('database/user_database/user.db', 'w')
-# user=User_Model('testadmin@testmail.com','testadmin','testadmin','test','admin','A',datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
-# db[user.get_user_id()]=user
-# user=User_Model('testseller1@testmail.com','testseller1','testseller1','test','seller1','A',datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
-# db[user.get_user_id()]=user
-# user=User_Model('testseller2@testmail.com','testseller2','testseller2','test','seller2','A',datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
-# db[user.get_user_id()]=user
-# user=User_Model('testbuyer1@testmail.com','testbuyer1','testbuyer1','test','buyer1','B',datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
-# db[user.get_user_id()]=user
-# user=User_Model('testbuyer2@testmail.com','testbuyer2','testbuyer2','test','buyer2','B',datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
-# db[user.get_user_id()]=user
-# db.close()
-
+#db = shelve.open('database/user_database/user.db', 'w')
+#user=User_Model('testadmin@testmail.com','testadmin','testadmin','test','admin','A',datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
+#db[user.get_user_id()]=user
+#user=User_Model('testseller1@testmail.com','testseller1','testseller1','test','seller1','A',datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
+#db[user.get_user_id()]=user
+#user=User_Model('testseller2@testmail.com','testseller2','testseller2','test','seller2','A',datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
+#db[user.get_user_id()]=user
+#user=User_Model('testbuyer1@testmail.com','testbuyer1','testbuyer1','test','buyer1','B',datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
+#db[user.get_user_id()]=user
+#user=User_Model('testbuyer2@testmail.com','testbuyer2','testbuyer2','test','buyer2','B',datetime.now().strftime("%d/%m/%Y, %H:%M:%S"))
+#db[user.get_user_id()]=user
+#db.close()
 
 
 def dbmanager():

@@ -35,12 +35,14 @@
                             <h5>
                                 <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-{{f.getid()}}" aria-expanded="false" aria-controls="tabno1-content-{{f.getid()}}">{{ f.getquestion()}}</button>
                             </h5>
+                            {% if role=="A"%}
                             <div>
                                 <a type="button" href="/updateFAQueryF/{{f.getid()}}"> Edit </a>
                             </div>
                             <div>
                                 <a type="button" href="/deleteQns/{{f.getid()}}">delete </a>
                             </div>
+                            {% endif %}
                         </div>
                         <div class="collapse" id="tabno1-content-{{f.getid()}}" aria-labelledby="tabno1-heading-{{f.getid()}}" data-parent="#tabno1">
                             <div class="card-body">
@@ -50,9 +52,11 @@
                     </div>
                 {% endfor %}
                 </div>
+                {% if role=="A"%}
                 <div>
                     <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryFaQ'">Add</button>
                 </div>
+                {% endif %}
             </div>
             <!--Account Issues-->
             <div class="tab-pane" id="tab2" role="tabpanel" aria-labelledby="FAQ">
@@ -63,12 +67,14 @@
                             <h5>
                                 <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-{{a.getid()}}" aria-expanded="false" aria-controls="tabno2-content-{{a.getid()}}">{{ a.getquestion()}}</button>
                             </h5>
+                            {% if role=="A"%}
                             <div>
                                 <a type="button" href="/updateFAQueryA/{{a.getid()}}"> Edit </a>
                             </div>
                             <div>
                                 <a type="button" href="/deleteQns/{{a.getid()}}">delete </a>
                             </div>
+                            {% endif %}
                         </div>
                         <div class="collapse" id="tabno2-content-{{a.getid()}}" aria-labelledby="tabno2-heading-{{a.getid()}}" data-parent="#tabno2">
                             <div class="card-body">
@@ -78,9 +84,11 @@
                     </div>
                 {% endfor %}
                 </div>
+                {% if role=="A"%}
                 <div>
                     <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryAcI'">Add</button>
                 </div>
+                {% endif %}
             </div>
             <!--contact us-->
             <div class="tab-pane" id="tab3" role="tabpanel" aria-labelledby="contact">
@@ -91,12 +99,14 @@
                                 <h5>
                                     <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno3-content-{{c.getid()}}" aria-expanded="false" aria-controls="tabno3-content-{{c.getid()}}">{{ c.getquestion()}}</button>
                                 </h5>
+                            {% if role=="A"%}
                             <div>
                                 <a type="button" href="/updateFAQueryC/{{c.getid()}}"> Edit </a>
                             </div>
                             <div>
                                 <a type="button" href="/deleteQns/{{c.getid()}}">delete </a>
                             </div>
+                            {% endif %}
                             </div>
                             <div class="collapse" id="tabno3-content-{{ c.getid() }}" aria-labelledby="tabno3-heading-{{c.getid()}}" data-parent="#tabno3">
                                 <div class="card-body">
@@ -106,9 +116,11 @@
                         </div>
                     {% endfor %}
                 </div>
+                {% if role=="A"%}
                 <div>
                     <button type="button" class="btn btn-primary" onclick="window.location.href='/addFAQueryCoU'">Add</button>
                 </div>
+                {% endif %}
             </div>
             <!--Chat-->
             <div class="tab-pane" id="tab4" role="tabpanel" aria-labelledby="StaffChat">
@@ -125,20 +137,30 @@
                             <h5>
                                 <a href="/displayQns/{{Q.get_msgid()}}" >{{ Q.getmtitle() }}</a>
                             </h5>
+                            <p>By:{{users.get(Q.getuid())}}  </p>
+                            {% if role=="A" or Q.getuid()==session.get('user_id')%}
                             <div>
                                 <a type="button" href="/deleteForumQns/{{Q.get_msgid()}}">delete </a>
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             <!--add -->
+            {% if role=="A" or role=="U" %}
             <div>
                 <button type="button" class="btn btn-primary" onclick="window.location.href='/createQns'">Ask a Question!</button>
             </div>
+            {% endif %}
         </div>
         </div>
         </div>
     </div>
 </div>
+<!--{% if role=="A"%}
+<div>
+    <button type="button" class="btn btn-primary" onclick="window.location.href='/FAQLOG'">FAQ Logs</button>
+</div>
+{% endif %}-->
 {% endblock %}

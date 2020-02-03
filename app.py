@@ -699,6 +699,20 @@ def CarrierUpdate():
 #FAQ Display
 @app.route('/FAQ')
 def FAQ():
+    #user for rx forum
+    user=shelve.open('database/user_database/user.db')
+    users={}
+    for i in user.values():
+        users[i.get_user_id()]=i.get_user_fullname()
+    user.close()
+
+
+    role="NU"
+    if session.get('logged_in')== True:
+        if session.get('role')=='A':
+            role="A" 
+        else:
+            role="U"   
     Gold=[]
     FaQ=[]
     AcI=[]
@@ -708,7 +722,6 @@ def FAQ():
         Enamel=Ein.values()
         for i in Enamel:
             if isinstance(i,CQuestion):
-                print(i.getmtitle())
                 Gold.append(i)
 
         Ein.close()
@@ -727,26 +740,23 @@ def FAQ():
         Zwei.close()
     except:
         print("The Second Database has not been found")
-    return render_template('FAQ.html', Gold=Gold, FaQ=FaQ , AcI=AcI,CoI=CoI)
+    return render_template('FAQ.html', Gold=Gold, FaQ=FaQ , AcI=AcI,CoI=CoI,role=role,users=users)
 
 
 #Forum Question
 @app.route('/createQns',methods=["GET","POST"])
 def createQns():
-    if session.get('logged_in') == True:
-        createquestion=Question(request.form)
-        if request.method=="POST" and createquestion.validate():
-            new_question = CQuestion(session.get('user_id'),createquestion.mtitle.data,createquestion.mbody.data)
-            try:
-                db=shelve.open('database/forum_database/FAQQ.db','c')
-                db[new_question.get_msgid()] = new_question
-            except IOError:
-                print("Database failed to open")
-            db.close()
-            return redirect(url_for('FAQ'))
-        return render_template('createQns.html',form=createquestion)
-    else:
-        return redirect(url_for('loginUser'))
+    createquestion=Question(request.form)
+    if request.method=="POST" and createquestion.validate():
+        new_question = CQuestion(session.get('user_id'),createquestion.mtitle.data,createquestion.mbody.data)
+        try:
+            db=shelve.open('database/forum_database/FAQQ.db','c') 
+            db[new_question.get_msgid()] = new_question
+        except IOError:
+            print("Database failed to open")
+        db.close()
+        return redirect(url_for('FAQ'))
+    return render_template('createQns.html',form=createquestion)
 
 #Forum Answer
 @app.route('/Respond/<id>',methods=["GET","POST"])
@@ -769,9 +779,23 @@ def Respond(id):
 
 @app.route('/displayQns/<id>')
 def displayQns(id):
+    #user for rx forum
+    user=shelve.open('database/user_database/user.db','r')
+    users={}
+    for i in user.values():
+        users[i.get_user_id()]=[i.get_user_fullname(), i.get_user_profile_picture()]
+    user.close()
+
+    role="NU"
+    uid=session.get('user_id')
+    if session.get('logged_in')== True:
+        if session.get('role')=='A':
+            role="A" 
+        else:
+            role="U"   
     question = get_question_by_id(id)
     AnswerList=get_answer_by_id(question.get_ans_list())
-    return render_template('displayQns.html',question = question, AnswerList=AnswerList)
+    return render_template('displayQns.html',question = question, AnswerList=AnswerList, role=role, uid=uid,users=users)
 
 #update Qns in Forum
 @app.route('/updateQns/<id>',methods=["GET","POST"])
@@ -793,6 +817,7 @@ def updateQns(id):
         updateQns.mbody.data=Qns.getmbody()
         return render_template('updateqns.html',form=updateQns)
 
+#Frequently Asked Questions
 @app.route('/addFAQueryFaQ',methods=["GET","POST"])
 def addFAQueryF():
     Drei=FAQd(request.form)
@@ -808,7 +833,7 @@ def addFAQueryF():
         Three.close()
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Drei)
-
+#Account Issues
 @app.route('/addFAQueryAcI',methods=["GET","POST"])
 def addFAQueryAcI():
     Vier=FAQd(request.form)
@@ -823,7 +848,7 @@ def addFAQueryAcI():
         Four.close()
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Vier)
-
+#Contact Us
 @app.route('/addFAQueryCoI',methods=["GET","POST"])
 def addFAQueryCoI():
     Fuenf=FAQd(request.form)
@@ -833,107 +858,137 @@ def addFAQueryCoI():
         try:
             Five=shelve.open("database/forum_database/FAQDisplay.db","c")
             Five[Charlie.getid()] = Charlie
-            
         except IOError:
             print("ooopsie")
         Five.close()
+        faq_logging(session.get('user_id'),'Contact Us','CREATE',Charlie.getid(),Charlie)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Fuenf)
 
-#update Qns in Forum
+#update Qns in FAQ only seen by admin
 @app.route('/updateFAQueryF/<id>',methods=["GET","POST"])
 def updateFAQueryF(id):
-    updateFAQueryF=FAQd(request.form)
-    if request.method =='POST' and updateFAQueryF.validate():
-        db=shelve.open('database/forum_database/FAQDisplay.db','w')
-        Fa= db.get(id)
-        Fa.setquestion(updateFAQueryF.question.data)
-        Fa.setanswer(updateFAQueryF.answer.data)
+    if session.get('logged_in') and session.get('role')=="A":
+        updateFAQueryF=FAQd(request.form)
+        updateFAQueryF=FAQd(request.form)
+        if request.method =='POST' and updateFAQueryF.validate():
+            db=shelve.open('database/forum_database/FAQDisplay.db','w')
+            Fa= db.get(id)
+            Fa.setquestion(updateFAQueryF.question.data)
+            Fa.setanswer(updateFAQueryF.answer.data)
 
-        db[id]= Fa
-        db.close()
+            db[id]= Fa
+            db.close()
         
-        return redirect(url_for('FAQ'))
-        
-    else:
-        db= shelve.open('database/forum_database/FAQDisplay.db','r')
-        Qns= db.get(id)
-        db.close()
-        
-        updateFAQueryF.question.data= Qns.getquestion()
-        updateFAQueryF.answer.data=Qns.getanswer()
-        return render_template('faqopening2.html',form=updateFAQueryF)
+            faq_logging(session.get('user_id'),'frequently asked questions','EDIT',Fa.getid(),Fa)
+            return redirect(url_for('FAQ'))
 
-#update Qns in Forum
+        else:
+            db= shelve.open('database/forum_database/FAQDisplay.db','r')
+            Qns= db.get(id)
+            db.close()
+
+            updateFAQueryF.question.data= Qns.getquestion()
+            updateFAQueryF.answer.data=Qns.getanswer()
+            return render_template('faqopening2.html',form=updateFAQueryF)
+
+#update Qns in FAQ only see button
 @app.route('/updateFAQueryA/<id>',methods=["GET","POST"])
 def updateFAQueryA(id):
-    updateFAQueryA=FAQd(request.form)
-    if request.method =='POST' and updateFAQueryA.validate():
-        db=shelve.open('database/forum_database/FAQDisplay.db','w')
-        Fa= db.get(id)
-        Fa.setquestion(updateFAQueryA.question.data)
-        Fa.setanswer(updateFAQueryA.answer.data)
+    if session.get('logged_in')==True and session.get('role')=="A":
+        updateFAQueryA=FAQd(request.form)
+        if request.method =='POST' and updateFAQueryA.validate():
+            db=shelve.open('database/forum_database/FAQDisplay.db','w')
+            Fa= db.get(id)
+            Fa.setquestion(updateFAQueryA.question.data)
+            Fa.setanswer(updateFAQueryA.answer.data)
 
-        db[id]= Fa
-        db.close()
-        
-        return redirect(url_for('FAQ'))
-        
-    else:
-        db= shelve.open('database/forum_database/FAQDisplay.db','r')
-        Qns= db.get(id)
-        db.close()
-        
-        updateFAQueryA.question.data= Qns.getquestion()
-        updateFAQueryA.answer.data=Qns.getanswer()
-        return render_template('faqopening2.html',form=updateFAQueryA)
+            db[id]= Fa
+            db.close()
+            faq_logging(session.get('user_id'),'Account Issues','EDIT',Fa.getid(),Fa)
+            return redirect(url_for('FAQ'))
+
+        else:
+            db= shelve.open('database/forum_database/FAQDisplay.db','r')
+            Qns= db.get(id)
+            db.close()
+
+            updateFAQueryA.question.data= Qns.getquestion()
+            updateFAQueryA.answer.data=Qns.getanswer()
+            return render_template('faqopening2.html',form=updateFAQueryA)
 
 #update Qns in Forum
 @app.route('/updateFAQueryC/<id>',methods=["GET","POST"])
 def updateFAQueryC(id):
-    updateFAQueryC=FAQd(request.form)
-    if request.method =='POST' and updateFAQueryC.validate():
-        db=shelve.open('database/forum_database/FAQDisplay.db','w')
-        Fa= db.get(id)
-        Fa.setquestion(updateFAQueryC.question.data)
-        Fa.setanswer(updateFAQueryC.answer.data)
+    if session.get('logged_in')==True and session.get('role')=="A":
+        updateFAQueryC=FAQd(request.form)
+        if request.method =='POST' and updateFAQueryC.validate():
+            db=shelve.open('database/forum_database/FAQDisplay.db','w')
+            Fa= db.get(id)
+            Fa.setquestion(updateFAQueryC.question.data)
+            Fa.setanswer(updateFAQueryC.answer.data)
 
-        db[id]= Fa
-        db.close()
-        
-        return redirect(url_for('FAQ'))
-        
-    else:
-        db= shelve.open('database/forum_database/FAQDisplay.db','r')
-        Qns= db.get(id)
-        db.close()
-        
-        updateFAQueryC.question.data= Qns.getquestion()
-        updateFAQueryC.answer.data=Qns.getanswer()
-        return render_template('faqopening2.html',form=updateFAQueryC)
 
+            db[id]= Fa
+            db.close()
+            faq_logging(session.get('user_id'),'Contact Us','EDIT',Fa.getid(),Fa)
+            return redirect(url_for('FAQ'))
+
+        else:
+            db= shelve.open('database/forum_database/FAQDisplay.db','r')
+            Qns= db.get(id)
+            db.close()
+
+            updateFAQueryC.question.data= Qns.getquestion()
+            updateFAQueryC.answer.data=Qns.getanswer()
+            return render_template('faqopening2.html',form=updateFAQueryC)
+#Delete FAQ Qns
 @app.route('/deleteQns/<id>')
 def deleteQns(id):
-    Ace=shelve.open('database/forum_database/FAQDisplay.db','w')
-    Ace.pop(id)
-    Ace.close()
-    
-    return redirect(url_for('FAQ'))
-
-
+    if session.get('logged_in')==True and session.get('role')=="A":
+        Ace=shelve.open('database/forum_database/FAQDisplay.db','w')
+        deleted_faq = Ace.pop(id)
+        Ace.close()
+        if isinstance(deleted_faq,FAQm):
+            faq_type= "frequently asked questions"
+        elif isinstance(deleted_faq,Account_Issues):
+            faq_type="account issues"
+        else:
+            faq_type="contact us"
+        faq_logging(session.get('user_id'),faq_type,'DELETE',deleted_faq.getid(),deleted_faq)
+        return redirect(url_for('FAQ'))
+#Delete Forum Qns
 @app.route('/deleteForumQns/<id>')
 def deleteForumQns(id):
-    Ace=shelve.open('database/forum_database/FAQQ.db','w')
-    ri= Ace[id]
-    
-    for i in ri.get_ans_list():
-        Ace.pop(i)
+    if session.get('logged_in')==True:
+        Ace=shelve.open('database/forum_database/FAQQ.db','w')
+        ri= Ace[id]
 
-    Ace.pop(id)
-    Ace.close()
+        for i in ri.get_ans_list():
+            Ace.pop(i)
+
+        Ace.pop(id)
+        Ace.close()
     
     return redirect(url_for('FAQ'))
-
+#Show FAQ Log
+#@app.route('/FAQLOG')
+#def FAQLOG():
+#    logsget=[]
+#    if session.get('logged_in')==True and session.get('role')=="A":
+#        db=shelve.open("database/logs_database/logs.db",'r')
+#        udb=shelve.open("database/user_database/user.db",'r')
+#        for i in udb:
+#            userid=udb[i.get_user_id()]
+#            logs=db[userid]
+#        for x in logs:
+#            logsget.append(x.get_faq_log_list())
+#
+#        udb.close()
+#        db.close()
+#        return render_template('displayfaqlogs.html',log=logsget)        
+#    else:
+#        return redirect(url_for('FAQ'))
 # @app.errorhandler(404)
 # def not_found_error(error):  
 #     return render_template('404.html'), 404
