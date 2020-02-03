@@ -12,7 +12,14 @@
     {% endfor %}
   {% endif %}
 {% endwith %}
-
+<style>
+	img {
+  vertical-align: middle;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+}
+</style>
 {% for user in usersList %}
 	 {% if session['user_id'] ==  user.get_user_id() %}
 <div class="card">
@@ -21,7 +28,7 @@
      <form>
 
      	<div class="form-group">
-			<img src="../static/profile_pics/{{session['profile_picture']}}" class="img-xs rounded-circle border" width="100"> </div>
+			<img src="../static/profile_pics/{{session['profile_picture']}}" class="border" > </div>
 			<div class="col form-group">
 			<label></label>
 			<p>{% if session['role'] ==  'A' %}

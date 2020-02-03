@@ -89,6 +89,7 @@ def api_all_profit(ownp):
     else:
         return 0
 
+
 # def test_func():
 #     df = to_df(ownp)
 #     test = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))

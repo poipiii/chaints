@@ -427,19 +427,26 @@ def updateUser(id):
 
 @app.route('/updateprofile/<id>', methods=['GET', 'POST'])
 def updateprofile(id):
-    updateprofileForm = CreateProfileUpdateForm()
-    if updateprofileForm.validate_on_submit():
+    updateprofileForm = CreateProfileUpdateForm(request.form)
+    if request.method == 'POST' and updateprofileForm.validate():
+        profile_pic = CreateProfileUpdateForm(request.files)
         db = shelve.open("database/user_database/user.db", "w")
         user = db[id]
         user.set_user_email(updateprofileForm.email.data)
         user.set_username(updateprofileForm.username.data)
         user.set_user_firstname(updateprofileForm.firstname.data)
         user.set_user_lastname(updateprofileForm.lastname.data)
-        profile_pic = updateprofileForm.profile_picture.data
+        profile_pic = profile_pic.profile_picture.data
         if profile_pic:
             filename = secure_filename(profile_pic.filename)
             profile_pic.save(os.path.join(app.config["PROFILE_IMAGE_UPLOAD"],secure_filename(profile_pic.filename)))
+            if user.get_user_profile_picture()!="Michelle_-_No_Costume_Live2D_Model.png":
+                old_profile_pic=(os.path.join(app.config['PROFILE_IMAGE_UPLOAD'],user.get_user_profile_picture()))
+                if os.path.exists(old_profile_pic)==True:
+                    os.remove(old_profile_pic)
             user.set_user_profile_picture(filename)
+
+
         db[id]=user
         session['profile_picture']=user.get_user_profile_picture()
         db.close()
