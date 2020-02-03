@@ -4,21 +4,30 @@
 <br>
 <br>
 
+<img src="{{users.get(question.getuid())[1]}}">
+<h6>{{users.get(question.getuid())[0]}}</h6>
 
 <h1>{{question.getmtitle()}}</h1>
 <h3>{{question.getmbody()}}</h3>
 
+{% if role=="A" or uid==question.getuid() %}
 <a type="button" href="/updateQns/{{question.get_msgid()}}"> Update </a>
-
+<a type="button" href="/Respond/{{question.get_msgid()}}">Reply </a>
+{% endif %}
+<!--User particulars-->
+<hr>
 
 {% for answer in AnswerList %}
+    <img src="{{users.get(answer.getuid())[1]}}">
+    <h6>{{users.get(answer.getuid())[0]}}</h6>
     <p>{{ answer.getmbody()}}</p>
+    <hr>
 {% endfor %}
 
 <!--Reply Button-->
+{% if role=="A" or role=="U" %}
 <div>
 <a type="button" href="/Respond/{{question.get_msgid()}}">Reply </a>
-
-
 </div>
+{% endif %}
 {% endblock %}
