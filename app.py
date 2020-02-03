@@ -28,6 +28,9 @@ s= URLSafeTimedSerializer(app.secret_key)
 mail = Mail(app)
 @app.before_request
 def before_request():
+    if session.get('forced_logout')==True:
+        return redirect(url_for('logout'))
+
     if session.get('logged_in') == True:
         if session.get('remember')==True:
             pass
@@ -38,7 +41,7 @@ def before_request():
             delta = now - last_active
             if delta.seconds > 1800:
                 session['last_active'] = now
-                session['forced_logout']= True
+                session['forced_logout']=True
         except:
             pass
 
