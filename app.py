@@ -7,7 +7,6 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
-from datapipeline import *
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from Forms import Question, Response
@@ -511,9 +510,11 @@ def Add_to_cart(productid,productqty):
         #save the record to the cart db with current logged in user id as key and usercart dict as value
         db[session.get('user_id')] = usercart
         db.close()
+        flash("Product added to the Cart")
         return redirect(url_for('landing_page'))
     else:
         return redirect(url_for('loginUser'))
+
 @app.route('/cart')
 def cart():
     if session.get('logged_in') == True:
@@ -536,7 +537,6 @@ def cart():
             #if user record does not exist , usercart is initalise as a empty dict
             # and save empty dict to db so if user open cart without adding items there will be no error
             usercart={}
-            db[session.get('user_id')] = usercart
         db.close()
         total_price=0
         total_discount=0
@@ -551,6 +551,7 @@ def cart():
         return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart,total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
     else:
         return redirect(url_for('loginUser'))
+
 @app.route('/deletecart/<cartproductid>',methods = ['POST'])
 #take in post request from the route and the product id of the item to be deleted
 def deletecart(cartproductid):
@@ -576,8 +577,12 @@ def deletecart(cartproductid):
 def Updatecart(cartproductid):
     updateForm=updateorderForm(request.form)
     if request.method=="POST" and updateForm.validate():
-        Updateqty(updateForm.orderqty.data,session.get('user_id'),cartproductid)
-        return redirect(url_for('cart'))
+        if updateForm.orderqty.data>=1:
+            Updateqty(updateForm.orderqty.data,session.get('user_id'),cartproductid)
+            return redirect(url_for('cart'))
+        else:
+            flash('Invalid quantity')
+            return render_template('Updateorderqty.html',form=updateForm)
     return render_template('Updateorderqty.html',form=updateForm)
 
 
@@ -585,11 +590,8 @@ def Updatecart(cartproductid):
 def Deliverydetails():
     delivery_form= DeliveryForm(request.form)
     if request.method == "POST" and delivery_form.validate():
-        if delivery_form.city.data.isalpha() and delivery_form.state.data.isalpha():
             add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
             return redirect(url_for('paymentdetails'))
-        else:
-            return render_template('delivery_details.html',form=delivery_form)
     return render_template('delivery_details.html',form=delivery_form)
 
 
@@ -597,10 +599,11 @@ def Deliverydetails():
 def paymentdetails():
     payment1_form=Payment_Form(request.form)
     if request.method == "POST" and payment1_form.validate():
-        if payment1_form.cardholder.data.isalpha():
-            payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
+        if  payment1_form.cvc.data>0 and payment1_form.cardno.data>0:
+            # payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
             return redirect(url_for('confirmation'))
         else:
+            flash('  Invalid cvc or cardnumber or cardname')
             return render_template('Payment.html',form=payment1_form)
     return render_template('Payment.html',form=payment1_form)
 
@@ -644,7 +647,6 @@ def confirmation():
     order_log_preprocess(session.get('user_id'),Neworder)
     return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
-
 @app.route('/Myorder')
 def order():
     #list of all the product objects in customer order 
@@ -658,8 +660,7 @@ def order():
             product_obj = get_product_by_id(item)
             if product_obj.get_product_id() not in productinorder:
                 productinorder[product_obj.get_product_id()] = product_obj
-                
-
+    db.close()
     # if session.get('user_id')in db:
     #     userorder=db.get(session.get('user_id'))
     #     for item in userorder.get_cart_list():
@@ -674,17 +675,18 @@ def seller_order():
     if db[userid].get_user_role()!="S":
         return redirect(url_for('order'))
     db.close()
-    productinorder = []
-    db=shelve.open('database/order_database/order.db','c')
-    if session.get('user_id')in db:
-        userorder=db.get(session.get('user_id'))
-        for item in userorder.get_cart_list():
-            productinorder.append(get_product_by_id(item))
-            db.close()
-            return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
-    return render_template('Seller_order_list.html')
-
-
+    productinorder = {}
+    seller_order = []
+    order=get_seller_orders(session.get('user_id'))
+    for i in order:
+        # seller_order.append(i.get_cart_list())
+        for n in i.get_cart_list():
+            if n != 'orderid' and n != 'buyerid':
+                print(n)
+                order_obj=get_product_by_id(n)
+                if order_obj.get_product_id() not in productinorder:
+                    productinorder[order_obj.get_product_id()]=order_obj
+    return render_template('Seller_order_list.html',orders=order,productinorder=productinorder)
 
 #delivery management
 @app.route('/SellerDelivery')

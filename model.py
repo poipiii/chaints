@@ -1131,6 +1131,9 @@ class Order:
         self.__totalprice=totalprice
         # self.__sellerID=sellerID
         self.__timestamp = datetime.timestamp(datetime.now())
+    def temp_set_cart_list(self,old_cart_list):
+         self.__cart_list=old_cart_list
+
     def set_buyername(self,buyername):
         self.__buyername=buyername
 
@@ -1142,8 +1145,10 @@ class Order:
 
     def get_orderId(self):
         return self.__orderID
+
     def get_buyer_user_id(self):
         return self.__buyer_user_id
+
     def get_buyername(self):
         return self.__buyername
 
@@ -1162,14 +1167,36 @@ class Order:
     def get_timestamp_as_datetime(self):
         return datetime.fromtimestamp(self.__timestamp)
 
+# Get orders the user made
 def get_buyer_orders(user_id):
     buyers_orders = []
     db = shelve.open('database/order_database/order.db','r')
     for orders in db.values():
         print(orders)
+        # Check if user login make the order
         if orders.get_buyer_user_id() == user_id:
             buyers_orders.append(orders)
+    db.close()
     return buyers_orders
+
+def get_seller_orders(sellerid):
+    # Call a function to get all the id of the product the seller owns
+     seller_own_product = get_usr_owned_p(sellerid)
+     seller_orders = []
+     db = shelve.open('database/order_database/order.db','r')
+    # Loop thru all order obj in the order db
+     for orders in db.values():
+        userorder = orders.get_cart_list()
+        # Loop through a dictionary userorder and remove iem at the same time
+        for items in userorder.copy():
+            if items not in seller_own_product:
+                userorder.pop(items)
+        # userorder['buyerid'] = orders.get_buyername()
+        # userorder['orderid'] = orders.get_orderId()
+        orders.temp_set_cart_list(userorder)
+        seller_orders.append(orders)
+     db.close()
+     return seller_orders
 
 
 class confirm_order():
@@ -1209,10 +1236,6 @@ class confirm_order():
 
     def get_cartdict(self):
         return self.__cartdict
-
-
-
-
 
 
 def delivery_info(DeliveryInfo):

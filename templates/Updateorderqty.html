@@ -3,13 +3,25 @@
 <br><br><br><br>
 {% from "includes/_formhelper.html" import render_field %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div id='message' class="alert alert-primary alert-dismissible fade show" role="alert">
+       {{message}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <div class="container-fluid row justify-content-center pt-4">
  <article class="card-body border col-sm-4">
 <form method="POST" action="">
  <div class="form-row">
   <div class="col form-group">
  {{ form.orderqty.label(class="form-control-label")}}
- {{ form.orderqty(class="form-control",type="number") }}
+ {{ form.orderqty(class="form-control",type="number")}}
  </div>
      <input type="submit" value="Update" class="btn btn-primary float-right"/>
 </form>
