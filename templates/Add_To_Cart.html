@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div id='message' class="alert alert-primary alert-dismissible fade show" role="alert">
+       {{message}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <br><br><br><br>
 <div class="container">
 <h1 class="doc-title">Shopping cart</h1>
@@ -90,8 +102,11 @@
 		  <dt>Total:</dt>
 		  <dd class="text-right text-dark b"><strong></strong>{{Grand_total}}</dd>
 		</dl>
-		<a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase
-		</a>
+		{% if usercart|length %}
+	    <a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase	</a>
+	    {% else%}
+		<a href="/Deliverydetails" class="btn btn-primary disabled" > Make Purchase	</a>
+	    {%endif%}
 
 		<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
 </div> <!-- card-body.// -->
