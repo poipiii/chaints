@@ -491,6 +491,14 @@ def profile():
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
     if session.get('logged_in') == True:
+        userid=session.get('user_id')
+        userrole=session.get('role')
+        if userrole=="A":
+            return redirect(url_for('landing_page'))
+        db=shelve.open('database/user_database/user.db','r')
+        if db[userid].get_user_role()=="S":
+            return redirect(url_for('landing_page'))
+        db.close()
         #take in productid and product quantity from route
         db= shelve.open('database/order_database/cart.db','c')
         #check if logged in user is in cart db
@@ -520,6 +528,9 @@ def cart():
     if session.get('logged_in') == True:
         #initalise a empty list for product objects in varible productincart
         userid=session.get('user_id')
+        userrole=session.get('role')
+        if userrole=="A":
+            return redirect(url_for('landing_page'))
         db=shelve.open('database/user_database/user.db','r')
         if db[userid].get_user_role()=="S":
             return redirect(url_for('landing_page'))
