@@ -10,6 +10,7 @@ from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from Forms import Question, Response
+from datapipeline import *
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
@@ -152,6 +153,20 @@ def datapipe(d_type):
     # profit = apidata[0]
     # dtime = apidata[1]
     # return jsonify({"profit":profit},{"datetime":dtime})
+@app.route("/user_logs")
+def userdashboard_logs():
+    db = shelve.open('database/logs_database/logs.db', 'r')
+    userslogList = []
+    for user in db:
+        try:
+            user_log = get_user_log_by_id(user)
+            userslogList.append(user_log)
+        except AttributeError:
+            pass
+    if userslogList is not None:
+        return render_template('admin_logs_page.html',user_log_list = userslogList)
+    else:
+        return render_template('admin_logs_page.html')
 
 
 @app.route("/product_logs")
@@ -264,9 +279,19 @@ def signupUser():
         return redirect(url_for("landing_page"))
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
-        username = request.form['username']
-        password = request.form['password']
         email = request.form['email']
+        username = request.form['username']
+        db = shelve.open('database/user_database/user.db', 'r')
+        for user in db:
+                user=db[user]
+                if user.get_user_email()==email:
+                    error = 'This email is in use, please enter another email.'
+                    return render_template('Signup.html', form=createUserForm, error=error)
+                if user.get_username()==username:
+                    usernameerror = 'This username is in use, please enter another username.'
+                    return render_template('Signup.html', form=createUserForm, usernameerror=usernameerror)
+        db.close()
+        password = request.form['password']
         firstname= request.form['firstname']
         lastname= request.form['lastname']
         role= request.form['role']
@@ -290,6 +315,7 @@ def confirm_email(token):
     db = shelve.open('database/user_database/user.db', 'c')
     user=User_Model(user[0],user[1],user[2],user[3],user[4],user[5],date)
     db[user.get_user_id()]=user
+    user_logging(user.get_user_id(),'CREATE',user,user.get_username())
     db.close()
     flash('Your account has been verified')
     return redirect(url_for("landing_page"))
@@ -379,6 +405,7 @@ def loginUser():
                         session['name']=user.get_user_fullname()
                         session['role']=user.get_user_role()
                         session['profile_picture']=user.get_user_profile_picture()
+                        user_logging(user.get_user_id(),'LOGIN',user,user.get_username())
                         db.close()
                         try:
                             if request.form['remember']:
@@ -395,6 +422,14 @@ def loginUser():
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
 def logout():
+    try:
+        db = shelve.open('database/user_database/user.db', 'r')
+        userid=session['user_id']
+        user=db[userid]
+        user_logging(user.get_user_id(),'LOGOUT',user,user.get_username())
+        db.close()
+    except:
+        pass
     session.clear()
     return redirect(url_for('landing_page'))
 
@@ -412,6 +447,7 @@ def updateUser(id):
         user.set_user_lastname(updateUserForm.lastname.data)
         user.set_user_role(updateUserForm.role.data)
         db[id]=user
+        user_logging(user.get_user_id(),'EDIT',user,user.get_username())
 
         db.close()
         return redirect(url_for("retrieveUsers"))
@@ -451,6 +487,7 @@ def updateprofile(id):
 
         db[id]=user
         session['profile_picture']=user.get_user_profile_picture()
+        user_logging(user.get_user_id(),'EDIT',user,user.get_username())
         db.close()
         return redirect(url_for("profile"))
     else:
@@ -467,10 +504,15 @@ def updateprofile(id):
 
 @app.route('/deleteUser/<id>', methods=['POST'])
 def deleteUser(id):
- db = shelve.open('database/user_database/user.db', 'w')
- db.pop(id)
- db.close()
- return redirect(url_for('retrieveUsers'))
+    db = shelve.open('database/user_database/user.db', 'r')
+    user=db[id]
+    username=user.get_username()
+    if user.get_user_role()=="S":
+        delete_all_user_product(id)
+    deleted_user=db.pop(id)
+    user_logging(user.get_user_id(),'DELETE',deleted_user,username)
+    db.close()
+    return redirect(url_for('retrieveUsers'))
 
 
 #adding  product to cart 
