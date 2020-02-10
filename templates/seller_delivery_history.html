@@ -18,7 +18,7 @@
                     <th>Tracking ID</th>
                   <th>Product</th>
                   <th>Product Name</th>
-                  <th>Seller Username</th>
+                  <th>Buyer Username</th>
                   <th>Order Date</th>
                     <th>Date Delivery Received</th>
                 </tr>
@@ -29,7 +29,7 @@
                   <td>{{ delivery_item.get_individual_orderid() }}</td>
                   <td><img src="../static/product_images/{{delivery_item.get_product_image()}}" width="60" height="60" alt="..."></td>
                   <td>{{ delivery_item.get_product_name() }}</td>
-                  <td>{{ delivery_item.get_seller_name() }}</td>
+                  <td>{{ delivery_item.get_buyer_name() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
                   <td>{{ delivery_item.get_delivery_received_date() }}</td>
                 </tr>

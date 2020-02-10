@@ -1253,7 +1253,7 @@ def print_carrier_list():
             print("Date: %s"%k.get_status_date())
     db.close()
 
-print_carrier_list()
+#print_carrier_list()
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")
 #====clear delivery db======

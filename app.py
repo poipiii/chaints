@@ -861,8 +861,14 @@ def delivery_history():
     userid=session.get('user_id')
     userrole=session.get('role')
     if userrole=='B':
-        history=buyer_history_list(userid)
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        if userid in db:
+            history=buyer_history_list(userid)
+        else:
+            history=[]
+        db.close()
         return render_template('buyer_delivery_history.html',history=history)
+
     history=seller_history_list(userid)
     return render_template('seller_delivery_history.html',history=history)
 

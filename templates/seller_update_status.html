@@ -39,7 +39,7 @@ bottom:40px; !important
             <div class="orderdetails">
                 <h2>Order Details</h2>
                 <div>
-                    <h6><span class="title">Order ID:</span><span id="copystuff"> {{ orderid }}</span> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-sm btn-secondary" id="buttonyeet">Copy ID</a></h6>
+                    <h6><span class="title">Order ID:</span><span id="copystuff">{{ orderid }}</span>
                     <h6><span class="title">Product:</span> {{ individual_order.get_product_name() }}</h6>
                     <h6><span class="title">Buyer name:</span> {{ individual_order.get_buyer_name() }}</h6>
                     <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
@@ -51,9 +51,10 @@ bottom:40px; !important
                             {{ render_field(form.deliverystatus, class="form-control") }}
                         </div>
                         </div>
-                        <input type="submit" value="Update" class="btn btn-success float-right">
+                         <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-secondary" id="buttonyeet">Copy ID</a>
+                        <input type="submit" value="Update" class="btn btn-success"><a href="/CarrierBuyerDash" class="btn btn-warning float-right">Courier Tracking</a>
                     </form>
-                    <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a> <a href="/CarrierBuyerDash" class="btn btn-warning">Courier Tracking</a>
+
 
                     <div class="productimage">
                                 <img src="../static/product_images/{{individual_order.get_product_image()}}" width="200" height="200" >
