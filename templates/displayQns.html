@@ -58,6 +58,12 @@
 <div class="container">
     <a type="button" class="btn btn-primary" href="/Respond/{{question.get_msgid()}}">Reply </a>
 </div>
+{% endif%}
+<br>
+{% if AnswerList|length>3%}
+    <div id="FAQ" class="sticky-top">
+    <a type="button" class="btn btn-primary ml-5" href="/FAQ"><i class="fa fa-arrow-circle-left"></i> Back to FAQ </a>
+</div>
 {% endif %}
-
+<hr>
 {% endblock %}

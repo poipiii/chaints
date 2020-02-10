@@ -36,11 +36,13 @@
                                 <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno1-content-{{f.getid()}}" aria-expanded="false" aria-controls="tabno1-content-{{f.getid()}}">{{ f.getquestion()}}</button>
                             </h5>
                             {% if role=="A"%}
+                            <div class="row float-right ml-5">
                             <div>
-                                <a type="button" href="/updateFAQueryF/{{f.getid()}}"> Edit </a>
+                                <a type="button" class="btn btn-primary mr-2" href="/updateFAQueryF/{{f.getid()}}"> Edit </a>
                             </div>
                             <div>
-                                <a type="button" href="/deleteQns/{{f.getid()}}">delete </a>
+                                <a type="button" class="btn btn-danger" href="/deleteQns/{{f.getid()}}"><i class="fa fa-times"></i> Delete </a>
+                            </div>
                             </div>
                             {% endif %}
                         </div>
@@ -68,11 +70,13 @@
                                 <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno2-content-{{a.getid()}}" aria-expanded="false" aria-controls="tabno2-content-{{a.getid()}}">{{ a.getquestion()}}</button>
                             </h5>
                             {% if role=="A"%}
+                            <div class="row float-right ml-5">
                             <div>
-                                <a type="button" href="/updateFAQueryA/{{a.getid()}}"> Edit </a>
+                                <a type="button" class="btn btn-primary mr-2" href="/updateFAQueryA/{{a.getid()}}"> Edit </a>
                             </div>
                             <div>
-                                <a type="button" href="/deleteQns/{{a.getid()}}">delete </a>
+                                <a type="button" class="btn btn-danger" href="/deleteQns/{{a.getid()}}"><i class="fa fa-times"></i> Delete </a>
+                            </div>
                             </div>
                             {% endif %}
                         </div>
@@ -100,11 +104,13 @@
                                     <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#tabno3-content-{{c.getid()}}" aria-expanded="false" aria-controls="tabno3-content-{{c.getid()}}">{{ c.getquestion()}}</button>
                                 </h5>
                             {% if role=="A"%}
+                            <div class="row float-right ml-5">
                             <div>
-                                <a type="button" href="/updateFAQueryC/{{c.getid()}}"> Edit </a>
+                                <a type="button" class="btn btn-primary mr-2" href="/updateFAQueryC/{{c.getid()}}"> Edit </a>
                             </div>
                             <div>
-                                <a type="button" href="/deleteQns/{{c.getid()}}">delete </a>
+                                <a type="button" class="btn btn-danger" href="/deleteQns/{{c.getid()}}"><i class="fa fa-times"></i> Delete </a>
+                            </div>
                             </div>
                             {% endif %}
                             </div>
