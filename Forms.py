@@ -29,12 +29,11 @@ class update_Quantity_Form(Form):
 class CreateUserForm(Form):
  email = StringField('Email', [validators.Length(min=1,
 max=150), validators.DataRequired(), validators.email()])
- username = StringField('Username', [validators.Length(min=1,
-max=150), validators.DataRequired()])
- password = PasswordField('Password', [validators.Length(min=1,
-max=150), validators.DataRequired(),EqualTo('confirm', message='Passwords must match')])
- confirm = PasswordField('Confirm Password', [validators.Length(min=1,
-max=150), validators.DataRequired()])
+ username = StringField('Username', [validators.Length(min=8
+), validators.DataRequired()])
+ password = PasswordField('Password', [validators.Length(min=8
+), validators.DataRequired(),EqualTo('confirm', message='Passwords must match')])
+ confirm = PasswordField('Confirm Password', [validators.DataRequired()])
  firstname = StringField('First name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  lastname = StringField('Last name', [validators.Length(min=1,
@@ -43,17 +42,15 @@ max=150), validators.DataRequired()])
 ('S','Seller')], default='B')
 
 class CreateLoginForm(Form):
- username = StringField('Username', [validators.Length(min=1,
-max=150), validators.DataRequired()])
+ username = StringField('Username', [validators.Length(min=8), validators.DataRequired()])
  password = PasswordField('Password', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  remember= BooleanField('Remember')
 
 class CreateUpdateForm(Form):
  email = StringField('Email', [validators.Length(min=1,
-max=150), validators.DataRequired()])
- username = StringField('Username', [validators.Length(min=1,
-max=150), validators.DataRequired()])
+max=150), validators.DataRequired(),validators.email()])
+ username = StringField('Username', [validators.Length(min=8), validators.DataRequired()])
  firstname = StringField('First name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
  lastname = StringField('Last name', [validators.Length(min=1,
@@ -64,14 +61,23 @@ max=150), validators.DataRequired()])
 
 class CreateProfileUpdateForm(Form):
     email = StringField('Email', [validators.Length(min=1,
-max=150), validators.DataRequired()])
-    username = StringField('Username', [validators.Length(min=1,
-max=150), validators.DataRequired()])
+max=150), validators.DataRequired(),validators.email()])
+    username = StringField('Username', [validators.Length(min=8), validators.DataRequired()])
     firstname = StringField('First name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
     lastname = StringField('Last name', [validators.Length(min=1,
 max=150), validators.DataRequired()])
     profile_picture = FileField('Update Profile Picture')
+
+class GetEmailForm(Form):
+ email = StringField('Email', [validators.Length(min=1,
+max=150), validators.DataRequired(),validators.email()])
+
+class PasswordReset(Form):
+ password = PasswordField('Password', [validators.Length(min=8), validators.DataRequired(),EqualTo('confirm', message='Passwords must match')])
+ confirm = PasswordField('Confirm Password', [validators.DataRequired()])
+
+
 
 class DeliveryForm(Form):
     address= StringField('Address', [validators.length(min=1,max=150),validators.DataRequired()])
@@ -85,16 +91,6 @@ class Payment_Form(Form):
     cardno= IntegerField('Card Number',validators=[validators.InputRequired()])
     expiry=StringField('Date Of Expiry',validators=[validators.InputRequired()])
     cvc=IntegerField('CVC',validators=[validators.InputRequired()])
-
-class GetEmailForm(Form):
- email = StringField('Email', [validators.Length(min=1,
-max=150), validators.DataRequired()])
-
-class PasswordReset(Form):
- password = PasswordField('Password', [validators.Length(min=1,
-max=150), validators.DataRequired(),EqualTo('confirm', message='Passwords must match')])
- confirm = PasswordField('Confirm Password', [validators.Length(min=1,
-max=150), validators.DataRequired()])
 
 
 class updateorderForm(Form):

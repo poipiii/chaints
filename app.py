@@ -29,6 +29,7 @@ mail = Mail(app)
 @app.before_request
 def before_request():
     if session.get('forced_logout')==True:
+        session['forced_logout']=False
         return redirect(url_for('logout'))
 
     if session.get('logged_in') == True:
@@ -42,6 +43,7 @@ def before_request():
             if delta.seconds > 1800:
                 session['last_active'] = now
                 session['forced_logout']=True
+                session['logged_in']=False
         except:
             pass
 
@@ -127,6 +129,7 @@ def datapipe(d_type):
              return None
     else:
         return None
+
 
 # @app.route("/apitest")
 # def datatest():
@@ -439,7 +442,24 @@ def logout():
 def updateUser(id):
     updateUserForm = CreateUpdateForm(request.form)
     if request.method == 'POST' and updateUserForm.validate():
+        username = request.form['username']
+        email = request.form['email']
         db = shelve.open("database/user_database/user.db", "w")
+        oguser = db[id]
+        for user in db:
+            user=db[user]
+            if user.get_user_email()==email:
+                if oguser.get_user_email()==email:
+                    pass
+                else:
+                    error = 'This email is in use, please enter another email.'
+                    return render_template('updateUser.html', form=updateUserForm, error=error)
+            if user.get_username()==username:
+                if oguser.get_username()==username:
+                    pass
+                else:
+                    usernameerror = 'This username is in use, please enter another username.'
+                    return render_template('updateUser.html', form=updateUserForm, usernameerror=usernameerror)
         user = db[id]
         user.set_user_email(updateUserForm.email.data)
         user.set_username(updateUserForm.username.data)
@@ -468,7 +488,24 @@ def updateprofile(id):
     updateprofileForm = CreateProfileUpdateForm(request.form)
     if request.method == 'POST' and updateprofileForm.validate():
         profile_pic = CreateProfileUpdateForm(request.files)
+        username = request.form['username']
+        email=request.form['email']
         db = shelve.open("database/user_database/user.db", "w")
+        oguser=db[id]
+        for user in db:
+            user=db[user]
+            if user.get_user_email()==email:
+                if oguser.get_user_email()==email:
+                    pass
+                else:
+                    error = 'This email is in use, please enter another email.'
+                    return render_template('updateprofile.html', form=updateprofileForm, error=error)
+            if user.get_username()==username:
+                if oguser.get_username()==username:
+                    pass
+                else:
+                    usernameerror = 'This username is in use, please enter another username.'
+                    return render_template('updateprofile.html', form=updateprofileForm, usernameerror=usernameerror)
         user = db[id]
         user.set_user_email(updateprofileForm.email.data)
         user.set_username(updateprofileForm.username.data)

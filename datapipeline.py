@@ -56,7 +56,7 @@ def api_data_week(ownp):
     df = to_df(ownp)
     this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
     week = pd.DatetimeIndex(this_week)
-    week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_json(date_format = 'iso')
+    week_data = df.groupby(week[week.searchsorted(df.index)-1]).sum().to_json(date_format = 'iso')
     return week_data   
 
 def api_data_month(ownp):
@@ -77,7 +77,7 @@ def api_all_profit(ownp):
     if df is not None:
         this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
         week = pd.DatetimeIndex(this_week)
-        week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_dict()
+        week_data = df.groupby(week[week.searchsorted(df.index)-1]).sum().to_dict()
         total_profit['week'] = sum(week_data['profit'].values())
         month =  df.profit.resample('M').sum().to_dict()
         print(month)
@@ -90,8 +90,6 @@ def api_all_profit(ownp):
         return total_profit
     else:
         return 0
-
-
 
 
 
