@@ -2,14 +2,14 @@
 {% block content %}
 <div class="card shadow mb-4">
         <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Product Activity Logs</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Frequently Asked Questions</h6>
         </div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-bordered" id="FAQLogsTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                  <th>Admin Id</th>
+                  <th>Admin's ID</th>
                   <th>Comment ID</th>
                   <th>Adjustment</th>
                   <th>Date</th>
@@ -17,15 +17,25 @@
                 </tr>
               </thead>
               <tbody>
-                {% for log_item in faq_log_list %}    
-                <tr>
-                  <td>{{userid}}</td>
-                  <td>{{log_item.get_faq_id()}}</td>
-                  <td>{{log_item.get_faq_activity()}}</td>
-                  <td>{{log_item.get_timestamp_as_datetime().strftime("%m/%d/%Y")}}</td>
-                  <td>{{log_item.get_timestamp_as_datetime().strftime("%H:%M:%S")}}</td>
-                </tr>
-                {% endfor %}
+                {% if log|length >0 %}
+                  {% for log_item in log %}    
+                  <tr>
+                    <td>{{log_item.get_admin_id()}}</td>
+                    <td>{{log_item.get_faq_id()}}</td>
+                    <td>{{log_item.get_faq_activity()}}</td>
+                    <td>{{log_item.get_timestamp_as_datetime().strftime("%m/%d/%Y")}}</td>
+                    <td>{{log_item.get_timestamp_as_datetime().strftime("%H:%M:%S")}}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td>No Entry</td>
+                    <td>No Entry</td>
+                    <td>No Entry</td>
+                    <td>No Entry</td>
+                    <td>No Entry</td>
+                  </tr>
+                {% endif %}
               </tbody>
               </table>
             </div>

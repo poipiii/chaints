@@ -118,15 +118,15 @@ class CarrierBuyer(Form):
     orderid=StringField('Tracking ID',[validators.Length(min=1,max=150),validators.DataRequired()])
 
 class Question(Form):
-    mtitle= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
-    mbody=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])
+    mtitle= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=600)])
+    mbody=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=1000)])
 
 class Response(Form):
-    Response=TextAreaField("Response",[validators.DataRequired(),validators.Length(min=1,max=100)])
+    Response=TextAreaField("Response",[validators.DataRequired(),validators.Length(min=1,max=1000)])
 
 class FAQd(Form):
-    question= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=60)])
-    answer=TextAreaField("",[validators.Optional(),validators.Length(min=1,max=100)])
+    question= TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=600)])
+    answer=TextAreaField("",[validators.DataRequired(),validators.Length(min=1,max=1000)])
 
 
 class review_form(Form):

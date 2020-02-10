@@ -45,7 +45,13 @@
         <i class="fas fa-fw fa-table"></i>
         <span>Logs</span></a>
     </li>
-
+      {% if session['role'] == 'A' %}
+        <li class="nav-item">
+      <a class="nav-link" href="/FAQLOG">
+        <i class="fas fa-fw fa-table"></i>
+        <span>FAQ Activity</span></a>
+    </li>
+      {% endif %}    
     {% endif %}
      <!-- Nav Item - User list only for admin -->
 
