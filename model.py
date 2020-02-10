@@ -20,7 +20,7 @@ class User_Model:
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
         self.__user_address={}
-        self.__user_profile_picture='Michelle_-_No_Costume_Live2D_Model.png'
+        self.__user_profile_picture='80-804695_profile-picture-default-png.png'
 
 
     #User_Model Mutator
@@ -1253,7 +1253,7 @@ def print_carrier_list():
             print("Date: %s"%k.get_status_date())
     db.close()
 
-print_carrier_list()
+# print_carrier_list()
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")
 #====clear delivery db======

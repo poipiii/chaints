@@ -539,7 +539,7 @@ def updateprofile(id):
         if profile_pic:
             filename = secure_filename(profile_pic.filename)
             profile_pic.save(os.path.join(app.config["PROFILE_IMAGE_UPLOAD"],secure_filename(profile_pic.filename)))
-            if user.get_user_profile_picture()!="Michelle_-_No_Costume_Live2D_Model.png":
+            if user.get_user_profile_picture()!="80-804695_profile-picture-default-png.png":
                 old_profile_pic=(os.path.join(app.config['PROFILE_IMAGE_UPLOAD'],user.get_user_profile_picture()))
                 if os.path.exists(old_profile_pic)==True:
                     os.remove(old_profile_pic)

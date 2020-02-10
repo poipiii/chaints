@@ -29,7 +29,7 @@
                   <td>{{ delivery_item.get_address() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
                   <td>{{ delivery_item.get_deliverystat() }}</td>
-                  {% if delivery_item.get_deliverystat() =="Order Received" %}}
+                  {% if delivery_item.get_deliverystat() =="Order Received" %}
                     <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}" class="btn btn-success">Approved</a></td>
                   {% else %}
                     <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Edit</a></td>
