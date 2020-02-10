@@ -21,6 +21,7 @@
                   <th>Seller Username</th>
                   <th>Order Date</th>
                     <th>Date Delivery Received</th>
+                    <th>To Review</th>
                 </tr>
               </thead>
               <tbody>
@@ -32,6 +33,11 @@
                   <td>{{ delivery_item.get_seller_name() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
                   <td>{{ delivery_item.get_delivery_received_date() }}</td>
+                  {% if delivery_item.get_review_status() == 'No' %}
+                  <td> <a class="btn btn-success" href="/review/{{delivery_item.get_product_id()}}/{{delivery_item.get_individual_orderid()}}">pending review</a></td>
+                  {% else %}
+                  <td> <a class="btn btn-success disabled" href="/review/{{delivery_item.get_product_id()}}/{{delivery_item.get_individual_orderid()}}">Item reviewed</a></td>
+                  {% endif %}
                 </tr>
               {% endfor %}
               </tbody>

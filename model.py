@@ -815,6 +815,7 @@ class indi_product_order:
         self.__buyer_checker='No'
         self.__seller_checker='No'
         self.__delivery_date_received=''
+        self.__review_status = 'No'
 
     #mutator
     def set_delivery_status(self,delivery_stat):
@@ -827,6 +828,8 @@ class indi_product_order:
         self.__seller_checker=checker
     def set_delivery_received_date(self,deldate):
         self.__delivery_date_received=deldate
+    def set_review_status(self,review_status):
+        self.__review_status = review_status
 
     #accessor
     def get_product_id(self):
@@ -861,7 +864,8 @@ class indi_product_order:
         return self.__seller_checker
     def get_delivery_received_date(self):
         return self.__delivery_date_received
-
+    def get_review_status(self):
+        return self.__review_status
 
 #class to create individual tracking details for each delivery based on delivery status
 class carrier_delivery:
@@ -1011,6 +1015,21 @@ def status_update(trackingid,buyerid,status):
         raise Exception("db does not exist")
     except:
         raise Exception("an error has occurred")
+
+def review_status_update(buyerid,trackingid,review_status):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        a=db[buyerid]
+        for i in a:
+            for k in i:
+                if k.get_individual_orderid()==trackingid:
+                    k.set_review_status(review_status)
+        db[buyerid]=a
+        db.close()
+
+    except IOError:
+        raise Exception("db does not exist")
+    
 
 
 #to get the necessary stuff in order to pass to status_update function

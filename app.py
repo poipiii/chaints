@@ -67,7 +67,6 @@ def landing_page():
 
         if 'child'in i.get_product_catergory():
             childernlist.append(i)
-    print(menlist)
     return render_template('home_page.html' ,product_list = Products,women = womenlist,men = menlist,child = childernlist )
 
 
@@ -87,14 +86,18 @@ def wish_list():
 
 @app.route("/addwishlist/<productid>")
 def add_wish_list(productid):
-    current_wishlist=fetch_wishlist_id(session.get('user_id'))
-    if productid in current_wishlist:
-        flash('product already in wishlist')
-        return redirect(url_for('landing_page'))
+    if session.get('logged_in') == True:
+        current_wishlist=fetch_wishlist_id(session.get('user_id'))
+        if productid in current_wishlist:
+            flash('product already in wishlist')
+            return redirect(url_for('landing_page'))
+        else:
+            pass
+            update_wishlist(session.get('user_id'),productid)
+            return redirect(url_for('landing_page'))
     else:
-        pass
-        update_wishlist(session.get('user_id'),productid)
-        return redirect(url_for('landing_page'))
+        return redirect(url_for('loginUser'))
+
 
 @app.route("/delwishlist/<productid>")
 def del_wish_list(productid):
@@ -135,7 +138,6 @@ def dashboard_home():
 def datapipe(d_type):
     if session.get('role') == 'S':
         ownp = get_usr_owned_p(session.get('user_id'))
-        print(ownp)
         if d_type == 'week':
             chart_data = api_data_week(ownp)
             return chart_data
@@ -147,7 +149,6 @@ def datapipe(d_type):
             return chart_data
         elif d_type == 'bar_all':
             chart_data = get_all_qty_data(ownp)
-            print(chart_data)
             return jsonify(chart_data)
         else:
              return None
@@ -220,14 +221,24 @@ def product_create():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
         for i in product_pics:
-            #TODO 
+             
              filename = secure_filename(i.filename)
-             i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
-             filenames.append(filename)
-        print(filenames)
-        new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
-        flash('Product successfully created')
-        return redirect(url_for('dashboard_products'))      
+             if os.path.isfile('static/product_images/{}'.format(filename)) == True:
+                 filename = filename.split('.')
+                 newfilename = str(uuid.uuid4()) + '.' + filename[1]
+                 i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],newfilename))
+                 filenames.append(newfilename)
+             else:
+                i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+                filenames.append(filename)
+        if Product_Form.product_Discount.data < Product_Form.product_Selling_Price.data:
+            new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames) 
+            flash('Product successfully created')
+            return redirect(url_for('dashboard_products')) 
+        else:
+            error = 'Discount amount cannot be greater than selling price'
+            return render_template('productcreateform.html',form =Product_Form ,ftype = 'create',error = error)
+             
     return render_template('productcreateform.html',form =Product_Form ,ftype = 'create')
 
     
@@ -240,20 +251,31 @@ def dashboard_edit_products(productid):
     #take in more than 1 images from form, rename images and upload to static/product_images
     if request.method == 'POST'  and Product_Form.validate():
         #product_pics = request.files.getlist(Product_Form.product_images)
-        product_pics = Product_Form.product_images.data
-        check_if_empty = [i.filename for i in product_pics]
-        if '' in check_if_empty:
-            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
+        if Product_Form.product_Discount.data < Product_Form.product_Selling_Price.data:
+            product_pics = Product_Form.product_images.data
+            check_if_empty = [i.filename for i in product_pics]
+            if '' in check_if_empty:
+                Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
+            else:
+                for i in product_pics:
+                    #TODO 
+                    filename = secure_filename(i.filename)
+                    if os.path.isfile('static/product_images/{}'.format(filename)) == True:
+                        filename = filename.split('.')
+                        newfilename = str(uuid.uuid4()) + '.' + filename[1]
+                        i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],newfilename))
+                        filenames.append(newfilename)
+                    else:
+                        i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+                        filenames.append(filename)
+                #pass form data to Edit_Products function in model.py
+                Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+            flash('Product successfully updated')
+            return redirect(url_for('dashboard_products')) 
         else:
-            for i in product_pics:
-                #TODO 
-                 filename = secure_filename(i.filename)
-                 i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
-                 filenames.append(filename)
-            #pass form data to Edit_Products function in model.py
-            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
-        flash('Product successfully updated')
-        return redirect(url_for('dashboard_products')) 
+            error = 'Discount amount cannot be greater than selling price'
+            return render_template('productcreateform.html',form =Product_Form,ftype ='update',error = error)
+
     else:
         Product_Form.product_name.data = original_product.get_product_name()
         Product_Form.product_Quantity.data = original_product.get_product_current_qty()
@@ -286,13 +308,13 @@ def delete_products(productid):
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
-@app.route("/review/<productid>",methods = ['POST','GET'])
-def review(productid):
+@app.route("/review/<productid>/<trackingid>",methods = ['POST','GET'])
+def review(productid,trackingid):
     Review_form = review_form(request.form)
     if request.method == 'POST'  and Review_form.validate():
-        print(int(Review_form.rating.data))
         add_review(session.get('user_id'),session.get('name'),productid,int(Review_form.rating.data),Review_form.review_text.data)
-        return redirect(url_for('buyer_deliverylist'))
+        review_status_update(session.get('user_id'),trackingid,'Yes')
+        return redirect(url_for('delivery_history'))
     return render_template('review_form.html',form = Review_form)
  
  
@@ -643,7 +665,6 @@ def cart():
         # if user record exist fetch it from cart db and put it in varible usercart
         if session.get('user_id')in db:
             usercart=db.get(session.get('user_id'))
-            print(usercart)
             #retrive product object from product db using the product id stored in usercart dict
             for item in usercart.keys():
                 productincart.append(get_product_by_id(item))
