@@ -67,7 +67,6 @@ def landing_page():
 
         if 'child'in i.get_product_catergory():
             childernlist.append(i)
-    print(menlist)
     return render_template('home_page.html' ,product_list = Products,women = womenlist,men = menlist,child = childernlist )
 
 
@@ -87,14 +86,18 @@ def wish_list():
 
 @app.route("/addwishlist/<productid>")
 def add_wish_list(productid):
-    current_wishlist=fetch_wishlist_id(session.get('user_id'))
-    if productid in current_wishlist:
-        flash('product already in wishlist')
-        return redirect(url_for('landing_page'))
+    if session.get('logged_in') == True:
+        current_wishlist=fetch_wishlist_id(session.get('user_id'))
+        if productid in current_wishlist:
+            flash('product already in wishlist')
+            return redirect(url_for('landing_page'))
+        else:
+            pass
+            update_wishlist(session.get('user_id'),productid)
+            return redirect(url_for('landing_page'))
     else:
-        pass
-        update_wishlist(session.get('user_id'),productid)
-        return redirect(url_for('landing_page'))
+        return redirect(url_for('loginUser'))
+
 
 @app.route("/delwishlist/<productid>")
 def del_wish_list(productid):
@@ -135,7 +138,6 @@ def dashboard_home():
 def datapipe(d_type):
     if session.get('role') == 'S':
         ownp = get_usr_owned_p(session.get('user_id'))
-        print(ownp)
         if d_type == 'week':
             chart_data = api_data_week(ownp)
             return chart_data
@@ -147,7 +149,6 @@ def datapipe(d_type):
             return chart_data
         elif d_type == 'bar_all':
             chart_data = get_all_qty_data(ownp)
-            print(chart_data)
             return jsonify(chart_data)
         else:
              return None
@@ -220,14 +221,24 @@ def product_create():
         #product_pics = request.files.getlist(Product_Form.product_images)
         product_pics = Product_Form.product_images.data
         for i in product_pics:
-            #TODO 
+             
              filename = secure_filename(i.filename)
-             i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
-             filenames.append(filename)
-        print(filenames)
-        new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)  
-        flash('Product successfully created')
-        return redirect(url_for('dashboard_products'))      
+             if os.path.isfile('static/product_images/{}'.format(filename)) == True:
+                 filename = filename.split('.')
+                 newfilename = str(uuid.uuid4()) + '.' + filename[1]
+                 i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],newfilename))
+                 filenames.append(newfilename)
+             else:
+                i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+                filenames.append(filename)
+        if Product_Form.product_Discount.data < Product_Form.product_Selling_Price.data:
+            new_product = Add_New_Products(session.get('user_id'),Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames) 
+            flash('Product successfully created')
+            return redirect(url_for('dashboard_products')) 
+        else:
+            error = 'Discount amount cannot be greater than selling price'
+            return render_template('productcreateform.html',form =Product_Form ,ftype = 'create',error = error)
+             
     return render_template('productcreateform.html',form =Product_Form ,ftype = 'create')
 
     
@@ -240,20 +251,31 @@ def dashboard_edit_products(productid):
     #take in more than 1 images from form, rename images and upload to static/product_images
     if request.method == 'POST'  and Product_Form.validate():
         #product_pics = request.files.getlist(Product_Form.product_images)
-        product_pics = Product_Form.product_images.data
-        check_if_empty = [i.filename for i in product_pics]
-        if '' in check_if_empty:
-            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
+        if Product_Form.product_Discount.data < Product_Form.product_Selling_Price.data:
+            product_pics = Product_Form.product_images.data
+            check_if_empty = [i.filename for i in product_pics]
+            if '' in check_if_empty:
+                Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,original_product.get_product_images())
+            else:
+                for i in product_pics:
+                    #TODO 
+                    filename = secure_filename(i.filename)
+                    if os.path.isfile('static/product_images/{}'.format(filename)) == True:
+                        filename = filename.split('.')
+                        newfilename = str(uuid.uuid4()) + '.' + filename[1]
+                        i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],newfilename))
+                        filenames.append(newfilename)
+                    else:
+                        i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
+                        filenames.append(filename)
+                #pass form data to Edit_Products function in model.py
+                Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
+            flash('Product successfully updated')
+            return redirect(url_for('dashboard_products')) 
         else:
-            for i in product_pics:
-                #TODO 
-                 filename = secure_filename(i.filename)
-                 i.save(os.path.join(app.config["PRODUCT_IMAGE_UPLOAD"],secure_filename(i.filename)))
-                 filenames.append(filename)
-            #pass form data to Edit_Products function in model.py
-            Edit_Products(session.get('user_id'),productid,Product_Form.product_name.data,Product_Form.product_Quantity.data,Product_Form.product_Description.data,Product_Form.product_Selling_Price.data,Product_Form.product_Discount.data,Product_Form.product_catergory.data,filenames)
-        flash('Product successfully updated')
-        return redirect(url_for('dashboard_products')) 
+            error = 'Discount amount cannot be greater than selling price'
+            return render_template('productcreateform.html',form =Product_Form,ftype ='update',error = error)
+
     else:
         Product_Form.product_name.data = original_product.get_product_name()
         Product_Form.product_Quantity.data = original_product.get_product_current_qty()
@@ -286,13 +308,13 @@ def delete_products(productid):
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
-@app.route("/review/<productid>",methods = ['POST','GET'])
-def review(productid):
+@app.route("/review/<productid>/<trackingid>",methods = ['POST','GET'])
+def review(productid,trackingid):
     Review_form = review_form(request.form)
     if request.method == 'POST'  and Review_form.validate():
-        print(int(Review_form.rating.data))
         add_review(session.get('user_id'),session.get('name'),productid,int(Review_form.rating.data),Review_form.review_text.data)
-        return redirect(url_for('buyer_deliverylist'))
+        review_status_update(session.get('user_id'),trackingid,'Yes')
+        return redirect(url_for('delivery_history'))
     return render_template('review_form.html',form = Review_form)
  
  
@@ -539,7 +561,7 @@ def updateprofile(id):
         if profile_pic:
             filename = secure_filename(profile_pic.filename)
             profile_pic.save(os.path.join(app.config["PROFILE_IMAGE_UPLOAD"],secure_filename(profile_pic.filename)))
-            if user.get_user_profile_picture()!="Michelle_-_No_Costume_Live2D_Model.png":
+            if user.get_user_profile_picture()!="80-804695_profile-picture-default-png.png":
                 old_profile_pic=(os.path.join(app.config['PROFILE_IMAGE_UPLOAD'],user.get_user_profile_picture()))
                 if os.path.exists(old_profile_pic)==True:
                     os.remove(old_profile_pic)
@@ -643,7 +665,6 @@ def cart():
         # if user record exist fetch it from cart db and put it in varible usercart
         if session.get('user_id')in db:
             usercart=db.get(session.get('user_id'))
-            print(usercart)
             #retrive product object from product db using the product id stored in usercart dict
             for item in usercart.keys():
                 productincart.append(get_product_by_id(item))
@@ -1123,27 +1144,26 @@ def createQns():
         except IOError:
             print("Database failed to open")
         db.close()
+        faq_logging(session.get('user_id'),'Forum','CREATE',new_question.get_msgid(),new_question)
         return redirect(url_for('FAQ'))
     return render_template('createQns.html',form=createquestion)
 
 #Forum Answer
 @app.route('/Respond/<id>',methods=["GET","POST"])
 def Respond(id):
-    if session.get('logged_in')==True:
-        Reply=Response(request.form)
-        if request.method=="POST" and Reply.validate():
-            Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
-            try:
-                dennis=shelve.open('database/forum_database/FAQQ.db','c')
-                dennis[Respondents.get_ansid()]=Respondents
-            except:
-                print("Something screwed up")
-            dennis.close()
-            RespondtoQns(Respondents.get_ansid(),id)
-            return redirect(url_for('displayQns',id=id))
-        return render_template('Response.html',form=Reply)
-    else:
-        return redirect(url_for('loginUser'))
+    Reply=Response(request.form)
+    if request.method=="POST" and Reply.validate():
+        Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
+        try:
+            dennis=shelve.open('database/forum_database/FAQQ.db','c')
+            dennis[Respondents.get_ansid()]=Respondents
+        except:
+            print("Something screwed up")
+        dennis.close()
+        faq_logging(session.get('user_id'),'Forum','REPLY',Respondents.get_ansid(),Respondents)
+        RespondtoQns(Respondents.get_ansid(),id)
+        return redirect(url_for('displayQns',id=id))
+    return render_template('Response.html',form=Reply)
 
 @app.route('/displayQns/<id>')
 def displayQns(id):
@@ -1176,6 +1196,7 @@ def updateQns(id):
         Qns.setmbody(updateQns.mbody.data)
         db[id]= Qns
         db.close()
+        faq_logging(session.get('user_id'),'Forum','EDIT',Qns.get_msgid(),Qns)
         return redirect(url_for('FAQ'))
     else:
         db= shelve.open('database/forum_database/FAQQ.db','r')
@@ -1185,20 +1206,21 @@ def updateQns(id):
         updateQns.mbody.data=Qns.getmbody()
         return render_template('updateqns.html',form=updateQns)
 
-#Frequently Asked Questions
+#Transactions
 @app.route('/addFAQueryFaQ',methods=["GET","POST"])
 def addFAQueryF():
     Drei=FAQd(request.form)
     if request.method=="POST" and Drei.validate():
 
-        Able=FAQm(Drei.question.data,Drei.answer.data)
+        A=FAQm(Drei.question.data,Drei.answer.data)
         try:
             Three=shelve.open("database/forum_database/FAQDisplay.db","c")
-            Three[Able.getid()] = Able
+            Three[A.getid()] = A
             
         except IOError:
             print("ooopsie")
         Three.close()
+        faq_logging(session.get('user_id'),'Transactions','CREATE',A.getid(),A)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Drei)
 #Account Issues
@@ -1206,14 +1228,15 @@ def addFAQueryF():
 def addFAQueryAcI():
     Vier=FAQd(request.form)
     if request.method=="POST" and Vier.validate():
-        Baker=Account_Issues(Vier.question.data,Vier.answer.data)
+        AcI=Account_Issues(Vier.question.data,Vier.answer.data)
         try:
             Four=shelve.open("database/forum_database/FAQDisplay.db","c")
-            Four[Baker.getid()] = Baker
+            Four[AcI.getid()] = AcI
             
         except IOError:
             print("ooopsie")
         Four.close()
+        faq_logging(session.get('user_id'),'Account Issues','CREATE',AcI.getid(),AcI)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Vier)
 #Contact Us
@@ -1222,14 +1245,14 @@ def addFAQueryCoI():
     Fuenf=FAQd(request.form)
     if request.method=="POST" and Fuenf.validate():
 
-        Charlie=Contact(Fuenf.question.data,Fuenf.answer.data)
+        CoI=Contact(Fuenf.question.data,Fuenf.answer.data)
         try:
             Five=shelve.open("database/forum_database/FAQDisplay.db","c")
-            Five[Charlie.getid()] = Charlie
+            Five[CoI.getid()] = CoI
         except IOError:
             print("ooopsie")
         Five.close()
-        faq_logging(session.get('user_id'),'Contact Us','CREATE',Charlie.getid(),Charlie)
+        faq_logging(session.get('user_id'),'Contact Us','CREATE',CoI.getid(),CoI)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Fuenf)
 
@@ -1296,7 +1319,6 @@ def updateFAQueryC(id):
             Fa.setquestion(updateFAQueryC.question.data)
             Fa.setanswer(updateFAQueryC.answer.data)
 
-
             db[id]= Fa
             db.close()
             faq_logging(session.get('user_id'),'Contact Us','EDIT',Fa.getid(),Fa)
@@ -1333,30 +1355,28 @@ def deleteForumQns(id):
         ri= Ace[id]
 
         for i in ri.get_ans_list():
-            Ace.pop(i)
+            f=Ace.pop(i)
+            faq_logging(session.get('user_id'),'Forum','DELETE',f.get_ansid(),f)
 
-        Ace.pop(id)
+        a=Ace.pop(id)
         Ace.close()
-    
+        faq_logging(session.get('user_id'),'Forum','DELETE',a.get_msgid(),a)
     return redirect(url_for('FAQ'))
 #Show FAQ Log
-#@app.route('/FAQLOG')
-#def FAQLOG():
-#    logsget=[]
-#    if session.get('logged_in')==True and session.get('role')=="A":
-#        db=shelve.open("database/logs_database/logs.db",'r')
-#        udb=shelve.open("database/user_database/user.db",'r')
-#        for i in udb:
-#            userid=udb[i.get_user_id()]
-#            logs=db[userid]
-#        for x in logs:
-#            logsget.append(x.get_faq_log_list())
-#
-#        udb.close()
-#        db.close()
-#        return render_template('displayfaqlogs.html',log=logsget)        
-#    else:
-#        return redirect(url_for('FAQ'))
+@app.route('/FAQLOG')
+def FAQLOG():
+    if session.get('logged_in')==True and session.get('role')=="A":
+        db=shelve.open("database/logs_database/logs.db",'r')
+        logs=[]
+        for a in db.values():
+            if len(a.get_faq_log_list()) > 0:
+                for i in a.get_faq_log_list():
+                    logs.append(i)
+
+        db.close()
+        return render_template('displayfaqlogs.html',log=logs)        
+    else:
+        return redirect(url_for('FAQ'))
 # @app.errorhandler(404)
 # def not_found_error(error):  
 #     return render_template('404.html'), 404
@@ -1366,6 +1386,5 @@ def deleteForumQns(id):
 
 if __name__ == "__main__":
     app.run()
-
 
 

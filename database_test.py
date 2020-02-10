@@ -10,7 +10,7 @@ def dump_all():
     db = shelve.open('database/product_database/product.db','c')
     db.clear()
     db.close()
-    db = shelve.open('database/user_database/user.db','c')
+    db = shelve.open('databas2e/user_database/user.db','c')
     db.clear()
     db.close()
     db = shelve.open('database/delivery_database/delivery.db','c')

@@ -116,39 +116,7 @@ nav{
     </a>
 </div>
 
-<div class="row mt-5">
-<div class="col-md-4">
-  <div class="card">
-    <img src="static/product_images/68464746_p0_master1200.jpg" class="card-img">
-    <div class="card-img-overlay text-white  center-y">
-      <h5 class="card-title">Men</h5>
-      <p class="card-text">This is a wider card with text below</p>
-      <a href="#" class="btn btn-light">Shop Now</a>
-    </div>
-  </div>
-</div>
-<div class="col-md-4">
-  <div class="card">
-    <img src="static/product_images/68464746_p0_master1200.jpg" class="card-img">
-    <div class="card-img-overlay text-white center-y">
-      <h5 class="card-title">Women</h5>
-      <p class="card-text">This is a wider card with text below</p>
-      <a href="#" class="btn btn-light">Shop Now</a>
-    </div>
-  </div>
-</div>
-<div class="col-md-4">
-  <div class="card">
-    <img src="static/product_images/68464746_p0_master1200.jpg" class="card-img">
-    <div class="card-img-overlay text-white  center-y">
-      <h5 class="card-title">childern</h5>
-      <p class="card-text">This is a wider card with text below</p>
-      <a href="#" class="btn btn-light">Shop Now</a>
-    </div>
-  </div>
-</div>
-</div>
-</div>
+
 
 
 
@@ -171,7 +139,7 @@ nav{
         <div class="img-wrap">
           <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
           <span class="topbar">
-            <a href="#" class="float-right"><i class="fa fa-heart wishlist favourite "></i></a>
+            <a href="/addwishlist/{{product.get_product_id()}}" class="float-right"><i class="fa fa-heart"></i></a>
             {% if product.get_product_discount() > 0 %}
             <span class="badge badge-success"> SALE </span>            
             {% endif %}
@@ -231,7 +199,7 @@ nav{
         <div class="img-wrap">
           <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
           <span class="topbar">
-            <a href="#" class="float-right "><i class="fa fa-heart wishlist "></i></a>
+            <a href="/addwishlist/{{product.get_product_id()}}" class="float-right"><i class="fa fa-heart"></i></a>
             {% if product.get_product_discount() > 0 %}
             <span class="badge badge-success"> SALE </span>            
             {% endif %}
@@ -291,7 +259,7 @@ nav{
         <div class="img-wrap">
           <img src="../static/product_images/{{product.get_product_images()[0]}}" class="img-fluid">
           <span class="topbar">
-            <a href="#" class="float-right "><i class="fa fa-heart wishlist "></i></a>
+            <a href="/addwishlist/{{product.get_product_id()}}" class="float-right"><i class="fa fa-heart"></i></a>
             {% if product.get_product_discount() > 0 %}
             <span class="badge badge-success"> SALE </span>            
             {% endif %}
