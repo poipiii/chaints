@@ -50,9 +50,11 @@
 		</figure>
 	</td>
 	<td>
-		<select class="form-control">
-			<option>{{usercart[item]}}</option>
-		</select>
+		
+		<div class="price-wrap">
+			<var class="price">{{usercart[item]}}</var>
+		</div> <!-- price-wrap .// -->
+		
 	</td>
 	<td>
 		<div class="price-wrap">
@@ -60,13 +62,14 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right d-none d-md-block">
-	<a data-original-title="Save to Wishlist" title="" href="" class="btn btn-light" data-toggle="tooltip"> <i class="fa fa-heart"></i></a>
-		<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
-		<input type="submit" value="Remove" class="btn btn-warning">
-		</form>
-		<form action="{{url_for('Updatecart',cartproductid = item)}}" method="POST">
-		<input type="submit" value="Update" class="btn btn-outline-success">
-		</form>
+		<div class="form-inline">
+			<form action="{{url_for('Updatecart',cartproductid = item)}}" method="POST">
+				<input type="submit" value="Update" class="btn btn-outline-success " data-toggle="tooltip" data-placement="top" title="Update Quantity">
+			</form>
+			<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
+			<input type="submit" value="Remove" class="btn btn-danger ml-2">
+			</form>
+		</div>
 	</td>
 </tr>
 {%endif%}

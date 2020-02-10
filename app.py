@@ -10,6 +10,7 @@ from datetime import datetime
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from Forms import Question, Response
+from datapipeline import *
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
@@ -76,8 +77,27 @@ def product_page(productid):
     seller = get_user(get_product.get_seller_id())
     return render_template('productdetails.html',product = get_product,sellerinfo = seller.get_username() )
 
-#only be able to access if session['logged_in']==True
+# only be able to access if session['logged_in']==True
+@app.route("/wishlist")
+def wish_list():
+    wishlist = fetch_wishlist(session.get('user_id'))
+    return render_template('wishlist.html',wishlist = wishlist)
 
+@app.route("/addwishlist/<productid>")
+def add_wish_list(productid):
+    current_wishlist=fetch_wishlist_id(session.get('user_id'))
+    if productid in current_wishlist:
+        flash('product already in wishlist')
+        return redirect(url_for('landing_page'))
+    else:
+        pass
+        update_wishlist(session.get('user_id'),productid)
+        return redirect(url_for('landing_page'))
+
+@app.route("/delwishlist/<productid>")
+def del_wish_list(productid):
+    delete_wishlist(session.get('user_id'),productid)
+    return redirect(url_for('wish_list'))
 
 @app.route("/catergories")
 def catergory_page():
@@ -113,6 +133,7 @@ def dashboard_home():
 def datapipe(d_type):
     if session.get('role') == 'S':
         ownp = get_usr_owned_p(session.get('user_id'))
+        print(ownp)
         if d_type == 'week':
             chart_data = api_data_week(ownp)
             return chart_data
@@ -122,6 +143,10 @@ def datapipe(d_type):
         elif d_type == 'year':
             chart_data = api_data_year(ownp)
             return chart_data
+        elif d_type == 'bar_all':
+            chart_data = get_all_qty_data(ownp)
+            print(chart_data)
+            return jsonify(chart_data)
         else:
              return None
     else:
