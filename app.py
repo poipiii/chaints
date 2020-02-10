@@ -124,16 +124,18 @@ def details_page():
 
 @app.route("/dashboard")
 def dashboard_home():
-    if session.get('role') == 'S':
-        ownp= get_usr_owned_p(session.get('user_id'))
-        all_profit = api_all_profit(ownp)
-        orderlist=create_seller_order_list(session.get('user_id'))
-        pending_order=pending_order_check(orderlist)
+    if session.get('logged_in')==True:
+        if session.get('role') == 'S':
+            ownp= get_usr_owned_p(session.get('user_id'))
+            all_profit = api_all_profit(ownp)
+            orderlist=create_seller_order_list(session.get('user_id'))
+            pending_order=pending_order_check(orderlist)
+        else:
+            all_profit = 0
+            pending_order=0
+        return render_template('chart.html',all_profit=all_profit,pending_order=pending_order)
     else:
-        all_profit = 0
-        pending_order=0
-    return render_template('chart.html',all_profit=all_profit,pending_order=pending_order)
-
+        return redirect(url_for('landing_page'))
 @app.route("/data/<d_type>")
 def datapipe(d_type):
     if session.get('role') == 'S':
@@ -308,8 +310,11 @@ def delete_products(productid):
     flash('Product successfully deleted')
     return redirect(url_for('dashboard_products'))
 
-@app.route("/review/<productid>/<trackingid>",methods = ['POST','GET'])
-def review(productid,trackingid):
+@app.route("/review/<productid_track>",methods = ['POST','GET'])
+def review(productid_track):
+    productid_track = productid_track.split('-')
+    productid = productid_track[0]
+    trackingid = productid_track[1]
     Review_form = review_form(request.form)
     if request.method == 'POST'  and Review_form.validate():
         add_review(session.get('user_id'),session.get('name'),productid,int(Review_form.rating.data),Review_form.review_text.data)
@@ -371,14 +376,17 @@ def confirm_email(token):
 
 @app.route('/retrieveUsers')
 def retrieveUsers():
-    db = shelve.open('database/user_database/user.db', 'r')
-    usersList = []
-    for user in db:
-        user=db[user]
-        usersList.append(user)
-    db.close()
+    if session.get('logged_in')==True and session.get('role')=="A":
+        db = shelve.open('database/user_database/user.db', 'r')
+        usersList = []
+        for user in db:
+            user=db[user]
+            usersList.append(user)
+        db.close()
 
-    return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
+        return render_template('retrieveUsers.html',usersList=usersList, count=len(usersList))
+    else:
+        return redirect(url_for("landing_page"))
 
 @app.route('/passwordreset_email',methods=['GET','POST'])
 def passwordreset_email():
@@ -601,14 +609,17 @@ def deleteUser(id):
 #adding  product to cart 
 @app.route('/profile')
 def profile():
-    db = shelve.open('database/user_database/user.db', 'r')
-    usersList = []
-    for user in db:
-        user=db[user]
-        usersList.append(user)
-    db.close()
+    if session.get('logged_in') == True:
+        db = shelve.open('database/user_database/user.db', 'r')
+        usersList = []
+        for user in db:
+            user=db[user]
+            usersList.append(user)
+        db.close()
 
-    return render_template('profile.html',usersList=usersList, count=len(usersList))
+        return render_template('profile.html',usersList=usersList, count=len(usersList))
+    else:
+        return redirect(url_for('landing_page'))
 
 
 #Order Management
@@ -801,23 +812,26 @@ def order():
 
 @app.route('/SellerOrder')
 def seller_order():
-    userid=session.get('user_id')
-    db=shelve.open('database/user_database/user.db','r')
-    if db[userid].get_user_role()!="S":
-        return redirect(url_for('order'))
-    db.close()
-    productinorder = {}
-    seller_order = []
-    order=get_seller_orders(session.get('user_id'))
-    for i in order:
-        # seller_order.append(i.get_cart_list())
-        for n in i.get_cart_list():
-            if n != 'orderid' and n != 'buyerid':
-                print(n)
-                order_obj=get_product_by_id(n)
-                if order_obj.get_product_id() not in productinorder:
-                    productinorder[order_obj.get_product_id()]=order_obj
-    return render_template('Seller_order_list.html',orders=order,productinorder=productinorder)
+    if session.get('logged_in')==True:
+        userid=session.get('user_id')
+        db=shelve.open('database/user_database/user.db','r')
+        if db[userid].get_user_role()!="S":
+            return redirect(url_for('order'))
+        db.close()
+        productinorder = {}
+        seller_order = []
+        order=get_seller_orders(session.get('user_id'))
+        for i in order:
+            # seller_order.append(i.get_cart_list())
+            for n in i.get_cart_list():
+                if n != 'orderid' and n != 'buyerid':
+                    print(n)
+                    order_obj=get_product_by_id(n)
+                    if order_obj.get_product_id() not in productinorder:
+                        productinorder[order_obj.get_product_id()]=order_obj
+        return render_template('Seller_order_list.html',orders=order,productinorder=productinorder)
+    else:
+        return redirect(url_for("landing_page"))
 
 #delivery management
 @app.route('/SellerDelivery')
