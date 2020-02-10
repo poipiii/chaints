@@ -1,5 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div id='message' class="alert alert-primary alert-dismissible fade show" role="alert">
+       {{message}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+<br><br><br><br>
 <div class="container">
 <h1 class="doc-title">Shopping cart</h1>
 
@@ -37,21 +50,26 @@
 		</figure>
 	</td>
 	<td>
-		<select class="form-control">
-			<option>{{usercart[item]}}</option>
-		</select>
+		
+		<div class="price-wrap">
+			<var class="price">{{usercart[item]}}</var>
+		</div> <!-- price-wrap .// -->
+		
 	</td>
 	<td>
 		<div class="price-wrap">
 			<var class="price">{{i.get_product_price()}}</var>
-			<small class="text-muted">$10 </small>
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right d-none d-md-block">
-	<a data-original-title="Save to Wishlist" title="" href="" class="btn btn-light" data-toggle="tooltip"> <i class="fa fa-heart"></i></a>
-		<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
-		<input type="submit" value="Remove" class="btn btn-warning">
-		</form>
+		<div class="form-inline">
+			<form action="{{url_for('Updatecart',cartproductid = item)}}" method="POST">
+				<input type="submit" value="Update" class="btn btn-outline-success " data-toggle="tooltip" data-placement="top" title="Update Quantity">
+			</form>
+			<form action="{{url_for('deletecart',cartproductid = item)}}" method="POST">
+			<input type="submit" value="Remove" class="btn btn-danger ml-2">
+			</form>
+		</div>
 	</td>
 </tr>
 {%endif%}
@@ -71,21 +89,7 @@
 	</aside> <!-- col.// -->
 	<aside class="col-lg-3">
 
-<div class="card mb-3">
-<div class="card-body">
-<form>
-	<div class="form-group">
-		<label>Have coupon?</label>
-		<div class="input-group">
-			<input type="text" class="form-control" name="" placeholder="Coupon code">
-			<span class="input-group-append">
-				<button class="btn btn-primary">Apply</button>
-			</span>
-		</div>
-	</div>
-</form>
-</div> <!-- card-body.// -->
-</div> <!-- card.// -->
+
 <div class="card">
 <div class="card-body">
 
@@ -101,10 +105,12 @@
 		  <dt>Total:</dt>
 		  <dd class="text-right text-dark b"><strong></strong>{{Grand_total}}</dd>
 		</dl>
+		{% if usercart|length %}
+	    <a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase	</a>
+	    {% else%}
+		<a href="/Deliverydetails" class="btn btn-primary disabled" > Make Purchase	</a>
+	    {%endif%}
 
-		<hr>
-		<a href="/Deliverydetails" class="btn btn-primary btn-block"> Make Purchase
-		</a>
 		<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
 </div> <!-- card-body.// -->
 </div> <!-- card.// -->

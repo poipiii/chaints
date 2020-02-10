@@ -16,7 +16,7 @@
                   <th>Address</th>
                   <th>Order Date</th>
                     <th>Delivery Status</th>
-                    <th>Edit</th>
+                    <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -28,17 +28,18 @@
                   <td>{{ delivery_item.get_quantity() }}</td>
                   <td>{{ delivery_item.get_address() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
-                    <td>{{ delivery_item.get_deliverystat() }}
-                      {% if delivery_item.get_deliverystat() == "Order Received (Pending)" or delivery_item.get_deliverystat() == "Order Received" %}
-                      <a href="/SellerDeliveryReceived/{{ delivery_item.get_individual_orderid() }}/{{ delivery_item.get_buyer_id() }}" class="btn btn-sm btn-secondary">Acknowledged</a>
-                      {% endif %}
-                    </td>
+                  <td>{{ delivery_item.get_deliverystat() }}</td>
+                  {% if delivery_item.get_deliverystat() =="Order Received" %}}
+                    <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}" class="btn btn-success">Approved</a></td>
+                  {% else %}
                     <td><a href="/SellerDeliveryUpdate/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Edit</a></td>
+                  {% endif %}
                 </tr>
                 {% endfor %}
               </tbody>
               </table>
             </div>
+          <a href="/DeliveryHistory" class="btn btn-sm btn-outline-primary">Delivery History</a>
     </div>
 </div>
 

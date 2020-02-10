@@ -2,18 +2,6 @@
 {% block content %}
 {% from "includes/_formhelper.html" import render_field %}
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for message in messages %}
-      <div id='message' class="alert alert-primary alert-dismissible fade show" role="alert">
-       {{message}}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
 
 <br><br><br><br>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/form.css') }}">
@@ -27,5 +15,15 @@
     </div>
 </div>
     </form>
+    {%if buttoncheck=="Yes"%}
+    <a href="/SellerDelivery" class="btn btn-sm btn-primary">Back to Delivery</a>
+    {% endif %}
+    {% if error %}
+        <p  style="color:red;" class="error"><strong>Error:</strong> {{ error }}
+      {% endif %}
+
 </article>
+
+
+</div>
 {% endblock  %}

@@ -56,7 +56,7 @@ def api_data_week(ownp):
     df = to_df(ownp)
     this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
     week = pd.DatetimeIndex(this_week)
-    week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_json(date_format = 'iso')
+    week_data = df.groupby(week[week.searchsorted(df.index)-1]).sum().to_json(date_format = 'iso')
     return week_data   
 
 def api_data_month(ownp):
@@ -77,18 +77,61 @@ def api_all_profit(ownp):
     if df is not None:
         this_week = current_week(str(datetime.now().isocalendar()[0]),str(datetime.now().isocalendar()[1]))
         week = pd.DatetimeIndex(this_week)
-        week_data = df.groupby(week[week.searchsorted(df.index)]).sum().to_dict()
+        week_data = df.groupby(week[week.searchsorted(df.index)-1]).sum().to_dict()
         total_profit['week'] = sum(week_data['profit'].values())
-        month = total_profit['month'] = df.profit.resample('M').sum().to_dict()
+        month =  df.profit.resample('M').sum().to_dict()
+        print(month)
         for i in month:
             if i.to_pydatetime().strftime('%m') == datetime.now().strftime('%m'):
+                print(i)
                 total_profit['month'] =month[i]
+                print(month[i])
         total_profit['year']= df.profit.resample('Y').sum().iloc[0]
-
         return total_profit
     else:
         return 0
 
+
+
+
+def get_all_qty_data(ownp):
+    orderdata = get_all_order(ownp)
+    if orderdata is not None:
+        df_data = []
+        ownp_name = {}
+        data_qty = {}
+        for i in orderdata:
+            datadict = {'product_id':i.get_product_id(),'profit':i.get_o_profit(),'quantity':i.get_o_amount(),'datetime':i.get_timestamp_as_datetime().strftime("%Y/%m/%d %H:%M:%S")}
+            df_data.append(datadict)
+        for ids in ownp:
+            ownp_name[ids]= get_product_by_id(ids).get_product_name()
+            
+        df = pd.DataFrame(df_data).groupby('product_id').sum().to_dict()
+        df.pop('profit')
+        print(df)
+        for i in df['quantity']:
+            p_name =ownp_name.get(i)
+            x =0
+            if p_name in data_qty.keys():
+                x+=1
+                p_name = p_name+'({})'.format(x)
+            data_qty[p_name] = df['quantity'][i]
+        return data_qty
+    else:
+        return None
+
+# def to_df(ownp):
+#     orderdata = get_all_order(ownp)
+#     if orderdata is not None:
+#         df_data = []
+#         for i in orderdata:
+#             datadict = {'product_id':i.get_product_id(),'profit':i.get_o_profit(),'quantity':i.get_o_amount(),'datetime':i.get_timestamp_as_datetime().strftime("%Y/%m/%d %H:%M:%S")}
+#             df_data.append(datadict)
+#         df = pd.DataFrame(df_data)
+#         print(df)
+#         return df
+#     else:
+#         return None
 
 # def test_func():
 #     df = to_df(ownp)
@@ -238,10 +281,12 @@ def api_all_profit(ownp):
 
 
 # def get_all_users_id():
-#     userlst = ['e633e7da22b44fb5a70ee529679acb80','f4d5bb79756d444eb6ab8db8adb3bd5a']
+#     userlst = ['c50fa0294d6c4a739b7d7c51b0312bd3','a5f3141bc0024083a831b0d1f71fac87']
 #     return userlst
 
 # testdatau = get_all_users_id()
 # for i in range(10):
-#     order_logging(random.choice(testdatau),random.randint(1,20),'15331c30ca594ecdad14393ee515a130','TEST')
-#     order_logging(random.choice(testdatau),random.randint(1,20),'1779fa11dd0b421498431b2a8ec4490c','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'4d200bfc2dd34434b8193c7fcbaa94f0','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'b485ab12329448f582e37cffc5957a16','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'06f90d8588e347d8b04f61e283acb85a','TEST')
+

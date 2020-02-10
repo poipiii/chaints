@@ -1,8 +1,14 @@
 {% extends 'dashboard_base.html' %}
 {% block content %}
+<style>
+  .fancypantsy{
+   width:60px;
+   height:60px;
+   }
+</style>
 <div class="card shadow mb-4">
         <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Delivery History</h6>
         </div>
         <div class="card-body">
           <div class="table-responsive">
@@ -11,32 +17,26 @@
                 <tr>
                     <th>Tracking ID</th>
                   <th>Product</th>
+                  <th>Product Name</th>
                   <th>Seller Username</th>
                   <th>Order Date</th>
-                    <th>Delivery Status</th>
-                    <th>Edit</th>
-                    <th>More Information</th>
+                    <th>Date Delivery Received</th>
                 </tr>
               </thead>
               <tbody>
-                {% for delivery_item in deliverylist %}
+                {% for delivery_item in history %}
                 <tr>
                   <td>{{ delivery_item.get_individual_orderid() }}</td>
+                  <td><img src="../static/product_images/{{delivery_item.get_product_image()}}" width="60" height="60" alt="..."></td>
                   <td>{{ delivery_item.get_product_name() }}</td>
                   <td>{{ delivery_item.get_seller_name() }}</td>
                   <td>{{ delivery_item.get_order_date() }}</td>
-                    <td>{{ delivery_item.get_deliverystat() }}</td>
-                  {% if delivery_item.get_deliverystat()== "Order Dispatched" %}
-                  <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}" class="btn btn-success">Received</a></td>
-                  {% else %}
-                  <td><a href="/DeliveryReceived/{{ delivery_item.get_individual_orderid() }}" class="btn btn-success disabled">Received</a></td>
-                  {% endif %}
-                    <td><a href="/BuyerDeliveryDetails/{{ delivery_item.get_individual_orderid() }}" class="btn btn-warning">Details</a></td>
+                  <td>{{ delivery_item.get_delivery_received_date() }}</td>
                 </tr>
-                {% endfor %}
+              {% endfor %}
               </tbody>
               </table>
-            <a href="/DeliveryHistory" class="btn btn-sm btn-outline-primary">Delivery History</a>
+            <a href="/SellerDelivery" class="btn btn-sm btn-outline-primary">Delivery Status</a>
             </div>
     </div>
 </div>

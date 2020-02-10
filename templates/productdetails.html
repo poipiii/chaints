@@ -31,6 +31,7 @@
 		<div class="row no-gutters">
 			<aside class="col-md-6">
 				<article class="gallery-wrap"> 
+					
 					<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
 						<div class="carousel-inner">
 							{% for images in product.get_product_images() %}
@@ -75,7 +76,10 @@
 			</aside>
 			<main class="col-md-6 border-left">
 	<article class="content-body">
-		<div  class="float-right"> 
+		<div  class="float-right">
+			<span class="topbar">
+				
+			  </span> 
 			<div class="icontext align-items-start " style="max-width: 300px;">
 				<div class="text">
 					<p class="text-muted">Sold By:</p>
@@ -91,24 +95,30 @@
 	<div class="rating-wrap my-3">
 		<ul class="rating-stars">
 			<li style="width:100%" class="stars-active"> 
-				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-				<i class="fa fa-star"></i>
-
-			</li>
-			<li>
-				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-				<i class="fa fa-star"></i> <i class="fa fa-star"></i> 
-				<i class="fa fa-star"></i> 
-			</li>
+                {% for star in range(product.get_average_reviews()) %}
+                <i class="fa fa-star"></i>
+                {% endfor %}
+              </li>
+              <li style="width:100%">
+                {% for star in range(5) %}
+                <i class="fa fa-star"></i>
+                {% endfor %}
+              </li>
 		</ul>
+		<small class="label-rating text-muted">{{product.get_reviews_count()}} reviews</small>
 		<!-- <small class="label-rating text-muted">132 reviews</small>
 		<small class="label-rating text-success"> <i class="fa fa-clipboard-check"></i> 154 orders </small> -->
 	</div> <!-- rating-wrap.// -->
-	
 	<div class="mb-3"> 
-		<var class="price h4">${{product.get_discounted_price()}}</var> 
-		<span class="text-muted">${{product.get_product_price()}}</span> 
+		{% if product.get_product_discount() <= 0 %}
+              <span class="price h4">${{product.get_product_price()}}</span>
+            {% else %}
+              <span class="price h4">${{product.get_discounted_price()}}</span>
+              <span class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</span>
+            {% endif %}
+		{% if product.get_product_discount() > 0 %}
+					<span class="badge badge-success"> SALE </span>            
+		{% endif %}
 	</div> 
 	
 	<p>{{product.get_product_desc()}}</p>
@@ -128,41 +138,42 @@
 		<div class="form-row">
 			<div class="form-group col-md flex-grow-0">
 				<label>Quantity</label>
-				<div class="input-group mb-3  number-spinner input-spinner ">
-				  <div class="input-group-prepend ">
-					<button class="btn btn-light" type="button" id="button-plus"> + </button>
-				  </div>
-				  <input type="text" class="form-control" value="1">
-				  <div class="input-group-append">
-					<button class="btn btn-light" type="button" id="button-minus"> &minus; </button>
-				  </div>
-				</div>
-			</div> 
-			<!-- col.// -->
-			<!-- <div class="form-group col-md">
+				<form action="">
+					<div class="input-group mb-3  number-spinner  input-spinner ">
+						<div class="input-group-prepend ">
+							<button class="btn btn-light" type="button" data-dir="dwn" id="button-minus "> &minus; </button>
+						</div>
+						<input type="text" id="cartvalue" class="form-control" value="1">
+					  <div class="input-group-append">
+						<button class="btn btn-light" type="button"  data-dir="up" id="button-plus data-dir"> &plus; </button>
+					  </div>
+					</div>
+				</div> 
+				<!-- col.// -->
+				<!-- <div class="form-group col-md">
 					<label>Select size</label>
 					<div class="mt-1">
 						<label class="custom-control custom-radio custom-control-inline">
-						  <input type="radio" name="select_size" checked="" class="custom-control-input">
-						  <div class="custom-control-label">Small</div>
+							<input type="radio" name="select_size" checked="" class="custom-control-input">
+							<div class="custom-control-label">Small</div>
 						</label>
-	
+						
 						<label class="custom-control custom-radio custom-control-inline">
-						  <input type="radio" name="select_size" class="custom-control-input">
-						  <div class="custom-control-label">Medium</div>
+							<input type="radio" name="select_size" class="custom-control-input">
+							<div class="custom-control-label">Medium</div>
 						</label>
-	
+						
 						<label class="custom-control custom-radio custom-control-inline">
-						  <input type="radio" name="select_size" class="custom-control-input">
-						  <div class="custom-control-label">Large</div>
+							<input type="radio" name="select_size" class="custom-control-input">
+							<div class="custom-control-label">Large</div>
 						</label>
-	
+						
 					</div>
-			</div>  -->
-			<!-- col.// -->
-		</div> <!-- row.// -->
-		<a href="#" class="btn  btn-primary"> Buy now </a>
-		<a href="#" class="btn  btn-outline-primary"> <span class="text">Add to cart</span> <i class="fa fa-shopping-cart"></i>  </a>
+				</div>  -->
+				<!-- col.// -->
+			</div> <!-- row.// -->
+			<a href="#" class="addtocart btn  btn-outline-success"> <span class="text">Add to cart</span> <i class="fa fa-shopping-cart"></i>  </a>
+		</form>
 	</article> <!-- product-info-aside .// -->
 			</main> <!-- col.// -->
 		</div> <!-- row.// -->
@@ -216,6 +227,7 @@
             newVal = 0;
         
         if (btn.attr('data-dir') == 'up') {
+			console.log('plus')
             newVal = parseInt(oldValue) + 1;
         } else {
             if (oldValue > 1) {
@@ -224,7 +236,14 @@
                 newVal = 1;
             }
         }
-        btn.closest('.number-spinner').find('input').val(newVal);
-    });
+		btn.closest('.number-spinner').find('input').val(newVal);
+		console.log(newVal)
+	});
+	
+	$('.addtocart').click(function(){
+		var Value = $("#cartvalue").val()
+		console.log(Value)
+		window.location = "/add_to_cart/{{product.get_product_id()}}/" + Value;
+	 });
 </script>
 {% endblock  %}
