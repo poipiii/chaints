@@ -27,10 +27,10 @@
                     </form>
                     
                     <ul class="list-menu">
+                    <li><a href="/catergories">All  </a></li>
                     <li><a href="/catergories/{{'male'}}">Men  </a></li>
                     <li><a href="/catergories/{{'female'}}">Women </a></li>
                     <li><a href="/catergories/{{'child'}}">Children  </a></li>
-                    <li><a href="#">somthing  </a></li>
                     <li><a href="#">something </a></li>
                     <li><a href="#">something</a></li>
                     <li><a href="#">something </a></li>
@@ -81,14 +81,18 @@
                 <a href="/product/{{product.get_product_id()}}" class="title">{{product.get_product_name()}}</a>
                 <div class="rating-wrap mt-1">
                   <ul class="rating-stars">
-                    <li style="width:80%" class="stars-active"> 
-                      <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+                    <li style="width:100%" class="stars-active"> 
+                      {% for star in range(product.get_average_reviews()) %}
+                      <i class="fa fa-star"></i>
+                      {% endfor %}
                     </li>
-                    <li>
-                      <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i> 
+                    <li style="width:100%">
+                      {% for star in range(5) %}
+                      <i class="fa fa-star"></i>
+                      {% endfor %}
                     </li>
                   </ul>
-                  <span class="label-rating text-muted"> 34 reviews</span>
+                  <span class="label-rating text-muted"> {{product.get_reviews_count()}} reviews</span>
                 </div>
                 <div class="price-wrap mt-3">
                   {% if product.get_product_discount() <= 0 %}
@@ -98,7 +102,7 @@
                     <small class="price-old" style=" text-decoration: line-through;">${{product.get_product_price()}}</small>
                   {% endif %}
                 </div>
-                <a href="#" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
+                <a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-sm btn-outline-success float-right">Add to cart <i class="fa fa-shopping-cart"></i></a>
               </figcaption>
             </div>
           </div> <!-- col.// -->

@@ -79,8 +79,27 @@ def product_page(productid):
     seller = get_user(get_product.get_seller_id())
     return render_template('productdetails.html',product = get_product,sellerinfo = seller.get_username() )
 
-#only be able to access if session['logged_in']==True
+# only be able to access if session['logged_in']==True
+@app.route("/wishlist")
+def wish_list():
+    wishlist = fetch_wishlist(session.get('user_id'))
+    return render_template('wishlist.html',wishlist = wishlist)
 
+@app.route("/addwishlist/<productid>")
+def add_wish_list(productid):
+    current_wishlist=fetch_wishlist_id(session.get('user_id'))
+    if productid in current_wishlist:
+        flash('product already in wishlist')
+        return redirect(url_for('landing_page'))
+    else:
+        pass
+        update_wishlist(session.get('user_id'),productid)
+        return redirect(url_for('landing_page'))
+
+@app.route("/delwishlist/<productid>")
+def del_wish_list(productid):
+    delete_wishlist(session.get('user_id'),productid)
+    return redirect(url_for('wish_list'))
 
 @app.route("/catergories")
 def catergory_page():
@@ -116,6 +135,7 @@ def dashboard_home():
 def datapipe(d_type):
     if session.get('role') == 'S':
         ownp = get_usr_owned_p(session.get('user_id'))
+        print(ownp)
         if d_type == 'week':
             chart_data = api_data_week(ownp)
             return chart_data
@@ -125,6 +145,10 @@ def datapipe(d_type):
         elif d_type == 'year':
             chart_data = api_data_year(ownp)
             return chart_data
+        elif d_type == 'bar_all':
+            chart_data = get_all_qty_data(ownp)
+            print(chart_data)
+            return jsonify(chart_data)
         else:
              return None
     else:
@@ -570,6 +594,14 @@ def profile():
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
     if session.get('logged_in') == True:
+        userid=session.get('user_id')
+        userrole=session.get('role')
+        if userrole=="A":
+            return redirect(url_for('landing_page'))
+        db=shelve.open('database/user_database/user.db','r')
+        if db[userid].get_user_role()=="S":
+            return redirect(url_for('landing_page'))
+        db.close()
         #take in productid and product quantity from route
         db= shelve.open('database/order_database/cart.db','c')
         #check if logged in user is in cart db
@@ -599,6 +631,9 @@ def cart():
     if session.get('logged_in') == True:
         #initalise a empty list for product objects in varible productincart
         userid=session.get('user_id')
+        userrole=session.get('role')
+        if userrole=="A":
+            return redirect(url_for('landing_page'))
         db=shelve.open('database/user_database/user.db','r')
         if db[userid].get_user_role()=="S":
             return redirect(url_for('landing_page'))
