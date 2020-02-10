@@ -90,7 +90,7 @@ class Payment_Form(Form):
     cardholder= StringField('Cardholder name',[validators.length(min=1,max=150),validators.DataRequired()])
     cardno= IntegerField('Card Number',validators=[validators.InputRequired()])
     expiry=StringField('Date Of Expiry',validators=[validators.InputRequired()])
-    cvc=IntegerField('CVC',validators=[validators.InputRequired()])
+    cvc=StringField('CVC',[validators.length(min=3,max=3),validators.DataRequired()])
 
 
 class updateorderForm(Form):

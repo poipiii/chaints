@@ -713,12 +713,8 @@ def Deliverydetails():
 def paymentdetails():
     payment1_form=Payment_Form(request.form)
     if request.method == "POST" and payment1_form.validate():
-        if  payment1_form.cvc.data>0 and payment1_form.cardno.data>0:
             # payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
             return redirect(url_for('confirmation'))
-        else:
-            flash('  Invalid cvc or cardnumber or cardname')
-            return render_template('Payment.html',form=payment1_form)
     return render_template('Payment.html',form=payment1_form)
 
 
