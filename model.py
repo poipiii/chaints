@@ -732,12 +732,21 @@ class indi_product_order:
         self.__buyerid=buyerid
         self.__buyername=buyername
         self.__address=address
+        self.__buyer_checker='No'
+        self.__seller_checker='No'
+        self.__delivery_date_received=''
 
     #mutator
     def set_delivery_status(self,delivery_stat):
         self.__deliverystat=delivery_stat
     def set_delivery_location(self,location): #only carrier can edit
         self.__delivery_location=location
+    def set_buyer_checker(self,checker):
+        self.__buyer_checker=checker
+    def set_seller_checker(self,checker):
+        self.__seller_checker=checker
+    def set_delivery_received_date(self,deldate):
+        self.__delivery_date_received=deldate
 
     #accessor
     def get_product_id(self):
@@ -766,6 +775,12 @@ class indi_product_order:
         return self.__buyername
     def get_address(self):
         return self.__address
+    def get_buyer_checker(self):
+        return self.__buyer_checker
+    def get_seller_checker(self):
+        return self.__seller_checker
+    def get_delivery_received_date(self):
+        return self.__delivery_date_received
 
 
 #class to create individual tracking details for each delivery based on delivery status
@@ -898,9 +913,20 @@ def status_update(trackingid,buyerid,status):
             for k in i:
                 if k.get_individual_orderid()==trackingid:
                     k.set_delivery_status(status)
+                    address=k.get_address()
         db[buyerid]=a
-
         db.close()
+        if status=="Order Dispatched":
+            db=shelve.open('database/delivery_database/carrier.db','c')
+            if trackingid in db:
+                pass
+            else:
+                stdate=datetime.date(datetime.today())
+                carrierobj=carrier_delivery(stdate,"HQ","Info Received","Info received from seller",address)
+                carrierlist=[]
+                carrierlist.append(carrierobj)
+                db[trackingid]=carrierlist
+            db.close()
     except IOError:
         raise Exception("db does not exist")
     except:
@@ -931,13 +957,31 @@ def create_buyer_order_list(buyerid):
         if buyerid in db:
             for i in db[buyerid]:
                 for n in i:
-                    buyerorderlist.append(n)
+                    if n.get_buyer_checker()=='No':
+                        buyerorderlist.append(n)
         db.close()
     except IOError:
         raise Exception("db does not exist")
     except:
         raise Exception("an error has occurred")
     return buyerorderlist
+
+#creates delivery history list
+def buyer_history_list(buyerid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        biglist=db[buyerid]
+        historylist=[]
+        for i in biglist:
+            for n in i:
+                if n.get_buyer_checker()=='Yes':
+                    historylist.append(n)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("an error has occurred")
+    return historylist
 
 #to check seller for count
 def pending_order_check(orderlist):
@@ -972,7 +1016,7 @@ def create_seller_order_list(sellerid):
             for n in db:           #running through db, getting value from key n
                 for j in db[n]:   #running through list of obj (value of db[n])
                     for k in j:
-                        if i==k.get_product_id():
+                        if i==k.get_product_id() and k.get_seller_checker()=='No':
                             seller_delivery_list.append(k)
         db.close()
         #db=shelve.open('database/delivery_seller_database/seller_del.db','c')
@@ -983,6 +1027,20 @@ def create_seller_order_list(sellerid):
     except:
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
+
+#to create list of past delivery history for selleer
+def seller_history_list(sellerid):
+    db=shelve.open('database/delivery_database/delivery.db','r')
+    sellerhistory=[]
+    productidlist=obtaining_seller_product_id(sellerid)
+    for i in productidlist:
+        for n in db:
+            for j in db[n]:
+                for k in j:
+                    if i==k.get_product_id() and k.get_seller_checker()=='Yes':
+                        sellerhistory.append(k)
+    db.close()
+    return sellerhistory
 
 #to obtain specific delivery object
 def delivery_object(trackingid):
@@ -1049,6 +1107,21 @@ def editing_status(trackingid,status,notes,country,statusid):
     except:
         raise Exception("an unknown error has occured")
 
+#to get the most recent status by courier
+def recent_courier_stat(orderid):
+    #try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        if orderid in db:
+            statobj=db[orderid][-1]
+        else:
+            statobj=False
+        db.close()
+        return statobj
+    #except IOError:
+    #    raise Exception('db not found')
+    #except:
+    #    raise Exception('an unknown error has occurred')
+#
 def print_db_orders():
     db=shelve.open('database/delivery_database/delivery.db','r')
     count=0
@@ -1068,10 +1141,13 @@ def print_db_orders():
                 print("Order date: %s"%n.get_order_date())
                 print("Order id: %s"%n.get_individual_orderid())
                 print("Delivery status: %s"%n.get_deliverystat())
+                print("Buyer Checker: %s"%n.get_buyer_checker())
+                print("Seller Checker: %s"%n.get_seller_checker())
         print("============")
     print(count)
     print("===========")
 
+#print_db_orders()
 def print_db_seller(sellerid):
     listy=create_seller_order_list(sellerid)
     print("Seller id: %s"%sellerid)
@@ -1101,7 +1177,16 @@ def print_list_buyer(buyerid):
         print("Delivery status: %s"%i.get_deliverystat())
     #db.close()
 
+def print_carrier_list():
+    db=shelve.open('database/delivery_database/carrier.db','c')
+    for i in db:
+        for k in db[i]:
+            print("Tracking number: %s"%i)
+            print("Status: %s"%k.get_status())
+            print("Date: %s"%k.get_status_date())
+    db.close()
 
+print_carrier_list()
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")
 #====clear delivery db======

@@ -2,33 +2,79 @@
 {% block content %}
 {% from "includes/_formhelper.html" import render_field %}
 <style>
+.title {
+        font-weight:bold;!important
+
+    }
+ .orderdetails img{
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 200px;
+        float: right;
+        right: 15%;
+        position: absolute;
+        bottom:10px;
+        top:6px;
+        margin:left;
+
+  }
+
+    .orderdetails{
+
+        position:relative;
+    }
+.formtitle{
+font-weight:bold;!important
+}
+
+#buttonyeet{
+bottom:40px; !important
+}
+
 
 </style>
 <div class="card shadow mb-4">
         <div class="card-header py-3">
           <h6 class="m-0 font-weight-bold text-primary">Delivery Status</h6>
-            <div>
+            <div class="orderdetails">
                 <h2>Order Details</h2>
                 <div>
-                    <h6><span>Order ID:</span> {{ orderid }}</h6>
-                    <h6>Product: {{ individual_order.get_product_name() }}</h6>
-                    <h6>Buyer name: {{ individual_order.get_buyer_name() }}</h6>
-                    <h6>Address: {{ individual_order.get_address() }}</h6>
-                    <h6>Delivery Status: {{ individual_order.get_deliverystat() }}</h6>
-                    <h6>Change status</h6>
+                    <h6><span class="title">Order ID:</span><span id="copystuff"> {{ orderid }}</span> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-sm btn-secondary" id="buttonyeet">Copy ID</a></h6>
+                    <h6><span class="title">Product:</span> {{ individual_order.get_product_name() }}</h6>
+                    <h6><span class="title">Buyer name:</span> {{ individual_order.get_buyer_name() }}</h6>
+                    <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
+                    <h6><span class="title">Delivery Status:</span> {{ individual_order.get_deliverystat() }}</h6>
+
                     <form method="POST" action="">
+                        <div id="formtitle">
                         <div class="form-group">
                             {{ render_field(form.deliverystatus, class="form-control") }}
                         </div>
-                        <input type="submit" value="Update" class="btn btn-success">
+                        </div>
+                        <input type="submit" value="Update" class="btn btn-success float-right">
                     </form>
+                    <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a> <a href="/CarrierBuyerDash" class="btn btn-warning">Courier Tracking</a>
 
+                    <div class="productimage">
+                                <img src="../static/product_images/{{individual_order.get_product_image()}}" width="200" height="200" >
+                         </div>
                 </div>
             </div>
             <br>
-            <a href="/SellerDelivery" class="btn btn-warning">Delivery Status</a>
+
     </div>
 </div>
 
 
 {% endblock  %}
+{% block script %}
+    <script>
+function copytoclipboard(element){
+    var $temp=$("<input>");
+    $("body").append($temp);
+    $temp.val($(element).text()).select();
+    document.execCommand("copy");
+    $temp.remove();
+}
+</script>
+{% endblock %}

@@ -722,18 +722,37 @@ def buyer_deliverylist():
 #to get the detailed details of order
 @app.route('/BuyerDeliveryDetails/<orderid>')
 def buyer_deliverydetails(orderid):
-    try:
-        db=shelve.open('database/delivery_database/delivery.db', 'c')
-        buyerorderlist=create_buyer_order_list(session.get('user_id'))
-        for i in buyerorderlist:
-            if i.get_individual_orderid()==orderid:
-                orderobj=i
-        db.close()
-        return render_template('buyer_order_details2.html',individual_order=orderobj)
-    except IOError:
-        print("db does not exist")
-    except:
-        print("an unknown error occurred")
+    #try:
+    db=shelve.open('database/delivery_database/delivery.db', 'c')
+    buyerorderlist=create_buyer_order_list(session.get('user_id'))
+    for i in buyerorderlist:
+        if i.get_individual_orderid()==orderid:
+            orderobj=i
+    db.close()
+    rstatobj=recent_courier_stat(orderid)
+    if rstatobj != False:
+        status=rstatobj.get_status()
+        statusdate=rstatobj.get_status_date()
+        statusnote=rstatobj.get_delivery_notes()
+    else:
+        status="None"
+        statusnote="None"
+        statusdate="None"
+    return render_template('buyer_order_details2.html',individual_order=orderobj,status=status,statusdate=statusdate,statusnote=statusnote)
+    #except IOError:
+    #    print("db does not exist")
+    #except:
+    #    print("an unknown error occurred")
+
+@app.route('/DeliveryHistory')
+def delivery_history():
+    userid=session.get('user_id')
+    userrole=session.get('role')
+    if userrole=='B':
+        history=buyer_history_list(userid)
+        return render_template('buyer_delivery_history.html',history=history)
+    history=seller_history_list(userid)
+    return render_template('seller_delivery_history.html',history=history)
 
 @app.route('/DeletingDelivery/<orderid>/<userid>')
 def deleting_delivery(orderid,userid):
@@ -753,14 +772,44 @@ def deleting_delivery(orderid,userid):
         print("an unknown error occurred")
     return redirect(url_for('buyer_deliverylist'))
 
-
-@app.route('/DeliveryReceived/<trackingid>/<productid>')
-def received_delivery(trackingid,productid):
+#redo this part
+@app.route('/DeliveryReceived/<trackingid>')
+def received_delivery(trackingid):
     userid=session.get('user_id')
-    status_update(trackingid,userid,"Order Received (Pending)")
-    deliverylist=create_buyer_order_list(userid)
+    userrole=session.get('role')
+    if userrole=='B':
+        status_update(trackingid,userid,"Order Received")
+        #deliverylist=create_buyer_order_list(userid)
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        userlist=db[userid]
+        for i in userlist:
+            for n in i:
+                if n.get_individual_orderid()==trackingid:
+                    n.set_buyer_checker('Yes')
+                    deldate=datetime.date(datetime.today())
+                    n.set_delivery_received_date(deldate)
+        db[userid]=userlist
+        db.close()
+        return redirect(url_for('buyer_deliverylist'))
+    else:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        for i in db:
+            for j in db[i]:
+                for k in j:
+                    if k.get_individual_orderid()==trackingid:
+                        userid=i
+        biglist=db[userid]
+        for i in biglist:
+            for n in i:
+                if n.get_individual_orderid()==trackingid:
+                    n.set_seller_checker('Yes')
+                    if n.get_deliverystat()=="Pending":
+                        n.set_delivery_status("--")
+        db[userid]=biglist
+        db.close()
+        return redirect(url_for('seller_deliverylist'))
+    #return redirect(url_for('review',productid=productid))
 
-    return redirect(url_for('review',productid=productid))
 
 @app.route('/SellerDeliveryReceived/<trackingid>/<buyerid>')
 def seller_acknowledge(trackingid,buyerid):
@@ -779,6 +828,7 @@ def checking_role():
 @app.route('/CarrierBuyer', methods=['GET','POST'])
 def Carrierbuyer():
     carrierbuyer=CarrierBuyer(request.form)
+    buttoncheck='No'
     if request.method=='POST' and carrierbuyer.validate():
         orderid=carrierbuyer.orderid.data
         ordercheck=checking_id(orderid)
@@ -788,10 +838,28 @@ def Carrierbuyer():
             db.close()
             dobj=delivery_object(orderid)
             return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid,deliverObj=dobj)
-        flash('Order ID does not exist. Please type again')
-        return render_template('carrieruser.html',form=carrierbuyer)
+        error='Woops, seems like ID has not been added. Try Again'
+        return render_template('carrieruser.html',form=carrierbuyer,error=error,buttoncheck=buttoncheck)
     else:
-        return render_template('carrieruser.html',form=carrierbuyer)
+        return render_template('carrieruser.html',form=carrierbuyer,buttoncheck=buttoncheck)
+
+@app.route('/CarrierBuyerDash',methods=['GET','POST'])
+def carrierbuyerdash():
+    carrierbuyer=CarrierBuyer(request.form)
+    buttoncheck='Yes'
+    if request.method=='POST' and carrierbuyer.validate():
+        orderid=carrierbuyer.orderid.data
+        ordercheck=checking_id(orderid)
+        if ordercheck==True:
+            db=shelve.open('database/delivery_database/carrier.db','c')
+            statuslist=db[orderid]
+            db.close()
+            dobj=delivery_object(orderid)
+            return render_template('carrieruser_details.html',statuslist=statuslist,orderid=orderid,deliverObj=dobj)
+        error='Woops, seems like ID has not been added. Try Again'
+        return render_template('carrieruser.html',form=carrierbuyer,error=error,buttoncheck=buttoncheck)
+    else:
+        return render_template('carrieruser.html',form=carrierbuyer,buttoncheck=buttoncheck)
 
 @app.route('/CarrierUpdate', methods=['GET','POST'])
 def CarrierUpdate():
@@ -816,8 +884,8 @@ def CarrierUpdate():
             #return render_template('testing2.html',statuslist=statuslist,orderid=orderid)
             return redirect(url_for('CarrierUpdateTable',trackingid=orderid))
         else:
-            flash("Woops, Tracking ID has not been added yet.")
-            return render_template('carrier_update.html',form=carrierupdateform)
+            error="Tracking ID not found"
+            return render_template('carrier_update.html',form=carrierupdateform, error=error)
     return render_template('carrier_update.html',form=carrierupdateform)
 
 
