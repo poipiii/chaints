@@ -1,0 +1,50 @@
+{% extends 'dashboard_base.html' %}
+{% block content %}
+<div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Users Activity Logs</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered" id="UserLogsTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Username</th>
+                  <th>Activity</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user_log in user_log_list %}
+                  {% for log_item in user_log %}
+                <tr>
+                  <td>{{log_item.get_user_id()}}</td>
+                  <td>{{log_item.get_username()}}</td>
+                  <td>{{log_item.get_u_activity()}}</td>
+                  <td>{{log_item.get_timestamp_as_datetime().strftime("%m/%d/%Y")}}</td>
+                  <td>{{log_item.get_timestamp_as_datetime().strftime("%H:%M:%S")}}</td>
+                </tr>
+                {% endfor %}
+              {% endfor %}
+              </tbody>
+              </table>
+            </div>
+    </div>
+</div>
+{% endblock  %}
+{% block script %}
+<script>
+  $(document).ready(function() {
+      $('#UserLogsTable').DataTable();
+    });
+
+</script>
+
+{% endblock  %}
+
+
+
+
+

@@ -9,30 +9,24 @@
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                  <th>Order ID</th>
+                  <th>Order Id</th>
+                  <th>Buyer name</th>
                   <th>Product</th>
-                  <th>Buyer Name</th>
                   <th>Quantity</th>
-                  <th>Payment Status</th>
                   <th>Total Price</th>
-                    <th>Edit</th>
                 </tr>
               </thead>
               <tbody>
-              {%for item in userorders%}
-                {%for i in productinorder%}
-                  {%if i.get_product_id() == item%}
+              {% for obj in orders %}
+              {% for order in obj.get_cart_list()%}
                 <tr>
-                  <td></td>
-                  <td>{{i.get_product_name()}}</td>
-                  <td></td>
-                  <td>{{userorders[item]}}</td>
-                  <td></td>
-                  <td>{{i.get_discounted_price()*userorders[item]}}</td>
-                    <td><a href="#" class="btn btn-warning">Edit Status</a></td>
+                  <td>{{obj.get_orderId()}}</td>
+                  <td>{{obj.get_buyername()}}</td>
+                  <td>{{productinorder[order].get_product_name()}}</td>
+                  <td>{{obj.get_cart_list()[order]}}</td>
+                  <td>{{productinorder[order].get_discounted_price()*obj.get_cart_list()[order]}}</td>
                 </tr>
-                  {% endif %}
-                {% endfor %}
+                  {% endfor %}
               {% endfor %}
               </tbody>
               </table>

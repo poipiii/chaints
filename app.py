@@ -7,10 +7,10 @@ from werkzeug import secure_filename
 from model import *
 from passlib.hash import pbkdf2_sha256
 from datetime import datetime
-from datapipeline import *
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from Forms import Question, Response
+from datapipeline import *
 app = Flask(__name__)
 app.secret_key = "sadbiscuit"
 app.config["PRODUCT_IMAGE_UPLOAD"] = "static/product_images"
@@ -29,6 +29,7 @@ mail = Mail(app)
 @app.before_request
 def before_request():
     if session.get('forced_logout')==True:
+        session['forced_logout']=False
         return redirect(url_for('logout'))
 
     if session.get('logged_in') == True:
@@ -42,6 +43,7 @@ def before_request():
             if delta.seconds > 1800:
                 session['last_active'] = now
                 session['forced_logout']=True
+                session['logged_in']=False
         except:
             pass
 
@@ -77,8 +79,27 @@ def product_page(productid):
     seller = get_user(get_product.get_seller_id())
     return render_template('productdetails.html',product = get_product,sellerinfo = seller.get_username() )
 
-#only be able to access if session['logged_in']==True
+# only be able to access if session['logged_in']==True
+@app.route("/wishlist")
+def wish_list():
+    wishlist = fetch_wishlist(session.get('user_id'))
+    return render_template('wishlist.html',wishlist = wishlist)
 
+@app.route("/addwishlist/<productid>")
+def add_wish_list(productid):
+    current_wishlist=fetch_wishlist_id(session.get('user_id'))
+    if productid in current_wishlist:
+        flash('product already in wishlist')
+        return redirect(url_for('landing_page'))
+    else:
+        pass
+        update_wishlist(session.get('user_id'),productid)
+        return redirect(url_for('landing_page'))
+
+@app.route("/delwishlist/<productid>")
+def del_wish_list(productid):
+    delete_wishlist(session.get('user_id'),productid)
+    return redirect(url_for('wish_list'))
 
 @app.route("/catergories")
 def catergory_page():
@@ -114,6 +135,7 @@ def dashboard_home():
 def datapipe(d_type):
     if session.get('role') == 'S':
         ownp = get_usr_owned_p(session.get('user_id'))
+        print(ownp)
         if d_type == 'week':
             chart_data = api_data_week(ownp)
             return chart_data
@@ -123,10 +145,15 @@ def datapipe(d_type):
         elif d_type == 'year':
             chart_data = api_data_year(ownp)
             return chart_data
+        elif d_type == 'bar_all':
+            chart_data = get_all_qty_data(ownp)
+            print(chart_data)
+            return jsonify(chart_data)
         else:
              return None
     else:
         return None
+
 
 # @app.route("/apitest")
 # def datatest():
@@ -153,6 +180,20 @@ def datapipe(d_type):
     # profit = apidata[0]
     # dtime = apidata[1]
     # return jsonify({"profit":profit},{"datetime":dtime})
+@app.route("/user_logs")
+def userdashboard_logs():
+    db = shelve.open('database/logs_database/logs.db', 'r')
+    userslogList = []
+    for user in db:
+        try:
+            user_log = get_user_log_by_id(user)
+            userslogList.append(user_log)
+        except AttributeError:
+            pass
+    if userslogList is not None:
+        return render_template('admin_logs_page.html',user_log_list = userslogList)
+    else:
+        return render_template('admin_logs_page.html')
 
 
 @app.route("/product_logs")
@@ -265,9 +306,19 @@ def signupUser():
         return redirect(url_for("landing_page"))
     createUserForm = CreateUserForm(request.form)
     if request.method == 'POST' and createUserForm.validate():
-        username = request.form['username']
-        password = request.form['password']
         email = request.form['email']
+        username = request.form['username']
+        db = shelve.open('database/user_database/user.db', 'r')
+        for user in db:
+                user=db[user]
+                if user.get_user_email()==email:
+                    error = 'This email is in use, please enter another email.'
+                    return render_template('Signup.html', form=createUserForm, error=error)
+                if user.get_username()==username:
+                    usernameerror = 'This username is in use, please enter another username.'
+                    return render_template('Signup.html', form=createUserForm, usernameerror=usernameerror)
+        db.close()
+        password = request.form['password']
         firstname= request.form['firstname']
         lastname= request.form['lastname']
         role= request.form['role']
@@ -291,6 +342,7 @@ def confirm_email(token):
     db = shelve.open('database/user_database/user.db', 'c')
     user=User_Model(user[0],user[1],user[2],user[3],user[4],user[5],date)
     db[user.get_user_id()]=user
+    user_logging(user.get_user_id(),'CREATE',user,user.get_username())
     db.close()
     flash('Your account has been verified')
     return redirect(url_for("landing_page"))
@@ -380,6 +432,7 @@ def loginUser():
                         session['name']=user.get_user_fullname()
                         session['role']=user.get_user_role()
                         session['profile_picture']=user.get_user_profile_picture()
+                        user_logging(user.get_user_id(),'LOGIN',user,user.get_username())
                         db.close()
                         try:
                             if request.form['remember']:
@@ -396,6 +449,14 @@ def loginUser():
 #pop the session['logged_in'] out so will redirect to normal main page
 @app.route('/logout')
 def logout():
+    try:
+        db = shelve.open('database/user_database/user.db', 'r')
+        userid=session['user_id']
+        user=db[userid]
+        user_logging(user.get_user_id(),'LOGOUT',user,user.get_username())
+        db.close()
+    except:
+        pass
     session.clear()
     return redirect(url_for('landing_page'))
 
@@ -405,7 +466,24 @@ def logout():
 def updateUser(id):
     updateUserForm = CreateUpdateForm(request.form)
     if request.method == 'POST' and updateUserForm.validate():
+        username = request.form['username']
+        email = request.form['email']
         db = shelve.open("database/user_database/user.db", "w")
+        oguser = db[id]
+        for user in db:
+            user=db[user]
+            if user.get_user_email()==email:
+                if oguser.get_user_email()==email:
+                    pass
+                else:
+                    error = 'This email is in use, please enter another email.'
+                    return render_template('updateUser.html', form=updateUserForm, error=error)
+            if user.get_username()==username:
+                if oguser.get_username()==username:
+                    pass
+                else:
+                    usernameerror = 'This username is in use, please enter another username.'
+                    return render_template('updateUser.html', form=updateUserForm, usernameerror=usernameerror)
         user = db[id]
         user.set_user_email(updateUserForm.email.data)
         user.set_username(updateUserForm.username.data)
@@ -413,6 +491,7 @@ def updateUser(id):
         user.set_user_lastname(updateUserForm.lastname.data)
         user.set_user_role(updateUserForm.role.data)
         db[id]=user
+        user_logging(user.get_user_id(),'EDIT',user,user.get_username())
 
         db.close()
         return redirect(url_for("retrieveUsers"))
@@ -433,7 +512,24 @@ def updateprofile(id):
     updateprofileForm = CreateProfileUpdateForm(request.form)
     if request.method == 'POST' and updateprofileForm.validate():
         profile_pic = CreateProfileUpdateForm(request.files)
+        username = request.form['username']
+        email=request.form['email']
         db = shelve.open("database/user_database/user.db", "w")
+        oguser=db[id]
+        for user in db:
+            user=db[user]
+            if user.get_user_email()==email:
+                if oguser.get_user_email()==email:
+                    pass
+                else:
+                    error = 'This email is in use, please enter another email.'
+                    return render_template('updateprofile.html', form=updateprofileForm, error=error)
+            if user.get_username()==username:
+                if oguser.get_username()==username:
+                    pass
+                else:
+                    usernameerror = 'This username is in use, please enter another username.'
+                    return render_template('updateprofile.html', form=updateprofileForm, usernameerror=usernameerror)
         user = db[id]
         user.set_user_email(updateprofileForm.email.data)
         user.set_username(updateprofileForm.username.data)
@@ -452,6 +548,7 @@ def updateprofile(id):
 
         db[id]=user
         session['profile_picture']=user.get_user_profile_picture()
+        user_logging(user.get_user_id(),'EDIT',user,user.get_username())
         db.close()
         return redirect(url_for("profile"))
     else:
@@ -468,10 +565,15 @@ def updateprofile(id):
 
 @app.route('/deleteUser/<id>', methods=['POST'])
 def deleteUser(id):
- db = shelve.open('database/user_database/user.db', 'w')
- db.pop(id)
- db.close()
- return redirect(url_for('retrieveUsers'))
+    db = shelve.open('database/user_database/user.db', 'r')
+    user=db[id]
+    username=user.get_username()
+    if user.get_user_role()=="S":
+        delete_all_user_product(id)
+    deleted_user=db.pop(id)
+    user_logging(user.get_user_id(),'DELETE',deleted_user,username)
+    db.close()
+    return redirect(url_for('retrieveUsers'))
 
 
 #adding  product to cart 
@@ -492,6 +594,14 @@ def profile():
 @app.route('/add_to_cart/<productid>/<int:productqty>')
 def Add_to_cart(productid,productqty):
     if session.get('logged_in') == True:
+        userid=session.get('user_id')
+        userrole=session.get('role')
+        if userrole=="A":
+            return redirect(url_for('landing_page'))
+        db=shelve.open('database/user_database/user.db','r')
+        if db[userid].get_user_role()=="S":
+            return redirect(url_for('landing_page'))
+        db.close()
         #take in productid and product quantity from route
         db= shelve.open('database/order_database/cart.db','c')
         #check if logged in user is in cart db
@@ -511,14 +621,19 @@ def Add_to_cart(productid,productqty):
         #save the record to the cart db with current logged in user id as key and usercart dict as value
         db[session.get('user_id')] = usercart
         db.close()
+        flash("Product added to the Cart")
         return redirect(url_for('landing_page'))
     else:
         return redirect(url_for('loginUser'))
+
 @app.route('/cart')
 def cart():
     if session.get('logged_in') == True:
         #initalise a empty list for product objects in varible productincart
         userid=session.get('user_id')
+        userrole=session.get('role')
+        if userrole=="A":
+            return redirect(url_for('landing_page'))
         db=shelve.open('database/user_database/user.db','r')
         if db[userid].get_user_role()=="S":
             return redirect(url_for('landing_page'))
@@ -536,7 +651,6 @@ def cart():
             #if user record does not exist , usercart is initalise as a empty dict
             # and save empty dict to db so if user open cart without adding items there will be no error
             usercart={}
-            db[session.get('user_id')] = usercart
         db.close()
         total_price=0
         total_discount=0
@@ -551,6 +665,7 @@ def cart():
         return render_template('Add_To_Cart.html',usercart = usercart,productincart = productincart,total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
     else:
         return redirect(url_for('loginUser'))
+
 @app.route('/deletecart/<cartproductid>',methods = ['POST'])
 #take in post request from the route and the product id of the item to be deleted
 def deletecart(cartproductid):
@@ -576,8 +691,12 @@ def deletecart(cartproductid):
 def Updatecart(cartproductid):
     updateForm=updateorderForm(request.form)
     if request.method=="POST" and updateForm.validate():
-        Updateqty(updateForm.orderqty.data,session.get('user_id'),cartproductid)
-        return redirect(url_for('cart'))
+        if updateForm.orderqty.data>=1:
+            Updateqty(updateForm.orderqty.data,session.get('user_id'),cartproductid)
+            return redirect(url_for('cart'))
+        else:
+            flash('Invalid quantity')
+            return render_template('Updateorderqty.html',form=updateForm)
     return render_template('Updateorderqty.html',form=updateForm)
 
 
@@ -585,11 +704,8 @@ def Updatecart(cartproductid):
 def Deliverydetails():
     delivery_form= DeliveryForm(request.form)
     if request.method == "POST" and delivery_form.validate():
-        if delivery_form.city.data.isalpha() and delivery_form.state.data.isalpha():
             add_delivery_info(delivery_form.address.data,delivery_form.country.data,delivery_form.city.data,delivery_form.state.data,delivery_form.zip.data,session.get('user_id'))
             return redirect(url_for('paymentdetails'))
-        else:
-            return render_template('delivery_details.html',form=delivery_form)
     return render_template('delivery_details.html',form=delivery_form)
 
 
@@ -597,11 +713,8 @@ def Deliverydetails():
 def paymentdetails():
     payment1_form=Payment_Form(request.form)
     if request.method == "POST" and payment1_form.validate():
-        if payment1_form.cardholder.data.isalpha():
             # payment_confirmation(payment1_form.cardholder.data,payment1_form.cardno.data,payment1_form.expiry.data,payment1_form.cvc.data,session.get('user_id'))
             return redirect(url_for('confirmation'))
-        else:
-            return render_template('Payment.html',form=payment1_form)
     return render_template('Payment.html',form=payment1_form)
 
 
@@ -644,7 +757,6 @@ def confirmation():
     order_log_preprocess(session.get('user_id'),Neworder)
     return render_template('order_confirmation.html',usercart = usercart,productincart = productincart, total_price=total_price,total_discount=total_discount,Grand_total=Grand_total)
 
-
 @app.route('/Myorder')
 def order():
     #list of all the product objects in customer order 
@@ -658,8 +770,7 @@ def order():
             product_obj = get_product_by_id(item)
             if product_obj.get_product_id() not in productinorder:
                 productinorder[product_obj.get_product_id()] = product_obj
-                
-
+    db.close()
     # if session.get('user_id')in db:
     #     userorder=db.get(session.get('user_id'))
     #     for item in userorder.get_cart_list():
@@ -674,17 +785,18 @@ def seller_order():
     if db[userid].get_user_role()!="S":
         return redirect(url_for('order'))
     db.close()
-    productinorder = []
-    db=shelve.open('database/order_database/order.db','c')
-    if session.get('user_id')in db:
-        userorder=db.get(session.get('user_id'))
-        for item in userorder.get_cart_list():
-            productinorder.append(get_product_by_id(item))
-            db.close()
-            return render_template('Seller_order_list.html',userorders = userorder.get_cart_list(),productinorder=productinorder)
-    return render_template('Seller_order_list.html')
-
-
+    productinorder = {}
+    seller_order = []
+    order=get_seller_orders(session.get('user_id'))
+    for i in order:
+        # seller_order.append(i.get_cart_list())
+        for n in i.get_cart_list():
+            if n != 'orderid' and n != 'buyerid':
+                print(n)
+                order_obj=get_product_by_id(n)
+                if order_obj.get_product_id() not in productinorder:
+                    productinorder[order_obj.get_product_id()]=order_obj
+    return render_template('Seller_order_list.html',orders=order,productinorder=productinorder)
 
 #delivery management
 @app.route('/SellerDelivery')

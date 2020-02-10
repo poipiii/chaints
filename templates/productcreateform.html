@@ -20,11 +20,11 @@
         </div>
         <div class="form-group">
         {{ form.product_Quantity.label(class="form-control-label")}}
-        {{ form.product_Quantity(class="form-control",type="number") }}
+        {{ form.product_Quantity(class="form-control",type="number",min ="10") }}
         </div>
        <div class="form-group">
        {{ form.product_Selling_Price.label(class="form-control-label")}}
-       {{ form.product_Selling_Price(class="form-control",type="number",step="0.01") }}
+       {{ form.product_Selling_Price(class="form-control",type="number",min="1",step="0.01") }}
        </div>
        <div class="form-group">
        {{ form.product_Discount.label(class="form-control-label")}}
@@ -40,7 +40,9 @@
                 {{ form.product_images.label(class="form-control-label")}}
                 {{ form.product_images(class="form-control-file")}}
         </div>
-     <input type="submit" value="Submit" class="btn btn-primary"/>
+     <input type="submit" value="Submit" class="btn btn-success float-right" />
+        <a class="btn btn-danger float-right mr-3" style="color:white !important;" href="/manage_products">Cancel</a>
+
     </form>
     <hr>
 </article> <!-- card-body end .// -->

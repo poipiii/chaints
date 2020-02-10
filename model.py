@@ -56,8 +56,12 @@ class User_Model:
     def delete_owned_p(self,productid):
         self.__owned_products.remove(productid)
 
-    def set_user_wishlist(self,wishlist):
-        self.__user_wishlist=wishlist
+    def append_wish_list(self,productid):
+        self.__user_wishlist.append(productid)
+
+    def delete_wish_list(self,productid):
+        self.__user_wishlist.remove(productid)
+   
 
     def set_user_address(self,address):
         self.__user_address=address
@@ -245,11 +249,15 @@ class Product_Model:
     def get_average_reviews(self):
         score = 0
         no_of_reviews = len(self.get_product_reviews())
-        for review in self.get_product_reviews():
-            score += review['rating']
-        avg_score = score / no_of_reviews
+        if no_of_reviews > 0:
+            for review in self.get_product_reviews():
+                score += review['rating']
+            avg_score = score / no_of_reviews
 
-        return round(avg_score)
+            return round(avg_score)
+        else:
+            return 0
+
         
     def __str__(self):
         return 'name:{} uuid:{} current_qty:{} sold_qty:{} desc:{} price:{} discount:{} img:{} catergory:{}'.format(self.get_product_name(),self.get_product_id(),str(self.get_product_current_qty())
@@ -378,7 +386,7 @@ def updatequantity(user_id,product_id,quantity):
 def delete_product_by_id(product_id,user_id):
     user = get_user(user_id)
     try:
-        db = shelve.open('database/product_database/product.db','r')
+        db = shelve.open('database/product_database/product.db','w')
         if product_id in db.keys() and product_id in user.get_owned_products():
             deleted_product = db.pop(product_id)
             user.delete_owned_p(product_id)
@@ -393,10 +401,55 @@ def delete_product_by_id(product_id,user_id):
         raise 'unknown error'
     db.close()
 
-def delete_all_user_product(product_id_list,user_id):
+
+#take in product id and delete product in db
+def delete_wishlist(user_id,product_id):
+    try:
+        db = shelve.open('database/user_database/user.db','w')
+        if user_id in db:
+            user = db.get(user_id)
+            user.delete_wish_list(product_id)
+            db[user_id] = user
+    except IOError:
+        raise 'db file not found'
+    except KeyError:
+        raise ' key error in shelve'
+    except:
+        raise 'unknown error'
+    db.close()
+
+def update_wishlist(userid,productid):
+    db = shelve.open('database/user_database/user.db','w')
+    if userid in db:
+        user = db.get(userid)
+        user.append_wish_list(productid)
+        db[userid] = user
+    else:
+        pass
+    db.close()
+
+def fetch_wishlist(userid):
+    product_in_wishlist = []
+    db = shelve.open('database/user_database/user.db','w')
+    if userid in db:
+        userwishlist = db.get(userid).get_user_wishlist()
+        for item in userwishlist:
+            product_in_wishlist.append(get_product_by_id(item))
+    db.close()
+    return product_in_wishlist
+
+def fetch_wishlist_id(userid):
+    db = shelve.open('database/user_database/user.db','w')
+    if userid in db:
+        userwishlist = db.get(userid).get_user_wishlist()
+    db.close()
+    return userwishlist
+
+def delete_all_user_product(user_id):
     user = get_user(user_id)
     try:
-        db = shelve.open('database/product_database/product.db','r')
+        product_id_list = user.get_owned_products()
+        db = shelve.open('database/product_database/product.db','w')
         for product_id in product_id_list:
             if product_id in db.keys() and product_id in user.get_owned_products():
                 deleted_product = db.pop(product_id)
@@ -478,11 +531,12 @@ class Logger:
         return self.__faq_log_list
 
 class user_logger:
-    def __init__(self,u_activity,user_id,user_obj):
+    def __init__(self,u_activity,user_id,user_obj,username):
         self.set_u_activty(u_activity)
         self.__timestamp = datetime.timestamp(datetime.now())
         self.__user_id = user_id
         self.__user_obj = user_obj
+        self.__username=username
     def set_u_activty(self,u_activity):
         if u_activity == 'CREATE':
             self.__u_activity = 'User signed up'
@@ -504,6 +558,8 @@ class user_logger:
         return self.__timestamp
     def get_timestamp_as_datetime(self):
         return datetime.fromtimestamp(self.__timestamp)
+    def get_username(self):
+        return self.__username
     def __str__(self):
         return 'activity: {},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_u_activity(),self.get_user_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
@@ -546,11 +602,22 @@ class product_logger:
 #     sun = datetime.combine(mon+timedelta(days=6),datetime.min.time())
 #     return [mon,tues,wed,thurs,fri,sat,sun]
 
+# create function accepting a single parameter, the year as a four digit number
+def get_random_date(year):
+
+    # try to get a date
+    try:
+        return datetime.strptime('{} {}'.format(random.randint(1, 366), year), '%j %Y')
+
+    # if the value happens to be in the leap year range, try again
+    except ValueError:
+        get_random_date(year)
+
 class orders_logger:
     def __init__(self,o_amount,product_id,order_obj):
         self.__o_amount = o_amount
         self.set_o_profit(o_amount,product_id)
-        self.__timestamp = datetime.timestamp(datetime.now())
+        self.__timestamp = datetime.timestamp(get_random_date(2019))
         self.__product_id = product_id
         self.set_ordered_product_name(product_id)
         self.__order_obj = order_obj
@@ -605,17 +672,17 @@ class faq_logger:
 
 
 
-def user_logging(userid,user_activity,user_obj):
+def user_logging(userid,user_activity,user_obj,username):
     db = shelve.open('database/logs_database/logs.db','c')
     if userid in db:
-        new_log = user_logger(user_activity,userid,user_obj)
+        new_log = user_logger(user_activity,userid,user_obj,username)
         product_log = db.get(userid)
         product_log.set_user_log_list(new_log)
         db[userid] = product_log
     else:
         user_new_logger = Logger(userid)
-        new_log = user_logger(user_activity,userid,user_obj)
-        user_new_logger.set_product_log_list(new_log)
+        new_log = user_logger(user_activity,userid,user_obj,username)
+        user_new_logger.set_user_log_list(new_log)
         db[userid] = user_new_logger
     db.close()
 
@@ -650,7 +717,7 @@ def faq_logging(userid,faq_type,faq_activity,faq_id,faq_object):
 
 
 def order_log_preprocess(userid,orderobj):
-    user_order = orderobj.get_cart_list()
+    user_order = orderobj.get_cart_list() 
     for orders in user_order:
         order_logging(userid,user_order[orders],orders,orderobj)
 
@@ -674,7 +741,7 @@ def order_logging(userid,order_amt,product_id,order_obj):
 def get_user_log_by_id(user_id):
     db = shelve.open('database/logs_database/logs.db','r')
     all_logs = db.get(user_id)
-    product_logs = all_logs.get_user_log_list() 
+    product_logs = all_logs.get_user_log_list()
     db.close()
     return product_logs
 
@@ -682,7 +749,7 @@ def get_product_log_by_id(user_id):
     db = shelve.open('database/logs_database/logs.db','r')
     if user_id in db:
         all_logs = db.get(user_id)
-        product_logs = all_logs.get_product_log_list() 
+        product_logs = all_logs.get_product_log_list()
         return product_logs
     else:
         return None
@@ -1216,19 +1283,25 @@ class Order:
         self.__totalprice=totalprice
         # self.__sellerID=sellerID
         self.__timestamp = datetime.timestamp(datetime.now())
+    def temp_set_cart_list(self,old_cart_list):
+         self.__cart_list=old_cart_list
+
     def set_buyername(self,buyername):
         self.__buyername=buyername
 
     def set_totalprice(self,totalprice):
         self.__totalprice=totalprice
-
+    def temp_set_cart_list(self,old_cart_list):
+        self.__cart_list = old_cart_list
     # def set_sellerID(self,sellerID):
     #     self.__sellerID=sellerID
 
     def get_orderId(self):
         return self.__orderID
+
     def get_buyer_user_id(self):
         return self.__buyer_user_id
+
     def get_buyername(self):
         return self.__buyername
 
@@ -1246,15 +1319,39 @@ class Order:
 
     def get_timestamp_as_datetime(self):
         return datetime.fromtimestamp(self.__timestamp)
+    def __str__(self):
+        return 'buyerid: {},orderid: {},cartlist: {}, buyername {},timestamp {},datetime {}'.format(self.get_buyer_user_id(),self.get_orderId(),self.get_cart_list(),self.get_buyername(),self.get_timestamp(),self.get_timestamp_as_datetime())
 
+# Get orders the user made
 def get_buyer_orders(user_id):
     buyers_orders = []
     db = shelve.open('database/order_database/order.db','r')
     for orders in db.values():
         print(orders)
+        # Check if user login make the order
         if orders.get_buyer_user_id() == user_id:
             buyers_orders.append(orders)
+    db.close()
     return buyers_orders
+
+def get_seller_orders(sellerid):
+    # Call a function to get all the id of the product the seller owns
+     seller_own_product = get_usr_owned_p(sellerid)
+     seller_orders = []
+     db = shelve.open('database/order_database/order.db','r')
+    # Loop thru all order obj in the order db
+     for orders in db.values():
+        userorder = orders.get_cart_list()
+        # Loop through a dictionary userorder and remove iem at the same time
+        for items in userorder.copy():
+            if items not in seller_own_product:
+                userorder.pop(items)
+        # userorder['buyerid'] = orders.get_buyername()
+        # userorder['orderid'] = orders.get_orderId()
+        orders.temp_set_cart_list(userorder)
+        seller_orders.append(orders)
+     db.close()
+     return seller_orders
 
 
 class confirm_order():
@@ -1294,10 +1391,6 @@ class confirm_order():
 
     def get_cartdict(self):
         return self.__cartdict
-
-
-
-
 
 
 def delivery_info(DeliveryInfo):

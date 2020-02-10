@@ -70,6 +70,10 @@ $(document).ready(function() {
         }
     });
 });
+
+$("#message").fadeTo(2000, 500).slideUp(300, function(){
+    $("#message").slideUp(300);
+});
 </script>
 {% block script %}
 

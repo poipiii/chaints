@@ -33,7 +33,7 @@
     </li>
     {% endif %}
     <!-- Nav Item - Dashboard -->
-    {% if session['role'] == 'A' or session['role'] == 'S' %}
+    {% if session['role'] == 'S' %}
     <li class="nav-item">
       <a class="nav-link" href="/dashboard">
         <i class="fas fa-fw fa-tachometer-alt"></i>
@@ -45,6 +45,12 @@
         <i class="fas fa-fw fa-table"></i>
         <span>Logs</span></a>
     </li>
+    {% elif session['role'] == 'A' %}
+
+        <li class="nav-item">
+      <a class="nav-link" href="/user_logs">
+        <i class="fas fa-fw fa-table"></i>
+        <span>Logs</span></a>
 
     {% endif %}
      <!-- Nav Item - User list only for admin -->
@@ -71,7 +77,7 @@
              <span>Products</span></a>
      </li>
 <li class="nav-item">
-              <a class="nav-link" href="/Myorder">
+              <a class="nav-link" href="/SellerOrder">
         <i class="fas fa-clipboard-list"></i>
             <span>Orders</span></a>
              </li>

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<br><br><br><br><br><br>
+<article class="card">
+	<header class="card-header h4"> My wishlist </header>
+	<div class="card-body">
+<div class="row">
+	{% for product in wishlist %}
+	<div class="col-md-4">
+		<figure class="itemside mb-4">
+			<div class="aside"><img src="../static/product_images/{{product.get_product_images()[0]}}" class="border img-md"></div>
+			<figcaption class="info">
+				<a href="#" class="title">{{product.get_product_name()}}</a>
+				<p class="price mb-2">${{product.get_product_price()}}</p>
+				<a href="/add_to_cart/{{product.get_product_id()}}/{{1}}" class="btn btn-primary btn-sm"> Add to cart </a>
+				<a href="/delwishlist/{{product.get_product_id()}}" class="btn btn-danger btn-sm" data-toggle="tooltip" title="" data-original-title="Remove from wishlist"> <i class="fa fa-times"></i> </a>
+			</figcaption>
+		</figure>
+	</div> <!-- col.// -->
+	{% endfor %}
+	</div> <!-- row .//  -->
+
+	</div> <!-- card-body.// -->
+</article>
+{% endblock  %}
