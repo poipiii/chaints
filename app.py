@@ -1117,27 +1117,26 @@ def createQns():
         except IOError:
             print("Database failed to open")
         db.close()
+        faq_logging(session.get('user_id'),'Forum','CREATE',new_question.get_msgid(),new_question)
         return redirect(url_for('FAQ'))
     return render_template('createQns.html',form=createquestion)
 
 #Forum Answer
 @app.route('/Respond/<id>',methods=["GET","POST"])
 def Respond(id):
-    if session.get('logged_in')==True:
-        Reply=Response(request.form)
-        if request.method=="POST" and Reply.validate():
-            Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
-            try:
-                dennis=shelve.open('database/forum_database/FAQQ.db','c')
-                dennis[Respondents.get_ansid()]=Respondents
-            except:
-                print("Something screwed up")
-            dennis.close()
-            RespondtoQns(Respondents.get_ansid(),id)
-            return redirect(url_for('displayQns',id=id))
-        return render_template('Response.html',form=Reply)
-    else:
-        return redirect(url_for('loginUser'))
+    Reply=Response(request.form)
+    if request.method=="POST" and Reply.validate():
+        Respondents= CAnswer(session.get('user_id'),"",Reply.Response.data)
+        try:
+            dennis=shelve.open('database/forum_database/FAQQ.db','c')
+            dennis[Respondents.get_ansid()]=Respondents
+        except:
+            print("Something screwed up")
+        dennis.close()
+        faq_logging(session.get('user_id'),'Forum','REPLY',Respondents.get_ansid(),Respondents)
+        RespondtoQns(Respondents.get_ansid(),id)
+        return redirect(url_for('displayQns',id=id))
+    return render_template('Response.html',form=Reply)
 
 @app.route('/displayQns/<id>')
 def displayQns(id):
@@ -1170,6 +1169,7 @@ def updateQns(id):
         Qns.setmbody(updateQns.mbody.data)
         db[id]= Qns
         db.close()
+        faq_logging(session.get('user_id'),'Forum','EDIT',Qns.get_msgid(),Qns)
         return redirect(url_for('FAQ'))
     else:
         db= shelve.open('database/forum_database/FAQQ.db','r')
@@ -1179,20 +1179,21 @@ def updateQns(id):
         updateQns.mbody.data=Qns.getmbody()
         return render_template('updateqns.html',form=updateQns)
 
-#Frequently Asked Questions
+#Transactions
 @app.route('/addFAQueryFaQ',methods=["GET","POST"])
 def addFAQueryF():
     Drei=FAQd(request.form)
     if request.method=="POST" and Drei.validate():
 
-        Able=FAQm(Drei.question.data,Drei.answer.data)
+        A=FAQm(Drei.question.data,Drei.answer.data)
         try:
             Three=shelve.open("database/forum_database/FAQDisplay.db","c")
-            Three[Able.getid()] = Able
+            Three[A.getid()] = A
             
         except IOError:
             print("ooopsie")
         Three.close()
+        faq_logging(session.get('user_id'),'Transactions','CREATE',A.getid(),A)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Drei)
 #Account Issues
@@ -1200,14 +1201,15 @@ def addFAQueryF():
 def addFAQueryAcI():
     Vier=FAQd(request.form)
     if request.method=="POST" and Vier.validate():
-        Baker=Account_Issues(Vier.question.data,Vier.answer.data)
+        AcI=Account_Issues(Vier.question.data,Vier.answer.data)
         try:
             Four=shelve.open("database/forum_database/FAQDisplay.db","c")
-            Four[Baker.getid()] = Baker
+            Four[AcI.getid()] = AcI
             
         except IOError:
             print("ooopsie")
         Four.close()
+        faq_logging(session.get('user_id'),'Account Issues','CREATE',AcI.getid(),AcI)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Vier)
 #Contact Us
@@ -1216,14 +1218,14 @@ def addFAQueryCoI():
     Fuenf=FAQd(request.form)
     if request.method=="POST" and Fuenf.validate():
 
-        Charlie=Contact(Fuenf.question.data,Fuenf.answer.data)
+        CoI=Contact(Fuenf.question.data,Fuenf.answer.data)
         try:
             Five=shelve.open("database/forum_database/FAQDisplay.db","c")
-            Five[Charlie.getid()] = Charlie
+            Five[CoI.getid()] = CoI
         except IOError:
             print("ooopsie")
         Five.close()
-        faq_logging(session.get('user_id'),'Contact Us','CREATE',Charlie.getid(),Charlie)
+        faq_logging(session.get('user_id'),'Contact Us','CREATE',CoI.getid(),CoI)
         return redirect(url_for('FAQ'))
     return render_template('faqopening1.html',form=Fuenf)
 
@@ -1290,7 +1292,6 @@ def updateFAQueryC(id):
             Fa.setquestion(updateFAQueryC.question.data)
             Fa.setanswer(updateFAQueryC.answer.data)
 
-
             db[id]= Fa
             db.close()
             faq_logging(session.get('user_id'),'Contact Us','EDIT',Fa.getid(),Fa)
@@ -1327,30 +1328,28 @@ def deleteForumQns(id):
         ri= Ace[id]
 
         for i in ri.get_ans_list():
-            Ace.pop(i)
+            f=Ace.pop(i)
+            faq_logging(session.get('user_id'),'Forum','DELETE',f.get_ansid(),f)
 
-        Ace.pop(id)
+        a=Ace.pop(id)
         Ace.close()
-    
+        faq_logging(session.get('user_id'),'Forum','DELETE',a.get_msgid(),a)
     return redirect(url_for('FAQ'))
 #Show FAQ Log
-#@app.route('/FAQLOG')
-#def FAQLOG():
-#    logsget=[]
-#    if session.get('logged_in')==True and session.get('role')=="A":
-#        db=shelve.open("database/logs_database/logs.db",'r')
-#        udb=shelve.open("database/user_database/user.db",'r')
-#        for i in udb:
-#            userid=udb[i.get_user_id()]
-#            logs=db[userid]
-#        for x in logs:
-#            logsget.append(x.get_faq_log_list())
-#
-#        udb.close()
-#        db.close()
-#        return render_template('displayfaqlogs.html',log=logsget)        
-#    else:
-#        return redirect(url_for('FAQ'))
+@app.route('/FAQLOG')
+def FAQLOG():
+    if session.get('logged_in')==True and session.get('role')=="A":
+        db=shelve.open("database/logs_database/logs.db",'r')
+        logs=[]
+        for a in db.values():
+            if len(a.get_faq_log_list()) > 0:
+                for i in a.get_faq_log_list():
+                    logs.append(i)
+
+        db.close()
+        return render_template('displayfaqlogs.html',log=logs)        
+    else:
+        return redirect(url_for('FAQ'))
 # @app.errorhandler(404)
 # def not_found_error(error):  
 #     return render_template('404.html'), 404
@@ -1360,6 +1359,5 @@ def deleteForumQns(id):
 
 if __name__ == "__main__":
     app.run()
-
 
 

@@ -641,19 +641,32 @@ class orders_logger:
         return 'order amt: {},order profit{},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_o_amount(),self.get_o_profit(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
 class faq_logger:
-    def __init__(self,faq_type,faq_activity,faq_id,faq_object):
+    def __init__(self,faq_type,faq_activity,faq_id,faq_object,adminid):
         self.__faq_type = faq_type
         self.set_faq_activty(faq_activity)
         self.__timestamp = datetime.timestamp(datetime.now())
         self.__faq_id = faq_id
         self.__faq_object = faq_object
+        self.__adminid= adminid
     def set_faq_activty(self,faq_activity):
-        if faq_activity == 'CREATE':
-            self.__faq_activity = 'Created a faq entry'
-        elif faq_activity == 'DELETE':
-            self.__faq_activity = 'Deleted a faq entry'
-        elif faq_activity == 'EDIT':
-            self.__faq_activity = 'Edited a faq entry'
+        if self.__faq_type == "Forum":
+            if faq_activity == 'CREATE':
+                self.__faq_activity = 'Created a forum entry'
+            elif faq_activity == 'DELETE':
+                self.__faq_activity = 'Deleted a forum entry'
+            elif faq_activity == 'EDIT':
+                self.__faq_activity = 'Edited a forum entry'
+            elif faq_activity =="REPLY":
+                self.__faq_activity = 'Replied to a Forum Entry'
+        else:
+            if faq_activity == 'CREATE':
+                self.__faq_activity = 'Created a faq entry'
+            elif faq_activity == 'DELETE':
+                self.__faq_activity = 'Deleted a faq entry'
+            elif faq_activity == 'EDIT':
+                self.__faq_activity = 'Edited a faq entry'
+    def get_admin_id(self):
+        return self.__adminid
     def get_faq_id(self):
         return self.__faq_id
     def get_faq_activity(self):
@@ -704,13 +717,13 @@ def product_logging(userid,product_activity,product_id,product_obj):
 def faq_logging(userid,faq_type,faq_activity,faq_id,faq_object):
     db = shelve.open('database/logs_database/logs.db','c')
     if userid in db:
-        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object)
+        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object,userid)
         faq_log = db.get(userid)
         faq_log.set_faq_log_list(new_log)
         db[userid] = faq_log
     else:
         user_new_logger = Logger(userid)
-        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object)
+        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object,userid)
         user_new_logger.set_faq_log_list(new_log)
         db[userid] = user_new_logger
     db.close()
@@ -1475,8 +1488,8 @@ class CAnswer(Dessage):
         return self.__Question
     def get_ansid(self):
         return self.__ansid
-#FAQ Forum Shelve DB
 
+#FAQ Forum Shelve DB
 def get_question_by_id(question_id):
     db = shelve.open('database/forum_database/FAQQ.db','r')
     if question_id in db:
