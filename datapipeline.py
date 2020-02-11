@@ -70,6 +70,10 @@ def api_data_year(ownp):
     year_data = df.profit.resample('Y').sum().to_json(date_format = 'iso')
     return year_data  
 
+def api_q_data_year(ownp):
+    df = to_df(ownp)
+    year_data = df.quantity.resample('Y').sum().to_json(date_format = 'iso')
+    return year_data
  
 def api_all_profit(ownp):
     total_profit = {}

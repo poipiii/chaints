@@ -3,7 +3,7 @@
 
 <div class="row">
       <!-- Earnings (Monthly) Card Example -->
-      <div class="col-xl-3 col-md-6 mb-4">
+      <div class="col-xl-4 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
@@ -19,7 +19,7 @@
         </div>
       </div>
       <!-- Earnings (Monthly) Card Example -->
-      <div class="col-xl-3 col-md-6 mb-4">
+      <div class="col-xl-4 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
@@ -35,7 +35,7 @@
         </div>
       </div>
        <!-- Earnings (Monthly) Card Example -->
-       <div class="col-xl-3 col-md-6 mb-4">
+       <div class="col-xl-4 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
           <div class="card-body">
             <div class="row no-gutters align-items-center">
@@ -51,21 +51,7 @@
         </div>
       </div>
   <!-- Pending Requests Card Example -->
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card border-left-warning shadow h-100 py-2">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Orders</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{pending_order}}</div>
-          </div>
-          <div class="col-auto">
-            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  
   <!-- Area Chart -->
 <div class="col-xl-6 col-lg-5">
   <div class="card shadow mb-4">
@@ -146,31 +132,31 @@
 </div>
 </div>
 <div class="col-xl-6 col-lg-5">
-  <div class="card shadow mb-4">
-  <!-- Card Header - Dropdown -->
-  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-    <h6 class="m-0 font-weight-bold text-primary">Overall quantity sold</h6>
-    <div class="dropdown no-arrow">
-      <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-      </a>
-      <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-        <div class="dropdown-header">Dropdown Header:</div>
-        <a class="dropdown-item" href="#">Action</a>
-        <a class="dropdown-item" href="#">Another action</a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#">Something else here</a>
+    <div class="card shadow mb-4">
+    <!-- Card Header - Dropdown -->
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Quantity sold Overview </h6>
+      <div class="dropdown no-arrow">
+        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+          <div class="dropdown-header">Dropdown Header:</div>
+          <a class="dropdown-item" href="#">Action</a>
+          <a class="dropdown-item" href="#">Another action</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Something else here</a>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Card Body -->
-  <div class="card-body">
-    <div class="chart-area">
-      <canvas id="barallchart"></canvas>
+    <!-- Card Body -->
+    <div class="card-body">
+      <div class="chart-area">
+        <canvas id="Qyearlychart"></canvas>
+      </div>
     </div>
-  </div>
-  </div>
-  </div>
+    </div>
+    </div>
 </div>
 </div>
 
@@ -181,8 +167,9 @@
 {% block script %}
 
 <script>
-  var getData = $.get('/data/week');
+  var getData = $.get('/dataf/fweek');
   getData.done(function(data){
+    
     parsed_data = JSON.parse(data)
     var ctx = document.getElementById('weeklychart').getContext('2d');
     var dates = []
@@ -273,7 +260,7 @@
 </script>
 
 <script>
-  var getData = $.get('/data/month');
+  var getData = $.get('/dataf/fmonth');
   getData.done(function(data){
     parsed_data = JSON.parse(data)
     var ctx = document.getElementById('monthlychart').getContext('2d');
@@ -365,7 +352,7 @@
 </script>
 
 <script>
-  var getData = $.get('/data/year');
+  var getData = $.get('/dataf/fyear');
   getData.done(function(data){
     parsed_data = JSON.parse(data)
     var ctx = document.getElementById('yearlychart').getContext('2d');
@@ -456,71 +443,99 @@
   
 </script>
 
-
 <script>
-  var getData = $.get('/data/bar_all');
-  getData.done(function(data){
-    function getRandomColor() {
-      var letters = '0123456789ABCDEF'.split('');
-      var color = '#';
-      for (var i = 0; i < 6; i++ ) {
-          color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-  }
-
-    var ctx = document.getElementById('barallchart').getContext('2d');
-    var dates = []
-    for (var i in Object.keys(data)){
-      dates.push(Object.keys(data)[i])
-      }
-    var colors = []
-    for (var i in Object.keys(data)){
-      colors.push(getRandomColor())
-      }
-    console.log(dates)
-    var myChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-        labels: dates,
-        datasets: [{
-            label: 'profit',
-            data: Object.values(data),
-            backgroundColor: colors,
-        }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      layout: {
-        padding: {
-          left: 10,
-          right: 25,
-          top: 25,
-          bottom: 0
+    var getData = $.get('/dataf/fqyear');
+    getData.done(function(data){
+      parsed_data = JSON.parse(data)
+      var ctx = document.getElementById('Qyearlychart').getContext('2d');
+      var dates = []
+      for (var i in Object.keys(parsed_data)){
+        dates.push(Object.keys(parsed_data)[i].slice(0,4))
         }
+      console.log(dates)
+      var myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: dates,
+          datasets: [{
+              label: 'Quantity Sold',
+              data: Object.values(parsed_data),
+              backgroundColor: [
+              
+                  'rgba(54, 162, 235, 0.2)',
+                 
+              ],
+              borderColor: [ 
+                 
+                  'rgba(75, 192, 192, 1)'
+                
+              ],
+              borderWidth: 1
+          }]
       },
-      
-      tooltips: {
-        label: 'profit',
-        backgroundColor: "rgb(255,255,255)",
-        bodyFontColor: "#858796",
-        titleMarginBottom: 10,
-        titleFontColor: '#6e707e',
-        titleFontSize: 14,
-        borderColor: '#dddfeb',
-        borderWidth: 1,
-        xPadding: 10,
-        yPadding: 10,
-        displayColors: false,
-        intersect: false,
-        caretPadding: 10,
+      options: {
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            left: 10,
+            right: 25,
+            top: 25,
+            bottom: 0
+          }
+        },
+        scales: {
+          xAxes: [{
+            time: {
+              unit: 'date'
+            },
+            gridLines: {
+              display: true,
+              drawBorder: false
+            },
+            ticks: {
+              maxTicksLimit: 7
+            }
+          }],
+          yAxes: [{
+            ticks: {
+              maxTicksLimit: 5,
+              padding: 10,
+            },
+            gridLines: {
+              color: "rgb(234, 236, 244)",
+              zeroLineColor: "rgb(234, 236, 244)",
+              drawBorder: false,
+              borderDash: [2],
+              zeroLineBorderDash: [2]
+            }
+          }],
+        },
+        legend: {
+          display: true
+        },
+        tooltips: {
+          backgroundColor: "rgb(255,255,255)",
+          bodyFontColor: "#858796",
+          titleMarginBottom: 10,
+          titleFontColor: '#6e707e',
+          titleFontSize: 14,
+          borderColor: '#dddfeb',
+          borderWidth: 1,
+          xPadding: 10,
+          yPadding: 10,
+          displayColors: false,
+          intersect: false,
+          mode: 'index',
+          caretPadding: 10,
+        }
       }
-    }
-  });
-  });
-  
-  
-</script>
+    });
+    });
+    
+    
+  </script>
+
+
 
 
 {% endblock  %}
