@@ -136,6 +136,42 @@ def dashboard_home():
         return render_template('chart.html',all_profit=all_profit,pending_order=pending_order)
     else:
         return redirect(url_for('landing_page'))
+
+
+@app.route("/dashboard_filter/<productid>")
+def dashboard_filter(productid):
+    if session.get('logged_in')==True:
+        if session.get('role') == 'S':
+            global filterd_ownp 
+            filterd_ownp = [productid]
+            all_profit = api_all_profit(filterd_ownp)
+            orderlist=create_seller_order_list(session.get('user_id'))
+        else:
+            all_profit = 0
+            pending_order=0
+            
+        return render_template('chartdrill.html',all_profit=all_profit)
+    else:
+        return redirect(url_for('landing_page'))
+@app.route("/dataf/<d_type>")
+def datapipe_filter(d_type):
+    if session.get('role') == 'S':
+        if d_type == 'fweek':
+            chart_data = api_data_week(filterd_ownp)
+            return chart_data
+        elif d_type == 'fmonth':
+            chart_data = api_data_month(filterd_ownp)
+            return chart_data
+        elif d_type == 'fyear':
+            chart_data = api_data_year(filterd_ownp)
+            return chart_data
+        elif d_type == 'fqyear':
+            chart_data = api_q_data_year(filterd_ownp)
+            return chart_data
+        else:
+             return None
+    else:
+        return None
 @app.route("/data/<d_type>")
 def datapipe(d_type):
     if session.get('role') == 'S':

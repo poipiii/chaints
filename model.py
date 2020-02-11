@@ -264,10 +264,18 @@ class Product_Model:
         ,str(self.get_product_sold_qty()),self.get_product_desc(),str(self.get_product_price()),str(self.get_product_discount()),self.get_product_images(),self.get_product_catergory())
 
 
+# def delete_orders_bt_product(productid):
+#      db = shelve.open('database/order_database/order.db','w')
+#      for obj in db:
+#          for i 
 
-
-
-
+def get_all_product_id():
+    productids = []
+    db = shelve.open('database/product_database/product.db','r')
+    for i in db:
+        productids.append(i)
+    db.close()
+    return productids
 #take in product form fields and creaste new product and put into db
 def Add_New_Products(user_id,product_name,product_current_qty,product_desc,product_price,product_discount,product_catergory,product_images):
     try:
@@ -328,7 +336,7 @@ def get_product_by_id(product_id):
         if product_id in db:
             product = db.get(product_id)
         else:
-            raise 'product id does not exist in database'
+            product = None
     except IOError:
         raise 'db file not found'
     except KeyError:
@@ -1367,13 +1375,18 @@ class Order:
 
 # Get orders the user made
 def get_buyer_orders(user_id):
+    allp = get_all_product_id()
     buyers_orders = []
     db = shelve.open('database/order_database/order.db','r')
     for orders in db.values():
-        print(orders)
         # Check if user login make the order
         if orders.get_buyer_user_id() == user_id:
-            buyers_orders.append(orders)
+            userorder = orders.get_cart_list()
+            for i in userorder.copy():
+                if i not in allp:
+                    userorder.pop(i)
+        orders.temp_set_cart_list(userorder)
+        buyers_orders.append(orders)
     db.close()
     return buyers_orders
 
