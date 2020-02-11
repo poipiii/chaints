@@ -540,6 +540,9 @@ def updateUser(id):
         email = request.form['email']
         db = shelve.open("database/user_database/user.db", "w")
         oguser = db[id]
+        if pbkdf2_sha256.verify(username, oguser.get_user_pw())==True:
+            similarerror = 'Username and password cannot be the same'
+            return render_template('updateUser.html',form=updateUserForm,similarerror=similarerror)
         for user in db:
             user=db[user]
             if user.get_user_email()==email:
@@ -586,6 +589,9 @@ def updateprofile(id):
         email=request.form['email']
         db = shelve.open("database/user_database/user.db", "w")
         oguser=db[id]
+        if pbkdf2_sha256.verify(username, oguser.get_user_pw())==True:
+            similarerror = 'Username and password cannot be the same'
+            return render_template('updateprofile.html',form=updateprofileForm,similarerror=similarerror)
         for user in db:
             user=db[user]
             if user.get_user_email()==email:
@@ -841,6 +847,7 @@ def order():
         for item in order.get_cart_list():
             product_obj = get_product_by_id(item)
             if product_obj.get_product_id() not in productinorder:
+                
                 productinorder[product_obj.get_product_id()] = product_obj
     db.close()
     # if session.get('user_id')in db:
