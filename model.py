@@ -20,7 +20,7 @@ class User_Model:
         self.__user_wishlist=[]
         self.__user_joined_date=joined_date
         self.__user_address={}
-        self.__user_profile_picture='Michelle_-_No_Costume_Live2D_Model.png'
+        self.__user_profile_picture='80-804695_profile-picture-default-png.png'
 
 
     #User_Model Mutator
@@ -641,19 +641,32 @@ class orders_logger:
         return 'order amt: {},order profit{},productid: {}, product_obj {},timestamp {},datetime {}'.format(self.get_o_amount(),self.get_o_profit(),self.get_product_id(),self.get_object(),self.get_timestamp(),self.get_timestamp_as_datetime())
        
 class faq_logger:
-    def __init__(self,faq_type,faq_activity,faq_id,faq_object):
+    def __init__(self,faq_type,faq_activity,faq_id,faq_object,adminid):
         self.__faq_type = faq_type
         self.set_faq_activty(faq_activity)
         self.__timestamp = datetime.timestamp(datetime.now())
         self.__faq_id = faq_id
         self.__faq_object = faq_object
+        self.__adminid= adminid
     def set_faq_activty(self,faq_activity):
-        if faq_activity == 'CREATE':
-            self.__faq_activity = 'Created a faq entry'
-        elif faq_activity == 'DELETE':
-            self.__faq_activity = 'Deleted a faq entry'
-        elif faq_activity == 'EDIT':
-            self.__faq_activity = 'Edited a faq entry'
+        if self.__faq_type == "Forum":
+            if faq_activity == 'CREATE':
+                self.__faq_activity = 'Created a forum entry'
+            elif faq_activity == 'DELETE':
+                self.__faq_activity = 'Deleted a forum entry'
+            elif faq_activity == 'EDIT':
+                self.__faq_activity = 'Edited a forum entry'
+            elif faq_activity =="REPLY":
+                self.__faq_activity = 'Replied to a Forum Entry'
+        else:
+            if faq_activity == 'CREATE':
+                self.__faq_activity = 'Created a faq entry'
+            elif faq_activity == 'DELETE':
+                self.__faq_activity = 'Deleted a faq entry'
+            elif faq_activity == 'EDIT':
+                self.__faq_activity = 'Edited a faq entry'
+    def get_admin_id(self):
+        return self.__adminid
     def get_faq_id(self):
         return self.__faq_id
     def get_faq_activity(self):
@@ -704,13 +717,13 @@ def product_logging(userid,product_activity,product_id,product_obj):
 def faq_logging(userid,faq_type,faq_activity,faq_id,faq_object):
     db = shelve.open('database/logs_database/logs.db','c')
     if userid in db:
-        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object)
+        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object,userid)
         faq_log = db.get(userid)
         faq_log.set_faq_log_list(new_log)
         db[userid] = faq_log
     else:
         user_new_logger = Logger(userid)
-        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object)
+        new_log = faq_logger(faq_type,faq_activity,faq_id,faq_object,userid)
         user_new_logger.set_faq_log_list(new_log)
         db[userid] = user_new_logger
     db.close()
@@ -799,12 +812,24 @@ class indi_product_order:
         self.__buyerid=buyerid
         self.__buyername=buyername
         self.__address=address
+        self.__buyer_checker='No'
+        self.__seller_checker='No'
+        self.__delivery_date_received=''
+        self.__review_status = 'No'
 
     #mutator
     def set_delivery_status(self,delivery_stat):
         self.__deliverystat=delivery_stat
     def set_delivery_location(self,location): #only carrier can edit
         self.__delivery_location=location
+    def set_buyer_checker(self,checker):
+        self.__buyer_checker=checker
+    def set_seller_checker(self,checker):
+        self.__seller_checker=checker
+    def set_delivery_received_date(self,deldate):
+        self.__delivery_date_received=deldate
+    def set_review_status(self,review_status):
+        self.__review_status = review_status
 
     #accessor
     def get_product_id(self):
@@ -833,7 +858,14 @@ class indi_product_order:
         return self.__buyername
     def get_address(self):
         return self.__address
-
+    def get_buyer_checker(self):
+        return self.__buyer_checker
+    def get_seller_checker(self):
+        return self.__seller_checker
+    def get_delivery_received_date(self):
+        return self.__delivery_date_received
+    def get_review_status(self):
+        return self.__review_status
 
 #class to create individual tracking details for each delivery based on delivery status
 class carrier_delivery:
@@ -965,13 +997,39 @@ def status_update(trackingid,buyerid,status):
             for k in i:
                 if k.get_individual_orderid()==trackingid:
                     k.set_delivery_status(status)
+                    address=k.get_address()
         db[buyerid]=a
-
         db.close()
+        if status=="Order Dispatched":
+            db=shelve.open('database/delivery_database/carrier.db','c')
+            if trackingid in db:
+                pass
+            else:
+                stdate=datetime.date(datetime.today())
+                carrierobj=carrier_delivery(stdate,"HQ","Info Received","Info received from seller",address)
+                carrierlist=[]
+                carrierlist.append(carrierobj)
+                db[trackingid]=carrierlist
+            db.close()
     except IOError:
         raise Exception("db does not exist")
     except:
         raise Exception("an error has occurred")
+
+def review_status_update(buyerid,trackingid,review_status):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        a=db[buyerid]
+        for i in a:
+            for k in i:
+                if k.get_individual_orderid()==trackingid:
+                    k.set_review_status(review_status)
+        db[buyerid]=a
+        db.close()
+
+    except IOError:
+        raise Exception("db does not exist")
+    
 
 
 #to get the necessary stuff in order to pass to status_update function
@@ -998,13 +1056,31 @@ def create_buyer_order_list(buyerid):
         if buyerid in db:
             for i in db[buyerid]:
                 for n in i:
-                    buyerorderlist.append(n)
+                    if n.get_buyer_checker()=='No':
+                        buyerorderlist.append(n)
         db.close()
     except IOError:
         raise Exception("db does not exist")
     except:
         raise Exception("an error has occurred")
     return buyerorderlist
+
+#creates delivery history list
+def buyer_history_list(buyerid):
+    try:
+        db=shelve.open('database/delivery_database/delivery.db','c')
+        biglist=db[buyerid]
+        historylist=[]
+        for i in biglist:
+            for n in i:
+                if n.get_buyer_checker()=='Yes':
+                    historylist.append(n)
+        db.close()
+    except IOError:
+        raise Exception("db does not exist")
+    except:
+        raise Exception("an error has occurred")
+    return historylist
 
 #to check seller for count
 def pending_order_check(orderlist):
@@ -1029,6 +1105,16 @@ def obtaining_seller_product_id(sellerid):
 
     return prod_id_list
 
+#def courier_delivered(deliverylist):
+#    db=shelve.open('database/delivery_database/carrier.db','c')
+#    somelist=[]
+#    for i in deliverylist:
+#        for k in db:
+#            if i.get_individual_orderid()==k:
+#                somelist.append(k.get_status())
+#    db.close()
+#    return somelist
+
 #to create list of objects for seller side
 def create_seller_order_list(sellerid):
     try:
@@ -1039,7 +1125,7 @@ def create_seller_order_list(sellerid):
             for n in db:           #running through db, getting value from key n
                 for j in db[n]:   #running through list of obj (value of db[n])
                     for k in j:
-                        if i==k.get_product_id():
+                        if i==k.get_product_id() and k.get_seller_checker()=='No':
                             seller_delivery_list.append(k)
         db.close()
         #db=shelve.open('database/delivery_seller_database/seller_del.db','c')
@@ -1050,6 +1136,20 @@ def create_seller_order_list(sellerid):
     except:
         raise Exception("an unknown error has occurred")
     return seller_delivery_list
+
+#to create list of past delivery history for selleer
+def seller_history_list(sellerid):
+    db=shelve.open('database/delivery_database/delivery.db','r')
+    sellerhistory=[]
+    productidlist=obtaining_seller_product_id(sellerid)
+    for i in productidlist:
+        for n in db:
+            for j in db[n]:
+                for k in j:
+                    if i==k.get_product_id() and k.get_seller_checker()=='Yes':
+                        sellerhistory.append(k)
+    db.close()
+    return sellerhistory
 
 #to obtain specific delivery object
 def delivery_object(trackingid):
@@ -1116,6 +1216,21 @@ def editing_status(trackingid,status,notes,country,statusid):
     except:
         raise Exception("an unknown error has occured")
 
+#to get the most recent status by courier
+def recent_courier_stat(orderid):
+    #try:
+        db=shelve.open('database/delivery_database/carrier.db','c')
+        if orderid in db:
+            statobj=db[orderid][-1]
+        else:
+            statobj=False
+        db.close()
+        return statobj
+    #except IOError:
+    #    raise Exception('db not found')
+    #except:
+    #    raise Exception('an unknown error has occurred')
+#
 def print_db_orders():
     db=shelve.open('database/delivery_database/delivery.db','r')
     count=0
@@ -1135,10 +1250,13 @@ def print_db_orders():
                 print("Order date: %s"%n.get_order_date())
                 print("Order id: %s"%n.get_individual_orderid())
                 print("Delivery status: %s"%n.get_deliverystat())
+                print("Buyer Checker: %s"%n.get_buyer_checker())
+                print("Seller Checker: %s"%n.get_seller_checker())
         print("============")
     print(count)
     print("===========")
 
+#print_db_orders()
 def print_db_seller(sellerid):
     listy=create_seller_order_list(sellerid)
     print("Seller id: %s"%sellerid)
@@ -1168,7 +1286,16 @@ def print_list_buyer(buyerid):
         print("Delivery status: %s"%i.get_deliverystat())
     #db.close()
 
+def print_carrier_list():
+    db=shelve.open('database/delivery_database/carrier.db','c')
+    for i in db:
+        for k in db[i]:
+            print("Tracking number: %s"%i)
+            print("Status: %s"%k.get_status())
+            print("Date: %s"%k.get_status_date())
+    db.close()
 
+# print_carrier_list()
 #print_db_seller("16d1083a5963449d84d4ce0ae2088752")
 #print_db_seller("cfeae366add04e69b6ff51974f6bbe9f")
 #====clear delivery db======
@@ -1197,7 +1324,7 @@ class Order:
         self.__buyername=buyername
         self.__totalprice=totalprice
         # self.__sellerID=sellerID
-        self.__timestamp = datetime.timestamp(datetime.now())
+        self.__timestamp = datetime.date(datetime.today())
     def temp_set_cart_list(self,old_cart_list):
          self.__cart_list=old_cart_list
 
@@ -1206,6 +1333,7 @@ class Order:
 
     def set_totalprice(self,totalprice):
         self.__totalprice=totalprice
+
     def temp_set_cart_list(self,old_cart_list):
         self.__cart_list = old_cart_list
     # def set_sellerID(self,sellerID):
@@ -1233,7 +1361,7 @@ class Order:
         return self.__timestamp
 
     def get_timestamp_as_datetime(self):
-        return datetime.fromtimestamp(self.__timestamp)
+        return datetime.date(datetime.today())
     def __str__(self):
         return 'buyerid: {},orderid: {},cartlist: {}, buyername {},timestamp {},datetime {}'.format(self.get_buyer_user_id(),self.get_orderId(),self.get_cart_list(),self.get_buyername(),self.get_timestamp(),self.get_timestamp_as_datetime())
 
@@ -1390,8 +1518,8 @@ class CAnswer(Dessage):
         return self.__Question
     def get_ansid(self):
         return self.__ansid
-#FAQ Forum Shelve DB
 
+#FAQ Forum Shelve DB
 def get_question_by_id(question_id):
     db = shelve.open('database/forum_database/FAQQ.db','r')
     if question_id in db:

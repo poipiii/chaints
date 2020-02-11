@@ -15,16 +15,21 @@
         border-radius: 4px;
         width: 200px;
         float: right;
-        left: 700px;
+        right: 15%;
         position: absolute;
         bottom:10px;
         top:6px;
+        margin:left;
 
   }
 
     .orderdetails{
 
         position:relative;
+    }
+
+    #trackingbutton{
+    float:right;
     }
 </style>
 <div class="card shadow mb-4">
@@ -41,9 +46,15 @@
                     <h6><span class="title">Order Date:</span> {{ individual_order.get_order_date() }}</h6>
                     <h6><span class="title">Address:</span> {{ individual_order.get_address() }}</h6>
                     <h6><span class="title">Seller Status:</span> {{ individual_order.get_deliverystat() }}</h6>
+                    <h6><span class="title">Courier Status:</span> {{ status }}</h6>
+                    <h6><span class="title">Courier Note:</span> {{ statusnote }}</h6>
+                    {% if statusdate != "None" %}
+                        <h6><span class="title">Last Updated:</span> {{statusdate }}</h6>
+                    {% endif %}
                         <a href="/SellerDelivery" class="btn btn-primary">Delivery Status</a> <a href="" onclick="copytoclipboard('#copystuff')" class="btn btn-secondary">Copy ID</a>
+                        <a href="/CarrierBuyerDash" class="btn btn-warning" id="trackingbutton">Courier Tracking</a>
                         <div class="productimage">
-                                <img src="../static/product_images/{{individual_order.get_product_image()}}" class="productimage">
+                                <img src="../static/product_images/{{individual_order.get_product_image()}}"  >
                          </div>
 
                     </div>
@@ -51,7 +62,7 @@
 
     </div>
 </div>
-
+</div>
 
 {% endblock  %}
 {% block script %}

@@ -1,33 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" type="text/css" href="../static/css/displayqns.css">
 <br>
 <br>
 <br>
+<div id="FAQ" class="sticky-top">
+    <a type="button" class="btn btn-primary ml-5" href="/FAQ"><i class="fa fa-arrow-circle-left"></i> Back to FAQ </a>
+</div>
+<br>
+<h1 class="container"> Question</h1>
+<div id="Qnsuser" class="container border clearfix">
+    <div class="row">
+        <div id="user" class="card" style="width:100px">
+            <img src="/static/profile_pics/{{users.get(question.getuid())[1]}}" class="rounded-circle ml-2 "style="width:75px; height:75px;">
+            <h6 id="username" class="text-center">{{users.get(question.getuid())[0]}}</h6>
+        </div>
+        <div id="Qns" class="card-body" style="width:200px;">
+            <p class="card-title" style="font-weight:bold; text-decoration:underline;">{{question.getmtitle()}}</p>
+            <p class="card-text">{{question.getmbody()}}</p>
 
-<img src="{{users.get(question.getuid())[1]}}">
-<h6>{{users.get(question.getuid())[0]}}</h6>
+            <!--update button-->
+            {% if role=="A" or uid==question.getuid() %}
+            <div id="update"class="float-right">
+                <a type="button" class="btn btn-primary" href="/updateQns/{{question.get_msgid()}}"> Update </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<br>
+<br>
 
-<h1>{{question.getmtitle()}}</h1>
-<h3>{{question.getmbody()}}</h3>
 
-{% if role=="A" or uid==question.getuid() %}
-<a type="button" href="/updateQns/{{question.get_msgid()}}"> Update </a>
-<a type="button" href="/Respond/{{question.get_msgid()}}">Reply </a>
-{% endif %}
-<!--User particulars-->
-<hr>
-
+{% if AnswerList|length >0 %}
+<h1 class="container"> Replies</h1>
 {% for answer in AnswerList %}
-    <img src="{{users.get(answer.getuid())[1]}}">
-    <h6>{{users.get(answer.getuid())[0]}}</h6>
-    <p>{{ answer.getmbody()}}</p>
-    <hr>
+    <div id="Qnsuser" class="container border clearfix">
+        <div class="row">
+            <div id="usera" class="card" style="width:100px;">
+                <img class="ml-2 rounded-circle card-img-top" style="width:75px; height:75px;" src="/static/profile_pics/{{users.get(answer.getuid())[1]}}">
+                <h6 id="username" class="text-center">{{users.get(answer.getuid())[0]}}</h6>
+            </div>
+            <div class="card-body" style="width=200px;">
+                <p>{{ answer.getmbody()}}</p>
+            </div>
+            <hr>
+        </div>
+    </div>
+    
+    <br>
 {% endfor %}
+{% endif %}
 
-<!--Reply Button-->
+
+<!--Reply Button 2-->
 {% if role=="A" or role=="U" %}
-<div>
-<a type="button" href="/Respond/{{question.get_msgid()}}">Reply </a>
+<div class="container">
+    <a type="button" class="btn btn-primary" href="/Respond/{{question.get_msgid()}}">Reply </a>
+</div>
+{% endif%}
+<br>
+{% if AnswerList|length>3%}
+    <div id="FAQ" class="sticky-top">
+    <a type="button" class="btn btn-primary ml-5" href="/FAQ"><i class="fa fa-arrow-circle-left"></i> Back to FAQ </a>
 </div>
 {% endif %}
+<hr>
 {% endblock %}

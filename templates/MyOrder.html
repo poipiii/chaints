@@ -16,6 +16,7 @@
 <thead class="text-muted">
 <tr class="small text-uppercase">
   <th scope="col">Product</th>
+  <th scope="col">Product Name</th>
   <th scope="col">Seller ID</th>
   <th scope="col" width="120">Price</th>
   <th scope="col" width="120">Quantity</th>
@@ -29,10 +30,11 @@
 	<td>
 		<figure class="itemside align-items-center">
 			<div class="aside"><img src="../static/product_images/{{productinorder[item].get_product_images()[0]}}" class="img-sm"></div>
-			<figcaption class="info">
-				<a href="#" class="title text-dark">{{productinorder[item].get_product_name()}}</a>
-			</figcaption>
+			
 		</figure>
+	</td>
+	<td>
+		{{productinorder[item].get_product_name()}}
 	</td>
 	<td>
 		{{productinorder[item].get_seller_id()}}

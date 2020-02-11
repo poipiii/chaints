@@ -6,7 +6,7 @@
         border-radius: 4px;
         width: 150px;
         float: right;
-        left: 950px;
+        right: 10%;
         position: absolute;
         bottom:10px;
         top:150px;
@@ -40,7 +40,6 @@
               <thead>
                 <tr>
                     <th>Action</th>
-                    <th>Test</th>
                     <th>Date</th>
                     <th>Location</th>
                     <th>Delivery Status</th>
@@ -52,7 +51,6 @@
                 {% for status in statuslist %}
                 <tr>
                     <td> <a href="/DeletingCarrierUpdate/{{ status.get_status_id() }}/{{ orderid }}" class="btn btn-danger">Delete</a> <a href="/EditUpdate/{{ orderid }}/{{ status.get_status_id() }}" class="btn btn-warning">Edit</a></td>
-                    <td>{{ status.get_status_id() }}</td>
                     <td>{{ status.get_status_date() }}</td>
                     <td>{{ status.get_location() }}</td>
                     <td>{{ status.get_status() }} </td>

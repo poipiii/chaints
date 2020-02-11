@@ -80,12 +80,9 @@ def api_all_profit(ownp):
         week_data = df.groupby(week[week.searchsorted(df.index)-1]).sum().to_dict()
         total_profit['week'] = sum(week_data['profit'].values())
         month =  df.profit.resample('M').sum().to_dict()
-        print(month)
         for i in month:
             if i.to_pydatetime().strftime('%m') == datetime.now().strftime('%m'):
-                print(i)
                 total_profit['month'] =month[i]
-                print(month[i])
         total_profit['year']= df.profit.resample('Y').sum().iloc[0]
         return total_profit
     else:
@@ -108,7 +105,6 @@ def get_all_qty_data(ownp):
             
         df = pd.DataFrame(df_data).groupby('product_id').sum().to_dict()
         df.pop('profit')
-        print(df)
         for i in df['quantity']:
             p_name =ownp_name.get(i)
             x =0
