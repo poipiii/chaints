@@ -308,6 +308,10 @@ def signupUser():
     if request.method == 'POST' and createUserForm.validate():
         email = request.form['email']
         username = request.form['username']
+        password = request.form['password']
+        if username==password:
+            similarerror = 'Username and password cannot be the same'
+            return render_template('Signup.html',form=createUserForm,similarerror=similarerror)
         db = shelve.open('database/user_database/user.db', 'r')
         for user in db:
                 user=db[user]

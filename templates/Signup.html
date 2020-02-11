@@ -39,7 +39,9 @@
   <div class="form-group">
  {{ render_field(form.role, class="form-check") }}
  </div>
-
+  {% if similarerror %}
+        <p  style="color:red;" class="error"><strong>Error:</strong> {{ similarerror }}
+      {% endif %}
  <input type="submit" value="Submit" class="btn btn-primary btn-block"/>
 </form>
   <p class="text-center pt-3">Have an account? <a href="/login">Log In</a></p>
