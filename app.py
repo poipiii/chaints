@@ -863,7 +863,7 @@ def delivery_status_update(orderid):
 def buyer_deliverylist():
     userid=session.get('user_id')
     deliverylist=create_buyer_order_list(userid)
-    print(deliverylist)
+    #statuslist=courier_delivered(deliverylist)
     return render_template('buyer_delivery_status.html',deliverylist=deliverylist)
 
 #to get the detailed details of order

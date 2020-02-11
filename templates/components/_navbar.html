@@ -37,6 +37,7 @@
             <a class="dropdown-item" href="/profile">Profile</a>
               {% if session['role'] == 'B' %}
             <a class="dropdown-item" href="/Myorder">My Orders</a>
+               <a class="dropdown-item" href="/wishlist">Wishlist</a>
               {% elif session['role'] == 'S' %}
               <a class="dropdown-item" href="/SellerOrder">Seller Orders</a>
               {% endif %}
@@ -46,7 +47,6 @@
             <a class="dropdown-item" href="/retrieveUsers">Dashboard</a>
               {% endif %}
               <a class="dropdown-item" href="/AdminvsBSCheck">Carrier</a>
-            <a class="dropdown-item" href="/wishlist">Wishlist</a>
             <a class="dropdown-item" href="/logout">Log Out</a>
                   </div>
               </div>

@@ -1105,6 +1105,16 @@ def obtaining_seller_product_id(sellerid):
 
     return prod_id_list
 
+#def courier_delivered(deliverylist):
+#    db=shelve.open('database/delivery_database/carrier.db','c')
+#    somelist=[]
+#    for i in deliverylist:
+#        for k in db:
+#            if i.get_individual_orderid()==k:
+#                somelist.append(k.get_status())
+#    db.close()
+#    return somelist
+
 #to create list of objects for seller side
 def create_seller_order_list(sellerid):
     try:
@@ -1314,7 +1324,7 @@ class Order:
         self.__buyername=buyername
         self.__totalprice=totalprice
         # self.__sellerID=sellerID
-        self.__timestamp = datetime.timestamp(datetime.now())
+        self.__timestamp = datetime.date(datetime.today())
     def temp_set_cart_list(self,old_cart_list):
          self.__cart_list=old_cart_list
 
@@ -1323,6 +1333,7 @@ class Order:
 
     def set_totalprice(self,totalprice):
         self.__totalprice=totalprice
+
     def temp_set_cart_list(self,old_cart_list):
         self.__cart_list = old_cart_list
     # def set_sellerID(self,sellerID):
@@ -1350,7 +1361,7 @@ class Order:
         return self.__timestamp
 
     def get_timestamp_as_datetime(self):
-        return datetime.fromtimestamp(self.__timestamp)
+        return datetime.date(datetime.today())
     def __str__(self):
         return 'buyerid: {},orderid: {},cartlist: {}, buyername {},timestamp {},datetime {}'.format(self.get_buyer_user_id(),self.get_orderId(),self.get_cart_list(),self.get_buyername(),self.get_timestamp(),self.get_timestamp_as_datetime())
 

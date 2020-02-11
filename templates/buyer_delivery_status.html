@@ -20,6 +20,7 @@
               </thead>
               <tbody>
                 {% for delivery_item in deliverylist %}
+
                 <tr>
                   <td>{{ delivery_item.get_individual_orderid() }}</td>
                   <td>{{ delivery_item.get_product_name() }}</td>
