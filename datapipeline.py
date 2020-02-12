@@ -281,12 +281,14 @@ def get_all_qty_data(ownp):
 
 
 # def get_all_users_id():
-#     userlst = ['c50fa0294d6c4a739b7d7c51b0312bd3','a5f3141bc0024083a831b0d1f71fac87']
+#     userlst = ['e2eeff7bd66c41699199fdf737fdea7c','4904d91fa624449cb1be3e20c18a75bc']
 #     return userlst
 
 # testdatau = get_all_users_id()
 # for i in range(10):
-#     order_logging(random.choice(testdatau),random.randint(1,20),'4d200bfc2dd34434b8193c7fcbaa94f0','TEST')
-#     order_logging(random.choice(testdatau),random.randint(1,20),'b485ab12329448f582e37cffc5957a16','TEST')
-#     order_logging(random.choice(testdatau),random.randint(1,20),'06f90d8588e347d8b04f61e283acb85a','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'1f19ad0a774a484dbfcdefa4dca9c076','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'b4c9c75cdf3143b187f5205849cee60b','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'e35351fda3854a138d10589eb3fd7974','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'92d293b3551d419281ea44428e63d645','TEST')
+#     order_logging(random.choice(testdatau),random.randint(1,20),'b110cde68c9c48dd8e23a284a57879a3','TEST')
 

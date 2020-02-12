@@ -3,9 +3,12 @@
 {% from "components/_formHelper.html" import render_field %}
 <br>
 <br>
+<br>
+<br>
+<br>
 
-<h1 class="display-4"><strong>Create Question</strong></h1>
 <div class="container">
+<h1 class="display-4"><strong>Create Question</strong></h1>
 <form method="POST" action="">
     <div class="form-group">
         {{render_field(form.question, class="form-control", placeholder="Question here")}}

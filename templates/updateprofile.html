@@ -36,7 +36,11 @@
  {{ form.profile_picture(class="form-control-file") }}
 
  </div>
-
+ <div>
+ {% if similarerror %}
+ <p  style="color:red;"><strong>Error:</strong> {{ similarerror }}
+{% endif %}
+ </div>
 <input type="submit" value="Submit" class="btn btn-primary"> <a class="float-right" href="/create_newpassword_profile/{{session['user_id']}}">Reset Password</a>
 </form>
   </article>

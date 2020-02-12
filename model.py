@@ -625,7 +625,7 @@ class orders_logger:
     def __init__(self,o_amount,product_id,order_obj):
         self.__o_amount = o_amount
         self.set_o_profit(o_amount,product_id)
-        self.__timestamp = datetime.timestamp(get_random_date(2019))
+        self.__timestamp = datetime.timestamp(get_random_date(2020))
         self.__product_id = product_id
         self.set_ordered_product_name(product_id)
         self.__order_obj = order_obj
@@ -1385,11 +1385,28 @@ def get_buyer_orders(user_id):
             for i in userorder.copy():
                 if i not in allp:
                     userorder.pop(i)
-        orders.temp_set_cart_list(userorder)
-        buyers_orders.append(orders)
+            orders.temp_set_cart_list(userorder)
+            buyers_orders.append(orders)
     db.close()
     return buyers_orders
 
+def test_get_buyer_orders():
+    allp = get_all_product_id()
+    buyers_orders = []
+    db = shelve.open('database/order_database/order.db','r')
+    for orders in db.values():
+        print(orders)
+        # # Check if user login make the order
+        # if orders.get_buyer_user_id() == user_id:
+        #     userorder = orders.get_cart_list()
+        #     for i in userorder.copy():
+        #         if i not in allp:
+        #             userorder.pop(i)
+        # orders.temp_set_cart_list(userorder)
+        # buyers_orders.append(orders)
+    db.close()
+
+test_get_buyer_orders()
 def get_seller_orders(sellerid):
     # Call a function to get all the id of the product the seller owns
      seller_own_product = get_usr_owned_p(sellerid)
