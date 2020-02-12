@@ -446,7 +446,10 @@ def passwordreset_email():
                 db.close()
                 flash('An email has been sent. Please check your email to reset your password')
                 return redirect(url_for("loginUser"))
-        db.close()
+            else:
+                db.close()
+                error = 'Email not found'
+                return render_template('passwordreset_email.html', form=getEmailForm, error=error)
     return render_template('passwordreset_email.html',form=getEmailForm)
 
 
