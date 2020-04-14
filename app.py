@@ -21,8 +21,8 @@ app.config.update(
 	MAIL_SERVER='smtp.gmail.com',
 	MAIL_PORT=465,
 	MAIL_USE_SSL=True,
-	MAIL_USERNAME = 'input your email address here',
-	MAIL_PASSWORD = 'input the password for your email address
+	MAIL_USERNAME = 'input your gmail address here',
+	MAIL_PASSWORD = 'input the password for your gmail address'
 	)
 s= URLSafeTimedSerializer(app.secret_key)
 mail = Mail(app)
