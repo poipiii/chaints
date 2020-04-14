@@ -21,8 +21,8 @@ app.config.update(
 	MAIL_SERVER='smtp.gmail.com',
 	MAIL_PORT=465,
 	MAIL_USE_SSL=True,
-	MAIL_USERNAME = 'tasky.webapp@gmail.com',
-	MAIL_PASSWORD = '7eNGs-Z76#G-LKFV?PP@@NwkzraC$egq'
+	MAIL_USERNAME = 'input your email address here',
+	MAIL_PASSWORD = 'input the password for your email address
 	)
 s= URLSafeTimedSerializer(app.secret_key)
 mail = Mail(app)
